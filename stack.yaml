@@ -1,0 +1,5 @@
+flags: {}
+packages:
+- .
+extra-deps: []
+resolver: ghc-8.4.4

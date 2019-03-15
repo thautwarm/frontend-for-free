@@ -12,23 +12,34 @@ import qualified Data.Map as M
 --     kind     :: t -> String
 
 data Lexer where
+    -- L = <String>
     RefL   :: String -> Lexer
+    -- L = R"<String>"
     RegexL :: String -> Lexer
+    -- L = "<String>"
     StrsL  :: [String] -> Lexer
     deriving (Eq, Ord, Show)
 
 data Range where
-    -- if `atLeast` and `atMost` are both given, the `repeat` parser
+    -- if both `atLeast` and `atMost` are given, the `repeat` parser
     --  could be translated into many `and` parsers.
-    LessThan :: Int -> Range
-    MoreThan :: Int -> Range
+
+    -- Range = '>=' <Int>
+    LER :: Int -> Range
+    -- Range = '<=' <Int>
+    GER :: Int -> Range
     deriving (Eq, Ord, Show)
 
 data Parser where
+    -- P = P | P
     OrP      :: Parser -> Parser -> Parser
+    -- P = P P
     AndP     :: Parser -> Parser -> Parser
-    LitP     :: Lexer -> Parser
+    -- P = L
+    LitP     :: Lexer  -> Parser
+    -- P = P '{' Range '}'
     RepP     :: Parser -> Range -> Parser
+    -- P = <String>
     RefP     :: String -> Parser
     deriving (Eq, Ord, Show)
 

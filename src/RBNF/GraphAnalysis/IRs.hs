@@ -10,18 +10,18 @@ type ExpandedGraph = M.Map String [ExpandedNodes]
 type ExpandedNodes = [ExpandedNode]
 data ExpandedNode where
     EpsE     :: ExpandedNode
-    Rep1E    :: ExpandedNode -> Range -> ExpandedNode 
+    Rep1E    :: ExpandedNode -> Range -> ExpandedNode
     Rep2E    :: [ExpandedNode] -> Range -> ExpandedNode
     RefE     :: String -> ExpandedNode
     LitE     :: Lexer -> ExpandedNode
+    PackE    :: String -> Int -> ExpandedNode
     deriving (Eq, Ord, Show)
-
 
 type ReducedGraph = M.Map String ReducedNode
 
 type ReducedGraphStore = M.Map Int ReducedNode
 
-data NodeInfo = RepI Range | RefI String | LitI Lexer
+data NodeInfo = RepI Range | RefI String | LitI Lexer | PackI String Int
 
 data ReducedNode =
       Epsilon

@@ -2,8 +2,8 @@
 module RBNF.GraphAnalysis.Reduce where
 import RBNF.Semantics
 import RBNF.GraphAnalysis.IRs
-import qualified Data.Map as M    
-import qualified Data.Set as S    
+import qualified Data.Map as M
+import qualified Data.Set as S
 
 groupNodes :: [ExpandedNodes] ->  M.Map ExpandedNode [ExpandedNodes]
 groupNodes [] = M.empty
@@ -20,12 +20,12 @@ unique (x : xs) =
     where
         unique' occurred xs [] = reverse xs
         unique' occurred xs (hd:tl) =
-            let 
+            let
                 (occurred', xs') =
                     if hd `notElem` occurred
                     then (S.insert hd occurred, hd:xs)
                     else (occurred, xs)
-            in unique' occurred' xs' tl  
+            in unique' occurred' xs' tl
 
 reduce :: ExpandedGraph -> ReducedGraph
 reduce ctx =
@@ -40,9 +40,8 @@ reduce ctx =
             []    -> []
             []:xs -> [EpsE]:addEps xs
             x:xs  -> x:addEps xs
-        
+
         mergeCases = error ""
         mergeCase EpsE elts = error ""
 
-            
-            
+

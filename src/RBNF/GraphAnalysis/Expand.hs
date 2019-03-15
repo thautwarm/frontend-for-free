@@ -8,13 +8,22 @@ import RBNF.GraphAnalysis.IRs
 import qualified Data.Map as M
 import qualified Data.Set as S
 
+stackEffect :: ExpandedNodes -> Int
+stackEffect = sum . fmap stackEffectEach
+              where
+                stackEffectEach :: ExpandedNode -> Int
+                stackEffectEach = \case
+                    EpsE      -> 0
+                    PackE _ n -> 1-n
+                    _         -> 1
+
 expand :: ParserContext -> ExpandedGraph
 expand ctx =
     fmap (expandEach S.empty) ctx
     where
         expandRoot :: S.Set String -> String -> Parser -> [ExpandedNodes]
         expandRoot recur rootName parser =
-            [ chain ++ [PackE rootName $ length chain]  | chain <- expandEach (S.insert rootName recur) parser ]
+            [ chain ++ [PackE rootName $ stackEffect chain]  | chain <- expandEach (S.insert rootName recur) parser ]
 
         expandEach :: S.Set String -> Parser -> [ExpandedNodes]
         expandEach recur = \case

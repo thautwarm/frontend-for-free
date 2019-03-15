@@ -14,7 +14,7 @@ stackEffect = sum . fmap stackEffectEach
                 stackEffectEach :: ExpandedNode -> Int
                 stackEffectEach = \case
                     EpsE      -> 0
-                    PackE _ n -> 1-n
+                    PackE _ n -> 1 - n
                     _         -> 1
 
 expand :: ParserContext -> ExpandedGraph

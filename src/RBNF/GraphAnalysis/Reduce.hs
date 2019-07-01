@@ -5,7 +5,10 @@ import RBNF.GraphAnalysis.IRs
 
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Control.Monad.Reader
+import Control.Monad.State
+import Control.Arrow
+
+groupBy key = M.fromListWith (++) . map (key &&& pure)
 
 groupNodes :: [ExpandedNodes] ->  M.Map ExpandedNode [ExpandedNodes]
 groupNodes [] = M.empty
@@ -29,20 +32,24 @@ unique (x : xs) =
                     else (occurred, xs)
             in unique' occurred' xs' tl
 
-reduce :: ExpandedGraph -> Reader ReducedGraph ()
+reduce :: ExpandedGraph -> State ReducedGraph ()
 reduce ctx =
     forM_ (M.toList ctx) reduceRoot
     where
-        reduceRoot :: (String, [ExpandedNodes]) -> Reader ReducedGraph ()
+        reduceRoot :: (String, [ExpandedNodes]) -> State ReducedGraph ()
         reduceRoot (rootName, branches) =
             let
-                reduceEach :: [ExpandedNodes] -> ReducedNode
+                reduceEach :: [ExpandedNodes] -> State ReducedGraph ()
                 reduceEach = \case
                     [] -> errorWithoutStackTrace  "Cannot reduce an empty node chain"
-                    xs -> forM_ xs $ (forEachGroup rootName) . M.toList . groupNodes
+                    xs ->
+                        let groups = M.toList $ groupBy head xs
+                        in  forM_ groups $ forEachGroup rootName
             in reduceEach branches
-        forEachGroup rootName (start, branches) = do
-            addEps . unique $ branches
+
+        forEachGroup :: String -> (ExpandedNode, [ExpandedNodes]) -> State ReducedGraph ()
+        forEachGroup rootName (start, branches) = error ""
+            -- addEps . unique $ branches
 
 
         addEps :: [ExpandedNodes] -> [ExpandedNodes]

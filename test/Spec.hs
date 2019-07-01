@@ -5,20 +5,25 @@ import Data.Foldable
 
 {-
 Number ::= <number>
-Add ::= Number | Add '+' Number 
+Add ::= Number | Add '+' Number
 -}
 infixl 9  <&>
 infixl  5  <|>
 (<&>) = AndP
 (<|>) = OrP
-infixl 1 `produce`
-a `produce` b = (a, b)
+infixl 1 -->
+a --> b = (a, b)
+
+regex = LitP . RegexL
+
+str x = LitP $ StrsL [x]
 
 parsers =
     M.fromList [
-        "Number" `produce` (LitP . RegexL) "<number regex>",
-        "Add"    `produce` RefP "Number"
-                    <|> RefP "Add" <&> (LitP . StrsL) ["+"] <&> RefP "Number"
+        "Number" --> regex "<number regex>"
+        , "Factor" --> RefP "Number" <|>  str "-" <&> RefP "Factor"
+        , "Mul"    --> RefP "Factor" <|> RefP "Mul" <&> str "*" <&> RefP "Factor"
+        -- , "Add"    --> RefP "Mul" <|> (RefP "Add" <&> str "+" <&> RefP "Mul")
     ]
 
 main :: IO ()

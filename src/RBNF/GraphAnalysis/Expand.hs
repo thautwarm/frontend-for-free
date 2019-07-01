@@ -17,6 +17,7 @@ stackEffect = sum . fmap stackEffectEach
                     PackE _ n -> 1 - n
                     _         -> 1
 
+
 expand :: ParserContext -> ExpandedGraph
 expand ctx =
     fmap (expandEach S.empty) ctx

@@ -8,16 +8,11 @@ import qualified Data.Set as S
 import Control.Monad.State
 import Control.Arrow
 
-groupBy key = M.fromListWith (++) . map (key &&& pure)
-
-groupNodes :: [ExpandedNodes] ->  M.Map ExpandedNode [ExpandedNodes]
-groupNodes [] = M.empty
-groupNodes (x:xs) =
-    let m     = groupNodes xs
-        hd:tl = x
-        insert_f :: [ExpandedNodes] -> [ExpandedNodes] -> [ExpandedNodes]
-        insert_f [one] old = one:old
-    in M.insertWith insert_f hd [tl] m
+groupNodes =
+    let f = \case
+            [] -> errorWithoutStackTrace "Invalid groupNodes"
+            x:xs -> (x, [xs])
+    in M.fromListWith (++) . map f
 
 unique [] = []
 unique (x : xs) =
@@ -43,15 +38,27 @@ reduce ctx =
                 reduceEach = \case
                     [] -> errorWithoutStackTrace  "Cannot reduce an empty node chain"
                     xs ->
-                        let groups = M.toList $ groupBy head xs
-                        in  forM_ groups $ forEachGroup rootName
+                        let groups = M.toList $ groupNodes xs
+                        in  forM_ groups $ genRule rootName
             in reduceEach branches
 
-        forEachGroup :: String -> (ExpandedNode, [ExpandedNodes]) -> State ReducedGraph ()
-        forEachGroup rootName (start, branches) = error ""
+        genRule :: String -> (ExpandedNode, [ExpandedNodes]) -> State ReducedGraph ReducedNode
+        genRule rootName (RefE rootName', branches) = do
+            rgraph <- get
+            if M.member rootName rgraph
+                
+            -- already been generated
+            then
+                return ()
+            else if rootName' == rootName
+            -- left recursion
+            then
+                addLRRule rootName branches
+            else error ""
+
             -- addEps . unique $ branches
 
-
+        addLRRule = error ""
         addEps :: [ExpandedNodes] -> [ExpandedNodes]
         addEps = \case
             []    -> []

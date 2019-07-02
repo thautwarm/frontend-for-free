@@ -18,9 +18,9 @@ data ExpandedNode where
     PackE    :: String -> Int -> ExpandedNode
     deriving (Eq, Ord, Show)
 
-type ReducedGraph = M.Map String [ReducedNode]
+type ReducedGraph = M.Map String ReducedNode
 
-type ReducedGraphStore = M.Map Int [ReducedNode]
+type ReducedGraphStore = M.Map Int ReducedNode
 
 data NodeInfo = RepI Range | RefI String | LitI Lexer | PackI String Int
 

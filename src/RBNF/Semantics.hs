@@ -38,7 +38,7 @@ data Parser where
     -- P = L
     LitP     :: Lexer  -> Parser
     -- P = P '{' Range '}'
-    RepP     :: Parser -> Range -> Parser
+    RepP     :: Parser -> Parser
     -- P = <String>
     RefP     :: String -> Parser
     deriving (Eq, Ord, Show)

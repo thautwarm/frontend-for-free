@@ -46,7 +46,6 @@ reduce ctx =
         genRule rootName (RefE rootName', branches) = do
             rgraph <- get
             if M.member rootName rgraph
-                
             -- already been generated
             then
                 return ()

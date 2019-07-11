@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE NamedFieldPuns #-}
 module RBNF.Symbols where
 
 import qualified Data.Map  as M
@@ -13,19 +14,13 @@ import Control.Lens (over, view, Lens')
 type Set a = S.Set a
 type Map a b = M.Map a b
 
-data MatchCond = forall a. (Show a, Eq a, Ord a) => MatchCond {predicate :: String, value :: a}
-instance Eq MatchCond
-instance Ord MatchCond
-instance Show MatchCond where
-    show MatchCond {predicate=pred, value=val} = pred ++ " = " ++ show val
+data Case = forall a. (Eq a, Ord a, Show a) => Case {predicate :: String, value :: a}
 
-showConds :: (Foldable t, Show a) => t a -> String
-showConds = foldl f []
-            where f [] a = show a
-                  f xs a = show a ++ "&&" ++ xs
+instance Eq Case
+instance Ord Case
+instance Show Case where
+    show Case {predicate, value} = "<" ++ predicate ++ "="  ++ show value ++ ">"
 
-newtype Case = Case (Set MatchCond)
-    deriving (Eq, Ord, Show)
 
 
 data MiniLang
@@ -50,7 +45,8 @@ data P
     | PNonTerm String
     -- advanced:
     -- PPack TopN_of_stack Reduce_func
-    | PReduce Int MiniLang
+    | PPack   Int
+    | PReduce MiniLang Int
 
     | PPred MiniLang
 
@@ -63,17 +59,18 @@ type PRule = [P]
 type PProd = (String, PRule) -- productions
 instance Show P where
     show = \case
-        PTerm (Case set)  -> "<" ++ showConds set ++ ">"
+        PTerm c        -> "<" ++ show c ++ ">"
         PNonTerm s     -> s
         --
+        PPack    n     -> "pack<" ++ show n ++ ">"
         PPred    apply -> "?" ++ show apply
-        PReduce  n app -> "reduce<" ++ show n ++ ", " ++ show app ++ ">"
+        PReduce  app n -> "reduce<" ++ show n ++ ", " ++ show app ++ ">"
         PBind    s     -> "=: " ++ s
         PModif   modif -> "!" ++ show modif
 
 -- Combinatorial
 data C
-    = CTerm    [MatchCond]
+    = CTerm    Case
     | CNonTerm String
     | CSeq     [C]
     | CAlt     [C]
@@ -84,15 +81,15 @@ data C
     deriving (Eq, Ord)
 
 type CRule = C
-data CProd = CProd String C (Maybe MiniLang)
+type CProd = (String, C, (Maybe MiniLang))
 instance Show C where
     show = \case
-        CTerm set   -> "<" ++ showConds set ++ ">"
+        CTerm c     -> "<" ++ show c ++ ">"
         CNonTerm s  -> s
         CSeq [c]    -> show c
-        CSeq cs     -> "(" ++ (L.intercalate " " $ map show cs) ++ ")"
+        CSeq cs     -> "(" ++ unwords (map show cs) ++ ")"
         CAlt [c]    -> show c
-        CAlt cs     -> "(" ++ (L.intercalate "|" $ map show cs) ++ ")"
+        CAlt cs     -> "(" ++ L.intercalate "|" (map show cs) ++ ")"
         --
         CBind name c -> name ++ "=" ++ show c
         CPred apply  -> "?" ++ show apply

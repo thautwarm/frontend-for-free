@@ -1,5 +1,6 @@
-import RBNF.Semantics
-import RBNF.GraphAnalysis.Expand
+
+import RBNF.Grammar
+import RBNF.Default
 import qualified Data.Map as M
 import Data.Foldable
 
@@ -7,33 +8,28 @@ import Data.Foldable
 Number ::= <number>
 Add ::= Number | Add '+' Number
 -}
-infixl 9  <&>
-infixl  5  <|>
-(<&>) = AndP
-(<|>) = OrP
-infixl 1 -->
+
+infix 5 -->
+infix 6 =:=
+
+number = "number"
+negation = "-"
+multiply = "*"
+
 a --> b = (a, b)
-
-regex = LitP . RegexL
-
-str x = LitP $ StrsL [x]
-
-parsers =
-    M.fromList [
-        "Number" --> regex "<number regex>"
-        , "Factor" --> RefP "Number" <|>  str "-" <&> RefP "Factor"
-        , "Mul"    --> RefP "Factor" <|> RefP "Mul" <&> str "*" <&> RefP "Factor"
-        -- , "Add"    --> RefP "Mul" <|> (RefP "Add" <&> str "+" <&> RefP "Mul")
+a =:= b = CTerm [MatchCond a b]
+parsers = CGrammar . M.fromList $ [
+    "Number" --> "name" =:= number
+    , "Factor" --> CAlt[ CNonTerm "Number", CSeq [ "name" =:= negation, CNonTerm "Factor" ]]
+    , "Mul"    --> CAlt[ CNonTerm "Factor", CSeq [ CNonTerm "Mul", "name" =:= multiply, CNonTerm "Factor"]]
     ]
 
-main :: IO ()
+mkMyGrammar :: MkGrammar SimplePGrammar
+mkMyGrammar = mkGrammar
+
 main = do
-    putStrLn "\n"
-    for_ (M.toList $ expand parsers) f
-    where
-        f (k, xs) = do
-            putStrLn $ show k ++ " -> \n"
-            for_ xs $ \each ->
-                putStrLn $ "     " ++ show each ++ "\n"
+    putStrLn ""
+    print $ mkMyGrammar parsers
 
-
+    -- putStrLn "" >>
+    -- (forM_ parsers $ putStrLn . show)

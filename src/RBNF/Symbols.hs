@@ -53,6 +53,8 @@ data P
     | PBind String
 
     | PModif MiniLang
+
+    | PMkSExp String
     deriving (Eq, Ord)
 
 type PRule = [P]
@@ -67,6 +69,7 @@ instance Show P where
         PReduce  app n -> "reduce<" ++ show n ++ ", " ++ show app ++ ">"
         PBind    s     -> "=: " ++ s
         PModif   modif -> "!" ++ show modif
+        PMkSExp  tag   -> "s-exp<" ++ tag ++ ">"
 
 -- Combinatorial
 data C

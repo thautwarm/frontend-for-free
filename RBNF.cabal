@@ -30,7 +30,7 @@ library
       RBNF
       RBNF.Symbols
       RBNF.Grammar
-
+      RBNF.Transform
   other-modules:
       Paths_RBNF
   hs-source-dirs:

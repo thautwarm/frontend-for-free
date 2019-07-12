@@ -95,13 +95,29 @@ class HasLeftRecurs a where
 leftRecurs :: HasLeftRecurs a => Lens' a (Set String)
 leftRecurs f d = (`_leftRecurs'` d) <$> f ( _leftRecurs d)
 
+groupBy f = M.fromListWith (++) . map (f &&& pure)
+
+inline :: PGrammarBuilder -> PGrammarBuilder
+inline g = concatMap inlineProd g
+    where groups = M.map (map snd) $ groupBy fst g
+          inlineProd :: PProd -> [PProd]
+          inlineProd (me, rule) =
+            let inlineP :: P -> [PRule]
+                inlineP = \case
+                    x@(PNonTerm s)
+                        | s /= me  -> groups M.! s
+                    x              -> [[x]]
+            in map (const me &&& id ) $
+               map concat             $
+               sequence               $
+               map inlineP rule
 
 class (HasLeftRecurs g, HasProdGroups g, HasProductions g) => PGrammar g
 -- no interfaces
 
 mkGrammar :: CGrammar -> PGrammarBuilder
 mkGrammar m =
-    execState procedure []
+    inline $ execState procedure []
     where
         procedure :: State PGrammarBuilder ()
         procedure = do
@@ -111,6 +127,6 @@ mkGrammar m =
                     let packer =
                             case reduce of
                                 Just apply -> reduceStack apply
-                                _          -> packStack
+                                _          -> (++ [PMkSExp sym]) . packStack
                     return [(sym, packer rule) | rule <- prules]
             modify (concat a ++)

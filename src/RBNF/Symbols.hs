@@ -84,7 +84,7 @@ data C
     deriving (Eq, Ord)
 
 type CRule = C
-type CProd = (String, C, (Maybe MiniLang))
+type CProd = (String, C, Maybe MiniLang)
 instance Show C where
     show = \case
         CTerm c     -> "<" ++ show c ++ ">"

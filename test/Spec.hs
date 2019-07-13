@@ -37,8 +37,11 @@ parsers = S.fromList [
 
 main = do
     putStrLn ""
-    let ms = M.toList $ markedLeftRecur $ mkGrammar parsers
-    for_ ms $ \s ->
+    let ms = markedLeftRecur $ mkGrammar parsers
+    for_ (leftRecurs ms) $ \s ->
+        do print s >> print "======="
+
+    for_ (productions ms) $ \s ->
         do print s >> print "======="
 
 

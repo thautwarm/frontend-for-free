@@ -75,26 +75,6 @@ standardizeRule = \case
     CPred app   -> return [[PPred app]]
     CModif mdf  -> return [[PModif mdf]]
 
-class HasProductions a where
-    _prods  :: a -> Array Int PProd
-    _prods' :: Array Int PProd -> a -> a
-
-prods :: HasProductions a => Lens' a (Array Int PProd)
-prods f d = (`_prods'` d) <$> f (_prods d)
-
-class HasProdGroups a where
-    _prodGroups  :: a -> (Map String [Int])
-    _prodGroups' :: (Map String [Int]) -> a -> a
-prodGroups :: HasProdGroups a => Lens' a (Map String [Int])
-prodGroups f d = (`_prodGroups'` d) <$> f ( _prodGroups d)
-
-
-class HasLeftRecurs a where
-    _leftRecurs  :: a -> Set String
-    _leftRecurs' :: Set String -> a -> a
-leftRecurs :: HasLeftRecurs a => Lens' a (Set String)
-leftRecurs f d = (`_leftRecurs'` d) <$> f ( _leftRecurs d)
-
 groupBy f = M.fromListWith (++) . map (f &&& pure)
 
 inline :: PGrammarBuilder -> PGrammarBuilder
@@ -111,9 +91,6 @@ inline g = concatMap inlineProd g
                map concat             $
                mapM inlineP rule
 
-class (HasLeftRecurs g, HasProdGroups g, HasProductions g) => PGrammar g
--- no interfaces
-
 mkGrammar :: CGrammar -> PGrammarBuilder
 mkGrammar m =
     inline $ execState procedure []
@@ -129,3 +106,9 @@ mkGrammar m =
                                 _          -> (++ [PMkSExp sym]) . packStack
                     return [(sym, packer rule) | rule <- prules]
             modify (concat a ++)
+
+data Grammar
+    = Grammar {
+          productions :: Map String [PRule]
+        , leftRecurs  :: Map String [PRule]
+    } deriving (Show, Eq, Ord)

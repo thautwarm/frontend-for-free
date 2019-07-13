@@ -14,7 +14,7 @@ import qualified Data.Set  as S
 import qualified Data.List as L
 import qualified Data.Array as A
 
-
+-- SPILR
 data SplitByIsLeftRecursive
     = SplitByIsLeftRecursive {_isLeftR :: [PRule], _notLeftR:: [PRule]}
     deriving (Show, Eq, Ord)
@@ -29,11 +29,24 @@ mergeSplited xs = SplitByIsLeftRecursive isLeftR' notLeftR'
                     notLeftR' = extract notLeftR
 
 
-markedLeftRecur :: PGrammarBuilder -> Map String SplitByIsLeftRecursive
-markedLeftRecur g = M.mapWithKey f groups
+markedLeftRecur :: PGrammarBuilder -> Grammar
+markedLeftRecur g =
+        uncurry Grammar .
+        (M.fromList . fst &&& M.fromList . snd) .
+        unzip .
+        M.elems .
+        (M.mapWithKey _SPILR2Pair) .
+        (M.mapWithKey f) $ groups
+
     where
+        _SPILR2Pair :: String -> SplitByIsLeftRecursive -> ((String, [PRule]), (String, [PRule]))
+        _SPILR2Pair sym spilr =
+            let f g = (sym, view g spilr)
+            in (f isLeftR, f notLeftR)
+
         groups :: Map String [PRule]
         groups = M.map (map snd) $ groupBy fst g
+
         f :: String -> [PRule] -> SplitByIsLeftRecursive
         f sym rules =
             let recurs = S.singleton sym
@@ -58,3 +71,4 @@ markedLeftRecur g = M.mapWithKey f groups
                         let separated = frec recurs xs
                             addHd rules = [x:rule | rule <- rules]
                         in over isLeftR addHd . over notLeftR addHd $ separated
+

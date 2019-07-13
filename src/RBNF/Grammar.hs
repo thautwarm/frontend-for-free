@@ -109,8 +109,7 @@ inline g = concatMap inlineProd g
                     x              -> [[x]]
             in map (const me &&& id ) $
                map concat             $
-               sequence               $
-               map inlineP rule
+               mapM inlineP rule
 
 class (HasLeftRecurs g, HasProdGroups g, HasProductions g) => PGrammar g
 -- no interfaces

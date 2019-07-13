@@ -32,46 +32,49 @@ mergeSplited xs = SplitByIsLeftRecursive isLeftR' notLeftR'
                     isLeftR'  = extract isLeftR
                     notLeftR' = extract notLeftR
 
--- shifted :: P -> Bool
--- shifted = \case
---     PNonTerm _ -> True
---     PTerm _    -> True
---     _          -> False
-
--- separateLeftRecur :: PGrammar g => String -> PRule -> State (GradualUpdate g) Bool
--- separateLeftRecur root = error ""
---     where
---         frec :: PGrammar g => Set String -> PRule -> State (GradualUpdate g) SplitByIsLeftRecursive
---         frec recurs = \case
---             [] -> error "..." -- TODO: invalid prule
---             rule@(PTerm _:xs) -> return $ SplitByIsLeftRecursive [] [rule]
---             rule@(PNonTerm name:xs)
---                 | S.member name recurs ->
---                     return $
---                     if name == root then SplitByIsLeftRecursive [rule] []
---                     else SplitByIsLeftRecursive [] [rule]
---                 | otherwise -> do
---                     gets $ (M.! name)
-
---                     let recurs' = S.insert name recurs in
---                     do idsOfName <- gets $ (M.! name) . view (old . prodGroups)
---                         rules    <- gets $ (\arr -> [snd $ arr A.! id | id <- idsOfName]) . view (old . prods)
---                         mergeSplited <$> mapM (uncurry (frec recurs')) prods
---             x:xs | not $ shifted x -> do
---                     separated <- frec recurs xs
---                     let addHd rules = [x : rule | rule <- rules]
---                     return $ over isLeftR addHd . over notLeftR addHd $ separated
+isShift :: P -> Bool
+isShift = \case
+    PNonTerm _ -> True
+    PTerm _    -> True
+    _          -> False
 
 
+markedLeftRecur :: PGrammar g => String -> PRule -> State (GradualUpdate g) SplitByIsLeftRecursive
+markedLeftRecur root rule =
+        let recurs = S.singleton root in
+        frec recurs rule
+    where
+        frec :: PGrammar g => Set String -> PRule -> State (GradualUpdate g) SplitByIsLeftRecursive
+        frec recurs = \case
+            [] -> error "..." -- TODO: invalid prule
+            rule@(PTerm _:xs) -> return $ SplitByIsLeftRecursive [] [rule]
+            rule@(PNonTerm name:xs)
+                | S.member name recurs ->
+                    return $
+                    if name == root then SplitByIsLeftRecursive [rule] []
+                    else SplitByIsLeftRecursive [] [rule]
+                | otherwise -> do
+                    let recurs' = S.insert name recurs in
+                    do indsOfName <- gets $ (M.! name) . view (old . prodGroups)
+                        arr     <- gets $ view (old . prods)
+                        mergeSplited <$>
+                        mapM (uncurry (frec recurs')) $
+                        [snd $ arr A.! ind | ind <- indsOfName]
+            x:xs -> do
+                    separated <- frec recurs xs
+                    let addHd rules = [x : rule | rule <- rules]
+                    return $ over isLeftR addHd . over notLeftR addHd $ separated
 
--- data CSGProgram
---     = CSGPack Int
---     | CSGReduce MiniLang Int
---     | CSGPred MiniLang
---     | CSGBind String
---     | CSGModif MiniLang
 
--- data CSGS
---     = CSGTerm Case
---     | CSGNonTerm String
---     | CSGProgram
+
+data CSGProgram
+    = CSGPack Int
+    | CSGReduce MiniLang Int
+    | CSGPred MiniLang
+    | CSGBind String
+    | CSGModif MiniLang
+
+data CSGS
+    = CSGTerm Case
+    | CSGNonTerm String
+    | CSGProgram

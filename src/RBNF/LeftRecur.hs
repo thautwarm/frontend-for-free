@@ -1,0 +1,60 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TemplateHaskell #-}
+
+module RBNF.LeftRecur where
+
+import RBNF.Symbols
+import RBNF.Grammar
+import Control.Monad.State
+import Control.Lens (makeLenses, Lens', over, view)
+import Control.Arrow
+
+import qualified Data.Map  as M
+import qualified Data.Set  as S
+import qualified Data.List as L
+import qualified Data.Array as A
+
+
+data SplitByIsLeftRecursive
+    = SplitByIsLeftRecursive {_isLeftR :: [PRule], _notLeftR:: [PRule]}
+    deriving (Show, Eq, Ord)
+
+makeLenses ''SplitByIsLeftRecursive
+
+mergeSplited :: [SplitByIsLeftRecursive] -> SplitByIsLeftRecursive
+mergeSplited xs = SplitByIsLeftRecursive isLeftR' notLeftR'
+                  where
+                    extract f = concatMap  (view f) xs
+                    isLeftR'  = extract isLeftR
+                    notLeftR' = extract notLeftR
+
+
+markedLeftRecur :: PGrammarBuilder -> Map String SplitByIsLeftRecursive
+markedLeftRecur g = M.mapWithKey f groups
+    where
+        groups :: Map String [PRule]
+        groups = M.map (map snd) $ groupBy fst g
+        f :: String -> [PRule] -> SplitByIsLeftRecursive
+        f sym rules =
+            let recurs = S.singleton sym
+            in  mergeSplited $ map (splitLR sym recurs) rules
+        splitLR :: String -> Set String -> PRule -> SplitByIsLeftRecursive
+        splitLR root = frec
+            where
+                frec :: Set String -> PRule -> SplitByIsLeftRecursive
+                frec recurs = \case
+                    [] -> error "..." -- TODO: invalid prule
+                    rule@(PTerm _:xs) -> SplitByIsLeftRecursive [] [rule]
+                    rule@(PNonTerm name:xs)
+                        | S.member name recurs ->
+                            if name == root then SplitByIsLeftRecursive [rule] []
+                            else SplitByIsLeftRecursive [] [rule]
+                        | otherwise ->
+                            let recurs' = S.insert name recurs
+                                arr = groups M.! name
+                            in  mergeSplited $
+                                map (frec recurs') arr
+                    x:xs ->
+                        let separated = frec recurs xs
+                            addHd rules = [x:rule | rule <- rules]
+                        in over isLeftR addHd . over notLeftR addHd $ separated

@@ -1,7 +1,9 @@
 
 import RBNF.Grammar
 import RBNF.Symbols
+import RBNF.LeftRecur
 import qualified Data.Set as S
+import qualified Data.Map as M
 import Data.Foldable
 
 {-
@@ -23,13 +25,22 @@ a --> b = (a, b, Nothing)
 a =:= b = CTerm (Case a b)
 parsers = S.fromList [
     "Number"   --> "name" =:= number
-    , "Factor" --> CAlt[ CNonTerm "Number", CSeq [ "name" =:= negation, "a" |= CNonTerm "Factor" ]]
-    , "Mul"    --> CAlt[ CNonTerm "Factor", CSeq [ CNonTerm "Mul", "name" =:= multiply, CNonTerm "Factor"]]
+    , "Factor" --> CAlt [
+            CNonTerm "Number",
+            CSeq [ "name" =:= negation, "a" |= CNonTerm "Factor" ]
+        ]
+    , "Mul"    --> CAlt [
+            CNonTerm "Factor",
+            CSeq [ CNonTerm "Mul", "name" =:= multiply, CNonTerm "Factor"]
+        ]
     ]
 
 main = do
     putStrLn ""
-    print $ mkGrammar parsers
+    let ms = M.toList $ markedLeftRecur $ mkGrammar parsers
+    for_ ms $ \s ->
+        do print s >> print "======="
+
 
     -- putStrLn "" >>
     -- (forM_ parsers $ putStrLn . show)

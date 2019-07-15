@@ -31,6 +31,8 @@ library
       RBNF.Symbols
       RBNF.Grammar
       RBNF.LeftRecur
+      RBNF.Follow
+      RBNF.NextN
   other-modules:
       Paths_RBNF
   hs-source-dirs:

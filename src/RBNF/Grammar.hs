@@ -1,6 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module RBNF.Grammar where
 
 import RBNF.Symbols
@@ -107,8 +109,12 @@ mkGrammar m =
                     return [(sym, packer rule) | rule <- prules]
             modify (concat a ++)
 
+
 data Grammar
     = Grammar {
-          productions :: Map String [PRule]
-        , leftRecurs  :: Map String [PRule]
+          _prods  :: Map String [PRule]
+        , _leftR  :: Map String [PRule]
+        , _follow :: Map String [String]
     } deriving (Show, Eq, Ord)
+
+makeLenses ''Grammar

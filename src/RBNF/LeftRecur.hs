@@ -29,7 +29,7 @@ mergeSplited xs = SplitByIsLeftRecursive isLeftR' notLeftR'
                     notLeftR' = extract notLeftR
 
 
-markedLeftRecur :: PGrammarBuilder -> Grammar
+markedLeftRecur :: PGrammarBuilder -> Map String [String] -> Grammar
 markedLeftRecur g =
         uncurry Grammar .
         (M.fromList . fst &&& M.fromList . snd) .
@@ -37,7 +37,6 @@ markedLeftRecur g =
         M.elems .
         (M.mapWithKey _SPILR2Pair) .
         (M.mapWithKey f) $ groups
-
     where
         _SPILR2Pair :: String -> SplitByIsLeftRecursive -> ((String, [PRule]), (String, [PRule]))
         _SPILR2Pair sym spilr =

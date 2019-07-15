@@ -2,8 +2,10 @@
 import RBNF.Grammar
 import RBNF.Symbols
 import RBNF.LeftRecur
+import RBNF.Follow
 import qualified Data.Set as S
 import qualified Data.Map as M
+import qualified Data.List as L
 import Data.Foldable
 
 {-
@@ -37,13 +39,15 @@ parsers = S.fromList [
 
 main = do
     putStrLn ""
-    let ms = markedLeftRecur $ mkGrammar parsers
-    for_ (leftRecurs ms) $ \s ->
-        do print s >> print "======="
+    for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
+            putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
 
-    for_ (productions ms) $ \s ->
-        do print s >> print "======="
+    -- let ms = markedLeftRecur $ mkGrammar parsers
+    -- for_ (leftRecurs ms) $ \s ->
+    --     print s >> print "======="
 
+    -- for_ (productions ms) $ \s ->
+    --     print s >> print "======="
 
     -- putStrLn "" >>
     -- (forM_ parsers $ putStrLn . show)

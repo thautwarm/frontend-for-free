@@ -32,7 +32,7 @@ parsers = S.fromList [
             CSeq ["name" =:= negation, "a" |= CNonTerm "Factor" ]
         ]
     , "Mul"    --> CAlt [
-            CNonTerm "Factor",
+            CSeq [ CPred (MTerm "somePred"), CNonTerm "Factor" ],
             CSeq [ CNonTerm "Mul", "name" =:= multiply, CNonTerm "Factor"]
         ]
     ]

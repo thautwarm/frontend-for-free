@@ -16,7 +16,7 @@ import Control.Monad.Reader
 import Control.Lens (over, view, Lens', makeLenses)
 
 data NodeKind =
-      NShift Shiftable
+      NEntity Entity
     | NProc {
           codes::[(Int, IR, ProgKind)]
         , bounds :: Map String Int

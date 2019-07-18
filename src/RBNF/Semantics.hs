@@ -53,18 +53,22 @@ instance Show IR where
       IRPushScope -> "pushscope"
       IRPopScope  -> "popscope"
 
-data Shiftable
-    = STerm Case
-    | SNonTerm String
+type ParsingRoute = [Entity]
+data Entity
+    = ETerm Case
+    | ENonTerm String
+    | EPredicate IR
 
-instance Show Shiftable where
+instance Show Entity where
     show = \case
-        STerm c -> show c
-        SNonTerm s -> s
+        ETerm c -> show c
+        ENonTerm s -> s
+        EPredicate p ->
+            "pred<" ++ show p ++ ">"
 
 maybeShift = \case
-    PTerm c -> Just $ STerm c
-    PNonTerm c -> Just $ SNonTerm c
+    PTerm c -> Just $ ETerm c
+    PNonTerm c -> Just $ ENonTerm c
     _ -> Nothing
 
 data ProgKind
@@ -73,8 +77,9 @@ data ProgKind
     | ProgRewrite
     deriving (Show)
 
+
 data Seman = Seman {
-        _shifts    :: [Shiftable]
+        _route    :: ParsingRoute
       , _prog      :: [(Int, IR, ProgKind)]
     }
 
@@ -83,9 +88,9 @@ emptySeman = Seman [] []
 
 indent n s = replicate n ' ' ++ s
 instance Show Seman where
-    show Seman {_shifts, _prog} =
+    show Seman {_route, _prog} =
         let
-            shifts_Str = unwords $ map (indent 4 . show) _shifts
+            route_Str = unwords $ map (indent 4 . show) _route
             tripleShow :: (Int, IR, ProgKind) -> String
             tripleShow (pos, ir, k) =
                 show k ++ " pos " ++
@@ -93,7 +98,7 @@ instance Show Seman where
             prog_Str = L.intercalate "\n" $
                 flip map _prog $
                 (indent 4 . tripleShow)
-        in "shift reduce terms:\n" ++ shifts_Str ++ "\n" ++
+        in "parsing route:\n" ++ route_Str ++ "\n" ++
             "program:\n" ++ prog_Str ++ "\n"
 
 
@@ -154,7 +159,7 @@ analyse' seman = \case
         obj <- shiftReduce
         push obj
         seman <- analyse' seman xs
-        return $ over shifts (x:) seman
+        return $ over route (x:) seman
     PPack n:xs -> do
         tp <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj
@@ -182,9 +187,9 @@ analyse' seman = \case
         let seman' = addProg pos' (miniLangToIR m) ProgNormal seman
         analyse' seman' xs
     PPred m:xs -> do
-        pos' <- gets $ view pos
-        let seman' = addProg pos' (miniLangToIR m) ProgPredicate seman
-        analyse' seman' xs
+        seman <- analyse' seman xs
+        let predProg =  miniLangToIR m
+        return $ over route (EPredicate predProg:) seman
     PReduce m n:xs -> do
         tp  <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj

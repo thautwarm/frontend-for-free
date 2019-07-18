@@ -26,6 +26,7 @@ dependencies:
 - containers
 - lens
 - vector
+- aeson
 library:
   source-dirs:
   - src

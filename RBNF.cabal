@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 34ef7c8c3bc052f4a27f4189b24f4db673048fd31951506ff3f8b0fc8411f062
+-- hash: 99f973a445609cc3c86825214aae9cd8bb17bdd5793602615879c49f0bc5e033
 
 name:           RBNF
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       RBNF
+      RBNF.Dump
       RBNF.Follow
       RBNF.Grammar
       RBNF.Graph
@@ -39,7 +40,8 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , containers
     , lens
     , mtl
@@ -56,6 +58,7 @@ executable RBNF-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
+    , aeson
     , base >=4.7 && <5
     , containers
     , lens
@@ -74,6 +77,7 @@ test-suite RBNF-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
+    , aeson
     , base >=4.7 && <5
     , containers
     , lens

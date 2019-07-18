@@ -19,9 +19,11 @@ import Control.Lens (over, view, Lens', makeLenses)
 
 
 
+type SlotIdx = Int
 data VName =
-    Slot Int
+    Slot SlotIdx
   | Local String
+  deriving (Eq, Ord)
 
 instance Show VName where
   show = \case
@@ -32,11 +34,11 @@ data IR
   = IRAss VName IR
   | IRTuple [IR]
   | IRVar VName
-  | forall a. Show a => IRVal a
   | IRMkSExp String IR
   | IRCall IR [IR]
   | IRPushScope
   | IRPopScope
+  deriving (Eq, Ord)
 
 instance Show IR where
   show = \case
@@ -45,7 +47,6 @@ instance Show IR where
       IRTuple xs ->
           "(" ++ L.intercalate "," (map show xs) ++ ")"
       IRVar n -> show n
-      IRVal a -> show a
       IRMkSExp n ir -> n ++ "{" ++ show ir ++ "}"
       IRCall f args ->
           let args_str = "(" ++ L.intercalate "," (map show args) ++ ")"
@@ -58,6 +59,8 @@ data Entity
     = ETerm Case
     | ENonTerm String
     | EPredicate IR
+    | EModify IR
+    deriving (Eq, Ord)
 
 instance Show Entity where
     show = \case
@@ -65,42 +68,38 @@ instance Show Entity where
         ENonTerm s -> s
         EPredicate p ->
             "pred<" ++ show p ++ ">"
+        EModify f ->
+            "modify<" ++ show f ++ ">"
 
 maybeShift = \case
     PTerm c -> Just $ ETerm c
     PNonTerm c -> Just $ ENonTerm c
     _ -> Nothing
 
-data ProgKind
-    = ProgNormal
-    | ProgPredicate
-    | ProgRewrite
-    deriving (Show)
-
-
 data Seman = Seman {
         _route    :: ParsingRoute
-      , _prog      :: [(Int, IR, ProgKind)]
+      , _prog     :: [(Int, IR)]
+      , ret       :: SlotIdx
     }
+    deriving (Eq, Ord)
 
 makeLenses ''Seman
-emptySeman = Seman [] []
+emptySeman = Seman [] [] 0
 
 indent n s = replicate n ' ' ++ s
 instance Show Seman where
-    show Seman {_route, _prog} =
+    show Seman {_route, _prog, ret} =
         let
             route_Str = unwords $ map (indent 4 . show) _route
-            tripleShow :: (Int, IR, ProgKind) -> String
-            tripleShow (pos, ir, k) =
-                show k ++ " pos " ++
-                show pos ++ ", " ++ show ir
+            tripleShow :: (Int, IR) -> String
+            tripleShow (pos, ir) =
+                " pos " ++ show pos ++ ", " ++ show ir
             prog_Str = L.intercalate "\n" $
                 flip map _prog $
                 (indent 4 . tripleShow)
         in "parsing route:\n" ++ route_Str ++ "\n" ++
-            "program:\n" ++ prog_Str ++ "\n"
-
+           "program:\n" ++ prog_Str ++ "\n" ++
+           "return: " ++ show (Slot ret) ++ "\n"
 
 newtype StackObj = SObj Int
 
@@ -142,7 +141,7 @@ pop = do
 irOfObj (SObj i) = IRVar $ Slot i
 refObj (SObj iL) = IRAss (Slot iL)
 
-addProg pos ir kind = over prog ((pos, ir, kind):)
+addProg pos ir = over prog ((pos, ir):)
 
 miniLangToIR = \case
     MTerm s -> IRVar $ Local s
@@ -154,7 +153,10 @@ miniLangToIR = \case
 
 analyse' :: Seman -> [P] -> State CFG Seman
 analyse' seman = \case
-    [] -> return $ seman
+    [] -> do
+        stack' <- gets $ view stack
+        let (SObj i):[] = stack'
+        return seman {ret = i}
     (maybeShift -> Just x):xs -> do
         obj <- shiftReduce
         push obj
@@ -165,13 +167,13 @@ analyse' seman = \case
         obj <- newObj
         push obj
         pos' <- gets $ view pos
-        let seman' = addProg pos' (refObj obj tp) ProgNormal seman
+        let seman' = addProg pos' (refObj obj tp) seman
         analyse' seman' xs
     PBind s:xs -> do
         obj@(SObj i) <- pop
         pos' <- gets $ view pos
         let ir     = irOfObj obj
-            seman' = addProg pos' (bindName s ir) ProgNormal seman
+            seman' = addProg pos' (bindName s ir) seman
         push obj
         analyse' seman' xs
     PMkSExp s n:xs -> do
@@ -180,12 +182,12 @@ analyse' seman = \case
         push obj
         pos' <- gets $ view pos
         let ir    = IRMkSExp s tp
-            seman' = addProg pos' (refObj obj ir) ProgNormal seman
+            seman' = addProg pos' (refObj obj ir) seman
         analyse' seman' xs
     PModif m:xs -> do
-        pos' <- gets $ view pos
-        let seman' = addProg pos' (miniLangToIR m) ProgNormal seman
-        analyse' seman' xs
+        seman <- analyse' seman xs
+        let sideEffect = miniLangToIR m
+        return $ over route (EModify sideEffect:) seman
     PPred m:xs -> do
         seman <- analyse' seman xs
         let predProg =  miniLangToIR m
@@ -197,22 +199,22 @@ analyse' seman = \case
         pos' <- gets $ view pos
         let fn   = miniLangToIR m
             call = IRCall fn [tp]
-            seman' = addProg pos' (refObj obj call) ProgRewrite seman
+            seman' = addProg pos' (refObj obj call) seman
         analyse' seman' xs
     PPushScope:xs -> do
         pos' <- gets $ view pos
-        flip analyse' xs $ addProg pos' IRPushScope ProgNormal seman
+        flip analyse' xs $ addProg pos' IRPushScope seman
     PPopScope:xs -> do
         pos' <- gets $ view pos
-        flip analyse' xs $ addProg pos' IRPopScope ProgNormal seman
+        flip analyse' xs $ addProg pos' IRPopScope seman
 
 
 analyse = analyse' emptySeman
 pGToSG :: Grammar [P] -> Grammar Seman
 pGToSG g =
-    let transf lens initCFG =
-            let f = map $ flip evalState initCFG . analyse
+    let transf lens =
+            let f = map $ flip evalState emptyCFG . analyse
             in  M.map f $ view lens g
-        prods' = transf prods emptyCFG
-        leftR' = transf leftR emptyCFG
+        prods' = transf prods
+        leftR' = transf leftR
     in Grammar prods' leftR'

@@ -43,9 +43,15 @@ main = do
     --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
 
     let ms = pGToSG  . markedLeftRecur $ mkGrammar parsers
+    putStrLn "left recursions:"
     for_ (M.toList $ _leftR ms) $ \(s, xs) -> do
-        putStrLn s
-        for_ xs print
+        putStrLn $ "Rule:" ++ s
+        for_ xs $ \s -> putStrLn "" >> print s
+    putStrLn "not left recursions:"
+    for_ (M.toList $ _prods ms) $ \(s, xs) -> do
+        putStrLn $ "Rule:" ++ s
+        for_ xs $ \s -> putStrLn "" >> print s
+
     -- for_ (productions ms) $ \s ->
     --     print s >> print "======="
 

@@ -27,6 +27,7 @@ dependencies:
 - lens
 - vector
 - aeson
+- transformers
 library:
   source-dirs:
   - src

@@ -1,1 +1,842 @@
-{"ends":{"Mul":2,"Factor":0,"Number":4},"starts":{"Mul":3,"Factor":1,"Number":5},"nodes":{"15":{"a":"2"},"7":{"a":"2"},"13":{"a":"2"},"14":{"a":"2"},"0":{"a":"2"},"22":{"a":"2"},"19":{"a":"2"},"12":{"a":"2"},"17":{"a":"2"},"1":{"a":"2"},"23":{"a":"2"},"18":{"a":"2"},"4":{"a":"2"},"16":{"a":"2"},"2":{"a":"2"},"20":{"a":"2"},"5":{"a":"2"},"8":{"a":"2"},"11":{"a":"2"},"3":{"a":"2"},"21":{"a":"2"},"24":{"a":"2"},"6":{"a":"2"},"9":{"a":"2"},"10":{"a":"2"}}}
+{
+    "ends": {
+        "Mul": 2,
+        "Factor": 0,
+        "Number": 4
+    },
+    "starts": {
+        "Mul": 3,
+        "Factor": 1,
+        "Number": 5
+    },
+    "nodes": {
+        "15": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ETerm",
+                    "pred": "name",
+                    "val": "\"number\""
+                }
+            },
+            "elseBr": 16
+        },
+        "7": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ENonTerm",
+                    "name": "Factor"
+                }
+            },
+            "elseBr": 8
+        },
+        "13": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ENonTerm",
+                    "name": "Factor"
+                }
+            },
+            "elseBr": 14
+        },
+        "14": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "codes": [
+                    [
+                        2,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Mul",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": -2
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -3
+                            }
+                        }
+                    ],
+                    [
+                        2,
+                        {
+                            "ctor": "IRPopScope"
+                        }
+                    ],
+                    [
+                        2,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Factor",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": -1
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -2
+                            }
+                        }
+                    ],
+                    [
+                        2,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRTuple",
+                                "elts": [
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -1
+                            }
+                        }
+                    ],
+                    [
+                        2,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRVar",
+                                "name": {
+                                    "ctor": "Slot",
+                                    "value": 1
+                                }
+                            },
+                            "target": {
+                                "ctor": "Local",
+                                "value": "a"
+                            }
+                        }
+                    ],
+                    [
+                        0,
+                        {
+                            "ctor": "IRPushScope"
+                        }
+                    ]
+                ],
+                "returnIdx": -3
+            },
+            "elseBr": 2
+        },
+        "0": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "DoNothing"
+            },
+            "elseBr": null
+        },
+        "22": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "codes": [
+                    [
+                        4,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Mul",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": -3
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -4
+                            }
+                        }
+                    ],
+                    [
+                        4,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRTuple",
+                                "elts": [
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": -2
+                                        }
+                                    }
+                                ]
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -3
+                            }
+                        }
+                    ],
+                    [
+                        4,
+                        {
+                            "ctor": "IRPopScope"
+                        }
+                    ],
+                    [
+                        4,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Factor",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": -1
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -2
+                            }
+                        }
+                    ],
+                    [
+                        4,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRTuple",
+                                "elts": [
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 2
+                                        }
+                                    },
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 3
+                                        }
+                                    }
+                                ]
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -1
+                            }
+                        }
+                    ],
+                    [
+                        4,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRVar",
+                                "name": {
+                                    "ctor": "Slot",
+                                    "value": 3
+                                }
+                            },
+                            "target": {
+                                "ctor": "Local",
+                                "value": "a"
+                            }
+                        }
+                    ],
+                    [
+                        2,
+                        {
+                            "ctor": "IRPushScope"
+                        }
+                    ]
+                ],
+                "returnIdx": -4
+            },
+            "elseBr": 2
+        },
+        "19": {
+            "nextBrs": [
+                23,
+                20
+            ],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ETerm",
+                    "pred": "name",
+                    "val": "\"*\""
+                }
+            },
+            "elseBr": null
+        },
+        "12": {
+            "nextBrs": [
+                13
+            ],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ETerm",
+                    "pred": "name",
+                    "val": "\"-\""
+                }
+            },
+            "elseBr": null
+        },
+        "17": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ETerm",
+                    "pred": "name",
+                    "val": "\"number\""
+                }
+            },
+            "elseBr": 18
+        },
+        "1": {
+            "nextBrs": [
+                9,
+                6
+            ],
+            "kind": {
+                "ctor": "DoNothing"
+            },
+            "elseBr": null
+        },
+        "23": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ENonTerm",
+                    "name": "Number"
+                }
+            },
+            "elseBr": 24
+        },
+        "18": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "codes": [
+                    [
+                        1,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Number",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -1
+                            }
+                        }
+                    ]
+                ],
+                "returnIdx": -1
+            },
+            "elseBr": 4
+        },
+        "4": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "DoNothing"
+            },
+            "elseBr": null
+        },
+        "16": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "codes": [
+                    [
+                        1,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Number",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -1
+                            }
+                        }
+                    ],
+                    [
+                        0,
+                        {
+                            "ctor": "IRPushScope"
+                        }
+                    ]
+                ],
+                "returnIdx": -1
+            },
+            "elseBr": 2
+        },
+        "2": {
+            "nextBrs": [
+                19
+            ],
+            "kind": {
+                "ctor": "DoNothing"
+            },
+            "elseBr": null
+        },
+        "20": {
+            "nextBrs": [
+                21
+            ],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ETerm",
+                    "pred": "name",
+                    "val": "\"-\""
+                }
+            },
+            "elseBr": null
+        },
+        "5": {
+            "nextBrs": [
+                17
+            ],
+            "kind": {
+                "ctor": "DoNothing"
+            },
+            "elseBr": null
+        },
+        "8": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "codes": [
+                    [
+                        2,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Factor",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": -1
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -2
+                            }
+                        }
+                    ],
+                    [
+                        2,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRTuple",
+                                "elts": [
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -1
+                            }
+                        }
+                    ],
+                    [
+                        2,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRVar",
+                                "name": {
+                                    "ctor": "Slot",
+                                    "value": 1
+                                }
+                            },
+                            "target": {
+                                "ctor": "Local",
+                                "value": "a"
+                            }
+                        }
+                    ]
+                ],
+                "returnIdx": -2
+            },
+            "elseBr": 0
+        },
+        "11": {
+            "nextBrs": [
+                15,
+                12
+            ],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "EPredicate",
+                    "code": {
+                        "ctor": "IRVar",
+                        "name": {
+                            "ctor": "Local",
+                            "value": "somePred"
+                        }
+                    }
+                }
+            },
+            "elseBr": null
+        },
+        "3": {
+            "nextBrs": [
+                11
+            ],
+            "kind": {
+                "ctor": "DoNothing"
+            },
+            "elseBr": null
+        },
+        "21": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ENonTerm",
+                    "name": "Factor"
+                }
+            },
+            "elseBr": 22
+        },
+        "24": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "codes": [
+                    [
+                        3,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Mul",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": -2
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -3
+                            }
+                        }
+                    ],
+                    [
+                        3,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRTuple",
+                                "elts": [
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "ctor": "IRVar",
+                                        "name": {
+                                            "ctor": "Slot",
+                                            "value": -1
+                                        }
+                                    }
+                                ]
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -2
+                            }
+                        }
+                    ],
+                    [
+                        3,
+                        {
+                            "ctor": "IRPopScope"
+                        }
+                    ],
+                    [
+                        3,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Factor",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": 2
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -1
+                            }
+                        }
+                    ],
+                    [
+                        2,
+                        {
+                            "ctor": "IRPushScope"
+                        }
+                    ]
+                ],
+                "returnIdx": -3
+            },
+            "elseBr": 2
+        },
+        "6": {
+            "nextBrs": [
+                7
+            ],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ETerm",
+                    "pred": "name",
+                    "val": "\"-\""
+                }
+            },
+            "elseBr": null
+        },
+        "9": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "val": {
+                    "ctor": "ETerm",
+                    "pred": "name",
+                    "val": "\"number\""
+                }
+            },
+            "elseBr": 10
+        },
+        "10": {
+            "nextBrs": [],
+            "kind": {
+                "ctor": "NEntity",
+                "codes": [
+                    [
+                        1,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Factor",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": -1
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -2
+                            }
+                        }
+                    ],
+                    [
+                        1,
+                        {
+                            "ctor": "IRPopScope"
+                        }
+                    ],
+                    [
+                        1,
+                        {
+                            "ctor": "IRAss",
+                            "value": {
+                                "ctor": "IRMkSExp",
+                                "name": "Number",
+                                "val": {
+                                    "ctor": "IRTuple",
+                                    "elts": [
+                                        {
+                                            "ctor": "IRVar",
+                                            "name": {
+                                                "ctor": "Slot",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "target": {
+                                "ctor": "Slot",
+                                "value": -1
+                            }
+                        }
+                    ],
+                    [
+                        0,
+                        {
+                            "ctor": "IRPushScope"
+                        }
+                    ]
+                ],
+                "returnIdx": -2
+            },
+            "elseBr": 0
+        }
+    }
+}

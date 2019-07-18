@@ -2,7 +2,7 @@
 import RBNF.Grammar
 import RBNF.Symbols
 import RBNF.LeftRecur
-import RBNF.Follow
+import RBNF.Semantics
 import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
@@ -29,7 +29,7 @@ parsers = S.fromList [
     "Number"   --> "name" =:= number
     , "Factor" --> CAlt [
             CNonTerm "Number",
-            CSeq [ "name" =:= negation, "a" |= CNonTerm "Factor" ]
+            CSeq ["name" =:= negation, "a" |= CNonTerm "Factor" ]
         ]
     , "Mul"    --> CAlt [
             CNonTerm "Factor",
@@ -39,13 +39,13 @@ parsers = S.fromList [
 
 main = do
     putStrLn ""
-    for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
-            putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
+    -- for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
+    --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
 
-    -- let ms = markedLeftRecur $ mkGrammar parsers
-    -- for_ (leftRecurs ms) $ \s ->
-    --     print s >> print "======="
-
+    let ms = pGToSG  . markedLeftRecur $ mkGrammar parsers
+    for_ (M.toList $ _leftR ms) $ \(s, xs) -> do
+        putStrLn s
+        for_ xs print
     -- for_ (productions ms) $ \s ->
     --     print s >> print "======="
 

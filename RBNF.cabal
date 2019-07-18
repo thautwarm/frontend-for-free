@@ -32,7 +32,10 @@ library
       RBNF.Grammar
       RBNF.LeftRecur
       RBNF.Follow
-      RBNF.NextN
+      RBNF.Semantics
+      RBNF.Graph
+      -- RBNF.NextN
+
   other-modules:
       Paths_RBNF
   hs-source-dirs:
@@ -43,7 +46,7 @@ library
     , text
     , containers
     , lens
-    , array
+    , vector
   default-language: Haskell2010
 
 executable RBNF-exe

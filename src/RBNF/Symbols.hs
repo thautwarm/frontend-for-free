@@ -16,12 +16,18 @@ type Map a b = M.Map a b
 
 data Case = forall a. (Eq a, Ord a, Show a) => Case {predicate :: String, value :: a}
 
-instance Eq Case
-instance Ord Case
+instance Eq Case where
+    Case {predicate=predicate1, value=value1} ==
+        Case {predicate=predicate2, value=value2} =
+            predicate1 == predicate2 && show value1 == show value2
+
+instance Ord Case where
+    Case {predicate=predicate1, value=value1} <=
+        Case {predicate=predicate2, value=value2} =
+            (predicate1, show value1) <= (predicate2, show value2)
+
 instance Show Case where
     show Case {predicate, value} = "<" ++ predicate ++ "="  ++ show value ++ ">"
-
-
 
 data MiniLang
     = MTerm String
@@ -97,3 +103,9 @@ instance Show C where
         CBind name c -> name ++ "=" ++ show c
         CPred apply  -> "?" ++ show apply
         CModif modif -> "!" ++ show modif
+
+maybeShiftTerm :: P -> Bool
+maybeShiftTerm = \case
+    PTerm _ -> True
+    PNonTerm _ -> True
+    _ -> False

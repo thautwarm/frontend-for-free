@@ -12,7 +12,6 @@ import Control.Arrow
 import qualified Data.Map  as M
 import qualified Data.Set  as S
 import qualified Data.List as L
-import qualified Data.Array as A
 
 -- SPILR
 data SplitByIsLeftRecursive
@@ -29,19 +28,19 @@ mergeSplited xs = SplitByIsLeftRecursive isLeftR' notLeftR'
                     notLeftR' = extract notLeftR
 
 
-markedLeftRecur :: PGrammarBuilder -> Map String [String] -> Grammar
+markedLeftRecur :: PGrammarBuilder -> Grammar [P]
 markedLeftRecur g =
         uncurry Grammar .
         (M.fromList . fst &&& M.fromList . snd) .
         unzip .
         M.elems .
-        (M.mapWithKey _SPILR2Pair) .
+        M.mapWithKey _SPILR2Pair .
         (M.mapWithKey f) $ groups
     where
         _SPILR2Pair :: String -> SplitByIsLeftRecursive -> ((String, [PRule]), (String, [PRule]))
         _SPILR2Pair sym spilr =
             let f g = (sym, view g spilr)
-            in (f isLeftR, f notLeftR)
+            in (f notLeftR, f isLeftR)
 
         groups :: Map String [PRule]
         groups = M.map (map snd) $ groupBy fst g

@@ -10,12 +10,9 @@ import RBNF.Symbols
 import qualified Data.Map   as M
 import qualified Data.Set   as S
 import qualified Data.List  as L
-import qualified Data.Array as A
 import Control.Monad.State
 import Control.Arrow
 import Control.Lens (over, view, Lens', makeLenses)
-
-type Array = A.Array
 
 -- Combinatorial
 type CGrammar = Set CProd
@@ -110,11 +107,10 @@ mkGrammar m =
             modify (concat a ++)
 
 
-data Grammar
+data Grammar rhs
     = Grammar {
-          _prods  :: Map String [PRule]
-        , _leftR  :: Map String [PRule]
-        , _follow :: Map String [String]
+          _prods  :: Map String [rhs]
+        , _leftR  :: Map String [rhs]
     } deriving (Show, Eq, Ord)
 
 makeLenses ''Grammar

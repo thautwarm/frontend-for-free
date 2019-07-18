@@ -1,5 +1,4 @@
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DuplicateRecordFields #-}
@@ -22,7 +21,7 @@ data NodeKind =
     | NProc [(Int, IR)] SlotIdx
     | DoNothing
     deriving (Show)
-type IsOptional = Bool
+
 data Node =
     Node {
           kind :: NodeKind

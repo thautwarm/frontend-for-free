@@ -25,7 +25,7 @@ data VName =
 
 instance Show VName where
   show = \case
-      Slot i -> "local["++ show i ++"]"
+      Slot i -> "slots["++ show i ++"]"
       Local s -> s
 
 data IR
@@ -35,6 +35,8 @@ data IR
   | forall a. Show a => IRVal a
   | IRMkSExp String IR
   | IRCall IR [IR]
+  | IRPushScope
+  | IRPopScope
 
 instance Show IR where
   show = \case
@@ -48,6 +50,8 @@ instance Show IR where
       IRCall f args ->
           let args_str = "(" ++ L.intercalate "," (map show args) ++ ")"
           in show f ++ args_str
+      IRPushScope -> "pushscope"
+      IRPopScope  -> "popscope"
 
 data Shiftable
     = STerm Case
@@ -72,14 +76,14 @@ data ProgKind
 data Seman = Seman {
         _shifts    :: [Shiftable]
       , _prog      :: [(Int, IR, ProgKind)]
-      , bounds     :: Map String Int
     }
 
 makeLenses ''Seman
+emptySeman = Seman [] []
 
 indent n s = replicate n ' ' ++ s
 instance Show Seman where
-    show Seman {_shifts, _prog, bounds} =
+    show Seman {_shifts, _prog} =
         let
             shifts_Str = unwords $ map (indent 4 . show) _shifts
             tripleShow :: (Int, IR, ProgKind) -> String
@@ -90,8 +94,7 @@ instance Show Seman where
                 flip map _prog $
                 (indent 4 . tripleShow)
         in "shift reduce terms:\n" ++ shifts_Str ++ "\n" ++
-            "program:\n" ++ prog_Str ++ "\n" ++
-            show bounds
+            "program:\n" ++ prog_Str ++ "\n"
 
 
 newtype StackObj = SObj Int
@@ -100,10 +103,10 @@ data CFG = CFG {
       _pos       :: Int -- >= 0
     , _localN    :: Int -- < 0
     , _stack     :: [StackObj]
-    , _locals    :: Map String Int
 }
 
 makeLenses ''CFG
+emptyCFG = CFG 0 (-1) []
 
 newObj :: State CFG StackObj
 newObj = do
@@ -117,6 +120,8 @@ shiftReduce = do
     modify $ over pos (+ 1)
     return $ SObj i
 
+bindName :: String -> IR -> IR
+bindName s = IRAss (Local s)
 
 push :: StackObj -> State CFG ()
 push obj =
@@ -144,9 +149,7 @@ miniLangToIR = \case
 
 analyse' :: Seman -> [P] -> State CFG Seman
 analyse' seman = \case
-    [] -> do
-        locals' <- gets $ view locals
-        return $ seman {bounds = locals'}
+    [] -> return $ seman
     (maybeShift -> Just x):xs -> do
         obj <- shiftReduce
         push obj
@@ -161,16 +164,18 @@ analyse' seman = \case
         analyse' seman' xs
     PBind s:xs -> do
         obj@(SObj i) <- pop
-        modify $ over locals (M.insert s i)
+        pos' <- gets $ view pos
+        let ir     = irOfObj obj
+            seman' = addProg pos' (bindName s ir) ProgNormal seman
         push obj
-        analyse' seman xs
+        analyse' seman' xs
     PMkSExp s n:xs -> do
         tp <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj
         push obj
         pos' <- gets $ view pos
-        let ast    = IRMkSExp s tp
-            seman' = addProg pos' (refObj obj ast) ProgNormal seman
+        let ir    = IRMkSExp s tp
+            seman' = addProg pos' (refObj obj ir) ProgNormal seman
         analyse' seman' xs
     PModif m:xs -> do
         pos' <- gets $ view pos
@@ -189,15 +194,20 @@ analyse' seman = \case
             call = IRCall fn [tp]
             seman' = addProg pos' (refObj obj call) ProgRewrite seman
         analyse' seman' xs
+    PPushScope:xs -> do
+        pos' <- gets $ view pos
+        flip analyse' xs $ addProg pos' IRPushScope ProgNormal seman
+    PPopScope:xs -> do
+        pos' <- gets $ view pos
+        flip analyse' xs $ addProg pos' IRPopScope ProgNormal seman
 
-analyse = analyse' $ Seman [] [] M.empty
+
+analyse = analyse' emptySeman
 pGToSG :: Grammar [P] -> Grammar Seman
 pGToSG g =
-    let emptyCFGForLR  = CFG 1 (-1) [SObj 0] M.empty
-        emptyCFGNormal = CFG 0 (-1) [] M.empty
-        transf lens initCFG =
+    let transf lens initCFG =
             let f = map $ flip evalState initCFG . analyse
             in  M.map f $ view lens g
-        prods' = transf prods emptyCFGNormal
-        leftR' = transf leftR emptyCFGNormal
+        prods' = transf prods emptyCFG
+        leftR' = transf leftR emptyCFG
     in Grammar prods' leftR'

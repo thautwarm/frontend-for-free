@@ -38,6 +38,8 @@ stackEff = \case
         PPred _     -> 0
         PBind   _   -> 0
         PModif  _   -> 0
+        PPushScope  -> 0
+        PPopScope   -> 0
 
 parsedLength :: PRule -> Int
 parsedLength = sum . map stackEff
@@ -89,13 +91,14 @@ inline g = concatMap inlineProd g
     where groups = M.map (map snd) $ groupBy fst g
           inlineProd :: PProd -> [PProd]
           inlineProd (me, rule) =
-            let inlineP :: P -> [PRule]
+            let letBlock :: [P] -> [P]
+                letBlock xs = PPushScope:xs ++ [PPopScope]
+                inlineP :: P -> [PRule]
                 inlineP = \case
-                    x@(PNonTerm s)
-                        | s /= me  -> groups M.! s
+                    x@(PNonTerm s) | s /= me  ->
+                            map letBlock $ groups M.! s
                     x              -> [[x]]
-            in map (const me &&& id ) $
-               map concat             $
+            in map ((const me &&& id) . concat) $
                mapM inlineP rule
 
 mkGrammar :: CGrammar -> PGrammarBuilder
@@ -105,8 +108,7 @@ mkGrammar m =
         procedure :: State PGrammarBuilder ()
         procedure = do
             a <- forM (S.toList m) $ \(sym, crule, reduce) ->
-                do
-                    prules <- standardizeRule crule
+                do  prules <- standardizeRule crule
                     let packer =
                             case reduce of
                                 Just apply -> reduceStack apply

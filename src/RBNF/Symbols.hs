@@ -61,6 +61,9 @@ data P
     | PModif MiniLang
 
     | PMkSExp String Int
+
+    | PPushScope
+    | PPopScope
     deriving (Eq, Ord)
 
 type PRule = [P]

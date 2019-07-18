@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.1.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 090d4e55cd5bb2d22c2fff9f5c95e718f767e970df0b96c9a3a0441e2e4cfc32
+-- hash: 34ef7c8c3bc052f4a27f4189b24f4db673048fd31951506ff3f8b0fc8411f062
 
 name:           RBNF
 version:        0.1.0.0
@@ -28,24 +28,22 @@ source-repository head
 library
   exposed-modules:
       RBNF
-      RBNF.Symbols
-      RBNF.Grammar
-      RBNF.LeftRecur
       RBNF.Follow
-      RBNF.Semantics
+      RBNF.Grammar
       RBNF.Graph
-      -- RBNF.NextN
-
+      RBNF.LeftRecur
+      RBNF.Semantics
+      RBNF.Symbols
   other-modules:
       Paths_RBNF
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
-    , mtl
-    , text
     , containers
     , lens
+    , mtl
+    , text
     , vector
   default-language: Haskell2010
 
@@ -59,6 +57,11 @@ executable RBNF-exe
   build-depends:
       RBNF
     , base >=4.7 && <5
+    , containers
+    , lens
+    , mtl
+    , text
+    , vector
   default-language: Haskell2010
 
 test-suite RBNF-test
@@ -73,4 +76,8 @@ test-suite RBNF-test
       RBNF
     , base >=4.7 && <5
     , containers
+    , lens
+    , mtl
+    , text
+    , vector
   default-language: Haskell2010

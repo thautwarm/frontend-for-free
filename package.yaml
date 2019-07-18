@@ -21,8 +21,14 @@ description:         Please see the README on GitHub at <https://github.com/thau
 
 dependencies:
 - base >= 4.7 && < 5
+- mtl
+- text
+- containers
+- lens
+- vector
 library:
-  source-dirs: src, src/RBNF
+  source-dirs:
+  - src
 
 executables:
   RBNF-exe:
@@ -34,6 +40,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - RBNF
+    - base >=4.7 && <5
 
 tests:
   RBNF-test:
@@ -45,3 +52,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - RBNF
+    - base >=4.7 && <5
+    - containers

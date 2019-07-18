@@ -75,6 +75,8 @@ data Seman = Seman {
       , bounds     :: Map String Int
     }
 
+makeLenses ''Seman
+
 indent n s = replicate n ' ' ++ s
 instance Show Seman where
     show Seman {_shifts, _prog, bounds} =
@@ -91,12 +93,11 @@ instance Show Seman where
             "program:\n" ++ prog_Str ++ "\n" ++
             show bounds
 
-makeLenses ''Seman
 
 newtype StackObj = SObj Int
 
 data CFG = CFG {
-      _pos       :: Int  -- >= 0
+      _pos       :: Int -- >= 0
     , _localN    :: Int -- < 0
     , _stack     :: [StackObj]
     , _locals    :: Map String Int
@@ -152,8 +153,7 @@ analyse' seman = \case
         seman <- analyse' seman xs
         return $ over shifts (x:) seman
     PPack n:xs -> do
-        elts <- replicateM n pop
-        let tp = IRTuple . reverse . map irOfObj $ elts
+        tp <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj
         push obj
         pos' <- gets $ view pos
@@ -164,12 +164,12 @@ analyse' seman = \case
         modify $ over locals (M.insert s i)
         push obj
         analyse' seman xs
-    PMkSExp s:xs -> do
-        component@(SObj i) <- pop
+    PMkSExp s n:xs -> do
+        tp <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj
         push obj
         pos' <- gets $ view pos
-        let ast    =  IRMkSExp s (irOfObj component)
+        let ast    = IRMkSExp s tp
             seman' = addProg pos' (refObj obj ast) ProgNormal seman
         analyse' seman' xs
     PModif m:xs -> do
@@ -181,9 +181,13 @@ analyse' seman = \case
         let seman' = addProg pos' (miniLangToIR m) ProgPredicate seman
         analyse' seman' xs
     PReduce m n:xs -> do
-        replicateM_ n pop
+        tp  <- IRTuple . reverse . map irOfObj <$> replicateM n pop
+        obj <- newObj
+        push obj
         pos' <- gets $ view pos
-        let seman' = addProg pos' (miniLangToIR m) ProgRewrite seman
+        let fn   = miniLangToIR m
+            call = IRCall fn [tp]
+            seman' = addProg pos' (refObj obj call) ProgRewrite seman
         analyse' seman' xs
 
 analyse = analyse' $ Seman [] [] M.empty
@@ -192,8 +196,8 @@ pGToSG g =
     let emptyCFGForLR  = CFG 1 (-1) [SObj 0] M.empty
         emptyCFGNormal = CFG 0 (-1) [] M.empty
         transf lens initCFG =
-                let f = map $ flip evalState initCFG . analyse
-                in  M.map f $ view lens g
+            let f = map $ flip evalState initCFG . analyse
+            in  M.map f $ view lens g
         prods' = transf prods emptyCFGNormal
-        leftR' = transf leftR emptyCFGForLR
+        leftR' = transf leftR emptyCFGNormal
     in Grammar prods' leftR'

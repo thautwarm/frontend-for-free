@@ -34,8 +34,9 @@ stackEff = \case
         PNonTerm _  -> 1
         PPack n     -> 1 - n
         PReduce _ n -> 1 - n
+        PMkSExp _ n -> 1 - n
         PPred _     -> 0
-        PBind   _   -> 1
+        PBind   _   -> 0
         PModif  _   -> 0
 
 parsedLength :: PRule -> Int
@@ -46,10 +47,17 @@ packStack xs =
         0 -> error "... " -- TODO
         1 -> xs
         n -> xs ++ [PPack n]
+
 reduceStack app xs =
     case parsedLength xs of
         0 -> error "... " -- TODO
         n -> xs ++ [PReduce app n]
+
+mkSExpStack name xs =
+    case parsedLength xs of
+        0 -> error "... " -- TODO
+        n -> xs ++ [PMkSExp name n]
+
 
 standardizeRule :: CRule -> State PGrammarBuilder [PRule]
 standardizeRule = \case
@@ -102,7 +110,7 @@ mkGrammar m =
                     let packer =
                             case reduce of
                                 Just apply -> reduceStack apply
-                                _          -> (++ [PMkSExp sym]) . packStack
+                                _          -> mkSExpStack sym
                     return [(sym, packer rule) | rule <- prules]
             modify (concat a ++)
 

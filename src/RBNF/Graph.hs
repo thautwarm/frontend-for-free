@@ -113,14 +113,14 @@ buildNonTerm (sym, semans) | not $ L.null semans = do
   endIdx   <- gets $ (M.! sym) . view ends
   indices  <- buildNext Nothing startIdx semans
   forM_ indices $ \i ->
-    adjustHd i $ over elseBr (const $ Just endIdx)
+    adjustHd i $ over nextBrs (endIdx:)
 
 buildLeftR :: (String, [Seman]) -> State Graph ()
 buildLeftR (sym, semans) | not $ L.null semans = do
   endIdx   <- gets $ (M.! sym) . view ends
   indices  <- buildNext (Just sym) endIdx semans
   forM_ indices $ \i ->
-    adjustHd i $ over elseBr (const $ Just endIdx)
+    adjustHd i $ over nextBrs (endIdx:)
 
 buildGraph :: Grammar Seman -> Graph
 buildGraph g =

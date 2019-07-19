@@ -25,10 +25,11 @@ type Map = M.Map
 data Travel = Travel { par :: Maybe Travel , cur :: Int }
     deriving (Eq, Ord, Show)
 
+data LAEdge = LAShift Case | LAReduce
+    deriving (Eq, Ord, Show)
 data LATree a
-    = LA1 (Map Case [LATree a])
-    | LAPending a
-    | LAEnd
+    = LA1 (Map LAEdge (LATree a))
+    | LAEnd [a]
     deriving (Eq, Ord, Show, Functor)
 
 data Coro a o r
@@ -98,11 +99,10 @@ isRec Travel {cur, par=Just par} = frec cur par
 data Nat' = NZ | NS Nat'
 nextK :: Graph -> Travel -> Nat' -> LATree Travel
 nextK graph trvl n =
-    let xs = next1 graph trvl in
     case n of
-        _ | M.null xs -> LAEnd
-        NZ     -> LA1 $ M.map (map LAPending) xs
-        NS n'  -> LA1 $ M.map (mergeLATrees . L.nub . map nextDec1) xs
+        _ | M.null xs -> LAEnd [trvl]
+        NZ     -> LA1 . M.mapKeys LAShift $ M.map LAEnd xs
+        NS n'  -> LA1 . M.mapKeys LAShift $ M.map (mergeLATrees . L.nub . map nextDec1) xs
 
             where nextDec1 :: Travel -> LATree Travel
                   nextDec1 trvl =
@@ -114,19 +114,35 @@ nextK graph trvl n =
                             _                    -> n
 
                     in nextK graph trvl n''
+    where xs = next1 graph trvl
 
-mergeLATrees ::  [LATree a] -> [LATree a]
-mergeLATrees las = LA1 cases' : tl
+mergeLATrees ::  [LATree a] -> LATree a
+mergeLATrees las = LA1 cases
     where
-        frec :: [LATree a] -> ([LATree a], [(Case, [LATree a])])
+        frec :: [LATree a] -> [(LAEdge, LATree a)]
         frec  = \case
-            []        -> ([], [])
-            LA1 mp:xs -> (fst &&& (M.toList mp ++) . snd) $ frec xs
-            a:xs      -> ((a:) . fst &&& snd) $ frec xs
+            []        -> []
+            LA1 mp:xs -> (M.toList mp ++) $ frec xs
+            a:xs      -> ((LAReduce, a):) $ frec xs
 
-        (tl, cases) = frec las
-        cases' = M.map mergeLATrees $ M.fromListWith (++) cases
+        cases = M.map mergeLATrees       $
+                M.fromListWith (++)      $
+                map (fst &&& pure . snd) $ frec las
 
+intToNat :: Int -> Nat'
+intToNat s
+    | s < 0 = error "invalid" -- TODO
+    | otherwise = intToNat' s
+    where intToNat' = \case
+            0 -> NZ
+            n -> NS $ intToNat' $ n-1
 
-
-
+lookAHeadRoot :: Int -> Graph -> String -> LATree Int
+lookAHeadRoot i graph s =
+    let start = view starts graph M.! s
+        root  = Travel {cur=start, par=Nothing}
+        nexts = view nextBrs $ view nodes graph M.! start
+        trvls = [root {par = Just root, cur=next} | next <- nexts]
+        n     = intToNat i
+    in
+    mergeLATrees [const (cur trvl) <$> nextK graph trvl n | trvl <- trvls]

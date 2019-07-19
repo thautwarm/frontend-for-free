@@ -32,6 +32,17 @@ data LATree a
     | LAEnd [a]
     deriving (Eq, Ord, Show, Functor)
 
+dispLATree :: Show a => Int -> LATree a -> String
+dispLATree i = \case
+    LAEnd xs -> indent i $ show xs
+    LA1 m    -> body ++ "\n"
+        where body = L.intercalate "\n"     $
+                      flip map (M.toList m) $
+                       \(case', la) ->
+                            indent i $ (
+                                show case' ++
+                                "\n" ++
+                                dispLATree (i + 4) la)
 data Coro a o r
     = Coro { fp :: a -> Either r (o, Coro a o r) }
 
@@ -123,7 +134,7 @@ nextK graph trvl n =
 
 mergeLATrees ::  [LATree a] -> LATree a
 
-mergeLATrees [] = error "invalid" -- TODO
+mergeLATrees [] = error "invalid"
 mergeLATrees [a] = a
 mergeLATrees las = LA1 cases
     where
@@ -150,7 +161,7 @@ lookAHeadRoot :: LANum -> Graph -> Int -> LATree Int
 lookAHeadRoot k graph idx =
     let root  = Travel {cur=idx, par=Nothing}
         nexts = nextBrs $ view nodes graph M.! idx
-        trvls = [root {par = Just root, cur=next} | next <- nexts]
+        trvls = [root {par=Nothing, cur=next} | next <- nexts]
         n     = intToNat k
     in
     mergeLATrees [cur trvl <$ nextK graph trvl n | trvl <- trvls]
@@ -165,3 +176,15 @@ makeLATables k graph =
         | L.length (nextBrs node) > 1 ->
         modify $ M.insert idx (lookAHeadRoot k graph idx)
     _ -> return ()
+
+cutRedundantTree :: LATree a -> LATree a
+cutRedundantTree = \case
+    a@(LAEnd _) -> a
+    _ -> error ""
+
+-- data LAEdge = LAShift Case | LAReduce
+--     deriving (Eq, Ord, Show)
+-- data LATree a
+--     = LA1 (Map LAEdge (LATree a))
+--     | LAEnd [a]
+--     deriving (Eq, Ord, Show, Functor)

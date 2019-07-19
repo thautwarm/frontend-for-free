@@ -61,7 +61,9 @@ main = do
     let ms = buildGraph ks
     -- print ms
     let trees = makeLATables 1 ms
-    print trees
+    forM_ (M.toList trees) $ \(i, tree) -> do
+        putStrLn $ show i ++ ":" ++ "\n"
+        putStrLn $ dispLATree 2 tree
     writeFile "./test.json" (encodeToLazyText ms)
     -- putStrLn "left recursions:"
     -- for_ (M.toList $ _leftR ms) $ \(s, xs) -> do

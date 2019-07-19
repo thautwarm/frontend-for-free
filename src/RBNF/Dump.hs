@@ -6,6 +6,8 @@ module RBNF.Dump where
 import RBNF.Semantics
 import RBNF.Symbols
 import RBNF.Graph
+import RBNF.LookAHead
+
 import Data.Aeson
 
 
@@ -79,11 +81,11 @@ instance ToJSON NodeKind where
     --
 instance ToJSON Node where
   --
-    toJSON Node {kind, _nextBrs, _elseBr} =
+    toJSON Node {kind, _thenBrs, _optionBr} =
         object [
               "kind" .= kind
-            , "nextBrs" .= _nextBrs
-            , "elseBr"  .= _elseBr
+            , "thenBrs" .= _thenBrs
+            , "optionBr"  .= _optionBr
         ]
 
 

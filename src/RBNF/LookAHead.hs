@@ -137,12 +137,22 @@ intToNat s
             0 -> NZ
             n -> NS $ intToNat' $ n-1
 
-lookAHeadRoot :: Int -> Graph -> String -> LATree Int
-lookAHeadRoot i graph s =
-    let start = view starts graph M.! s
-        root  = Travel {cur=start, par=Nothing}
-        nexts = view nextBrs $ view nodes graph M.! start
+lookAHeadRoot :: Int -> Graph -> Int -> LATree Int
+lookAHeadRoot i graph idx =
+    let root  = Travel {cur=idx, par=Nothing}
+        nexts = view nextBrs $ view nodes graph M.! idx
         trvls = [root {par = Just root, cur=next} | next <- nexts]
         n     = intToNat i
     in
     mergeLATrees [cur trvl <$ nextK graph trvl n | trvl <- trvls]
+
+makeLATables :: Int -> Graph -> Map Int (LATree Int)
+makeLATables k graph =
+    flip execState M.empty $
+    forM_ (M.toList        $
+    view nodes graph)      $
+    \case
+    (idx, node)
+        | L.length (view nextBrs node) > 1 ->
+        modify $ M.insert idx (lookAHeadRoot k graph idx)
+    _ -> return ()

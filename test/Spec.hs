@@ -5,6 +5,7 @@ import RBNF.LeftRecur
 import RBNF.Semantics
 import RBNF.Graph
 import RBNF.Dump
+import RBNF.LookAHead
 
 import Prelude hiding (writeFile)
 import Data.Foldable
@@ -58,6 +59,9 @@ main = do
     -- let leftR' = M.toList $ view leftR ks
     -- let syms = L.map fst prods'
     let ms = buildGraph ks
+    -- print ms
+    let trees = makeLATables 1 ms
+    print trees
     writeFile "./test.json" (encodeToLazyText ms)
     -- putStrLn "left recursions:"
     -- for_ (M.toList $ _leftR ms) $ \(s, xs) -> do

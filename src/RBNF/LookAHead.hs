@@ -2,7 +2,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveFunctor #-}
 module RBNF.LookAHead where
 
@@ -101,8 +100,10 @@ nextK :: Graph -> Travel -> Nat' -> LATree Travel
 nextK graph trvl n =
     case n of
         _ | M.null xs -> LAEnd [trvl]
-        NZ     -> LA1 . M.mapKeys LAShift $ M.map LAEnd xs
-        NS n'  -> LA1 . M.mapKeys LAShift $ M.map (mergeLATrees . L.nub . map nextDec1) xs
+        NZ     -> LA1 . M.mapKeys LAShift $
+                  M.map LAEnd xs
+        NS n'  -> LA1 . M.mapKeys LAShift $
+                  M.map (mergeLATrees . L.nub . map nextDec1) xs
 
             where nextDec1 :: Travel -> LATree Travel
                   nextDec1 trvl =
@@ -117,13 +118,16 @@ nextK graph trvl n =
     where xs = next1 graph trvl
 
 mergeLATrees ::  [LATree a] -> LATree a
+
+mergeLATrees [] = error "invalid" -- TODO
+mergeLATrees [a] = a
 mergeLATrees las = LA1 cases
     where
         frec :: [LATree a] -> [(LAEdge, LATree a)]
         frec  = \case
             []        -> []
             LA1 mp:xs -> (M.toList mp ++) $ frec xs
-            a:xs      -> ((LAReduce, a):) $ frec xs
+            a:xs      -> (LAReduce, a):frec xs
 
         cases = M.map mergeLATrees       $
                 M.fromListWith (++)      $

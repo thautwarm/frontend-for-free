@@ -130,23 +130,24 @@ mergeLATrees las = LA1 cases
                 map (fst &&& pure . snd) $ frec las
 
 intToNat :: Int -> Nat'
-intToNat s
-    | s < 0 = error "invalid" -- TODO
-    | otherwise = intToNat' s
+intToNat i
+    | i < 0 = error "invalid" -- TODO
+    | otherwise = intToNat' i
     where intToNat' = \case
             0 -> NZ
             n -> NS $ intToNat' $ n-1
 
-lookAHeadRoot :: Int -> Graph -> Int -> LATree Int
-lookAHeadRoot i graph idx =
+type LANum = Int
+lookAHeadRoot :: LANum -> Graph -> Int -> LATree Int
+lookAHeadRoot k graph idx =
     let root  = Travel {cur=idx, par=Nothing}
         nexts = view nextBrs $ view nodes graph M.! idx
         trvls = [root {par = Just root, cur=next} | next <- nexts]
-        n     = intToNat i
+        n     = intToNat k
     in
     mergeLATrees [cur trvl <$ nextK graph trvl n | trvl <- trvls]
 
-makeLATables :: Int -> Graph -> Map Int (LATree Int)
+makeLATables :: LANum -> Graph -> Map Int (LATree Int)
 makeLATables k graph =
     flip execState M.empty $
     forM_ (M.toList        $

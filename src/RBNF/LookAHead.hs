@@ -3,6 +3,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveFunctor #-}
 module RBNF.LookAHead where
 
 import RBNF.Graph
@@ -19,12 +20,16 @@ import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Maybe as Maybe
 
-data Travel = Travel { par :: Maybe Travel , cur :: Int }
+type Map = M.Map
 
-data LATree
-    = LA1 [(Case, [LATree])]
-    | LAPending Travel
+data Travel = Travel { par :: Maybe Travel , cur :: Int }
+    deriving (Eq, Ord, Show)
+
+data LATree a
+    = LA1 (Map Case [LATree a])
+    | LAPending a
     | LAEnd
+    deriving (Eq, Ord, Show, Functor)
 
 data Coro a o r
     = Coro { fp :: a -> Either r (o, Coro a o r) }
@@ -49,7 +54,10 @@ getStartIdx :: String -> Reader Graph Int
 getStartIdx i = asks $ (M.! i) . view starts
 
 
-next1 :: Graph -> Travel -> [(Case, [Travel])]
+uniqueCat :: Eq a => [a] -> [a] -> [a]
+uniqueCat a b = L.nub $ a ++ b
+
+next1 :: Graph -> Travel -> Map Case [Travel]
 next1 graph travel =
     case kind curNode of
         NEntity (ENonTerm s) ->
@@ -58,17 +66,17 @@ next1 graph travel =
             in frec descTrvl
         NEntity (ETerm c) ->
             let newTrvls = [travel {cur = nextIdx} | nextIdx <- nextIndices]
-            in [(c, newTrvls)]
+            in M.singleton c $ newTrvls
         _ ->
             case (nextIndices, par travel) of
-                ([], Nothing) -> []
+                ([], Nothing) -> M.empty
                 ([], Just parent) ->
                     let parNode = nodeStore M.! cur parent
                         trvls   = [parent {cur = i} | i <- view nextBrs parNode]
-                    in concatMap frec trvls
+                    in M.unionsWith uniqueCat $ map frec trvls
                 (xs, _) ->
                     let trvls = [travel {cur = i} | i <- nextIndices]
-                    in concatMap frec trvls
+                    in M.unionsWith uniqueCat $ map frec trvls
     where
         frec         = next1 graph
         endIndices   = view ends graph
@@ -88,18 +96,37 @@ isRec Travel {cur, par=Just par} = frec cur par
                 Just par -> frec i par
 
 data Nat' = NZ | NS Nat'
-nextK :: Graph -> Travel -> Nat' -> LATree
+nextK :: Graph -> Travel -> Nat' -> LATree Travel
 nextK graph trvl n =
     let xs = next1 graph trvl in
-    case (xs, n) of
-        ([], _)   -> LAEnd
-        (xs, NZ)  -> LA1 $ map (fst &&& (map LAPending) . snd) xs
-        (xs, NS n')  ->
-            error ""
-            -- flip map xs $ \(case', trvls) -> (case', map (flip (nextK graph) n') trvls)
+    case n of
+        _ | M.null xs -> LAEnd
+        NZ     -> LA1 $ M.map (map LAPending) xs
+        NS n'  -> LA1 $ M.map (mergeLATrees . L.nub . map nextDec1) xs
 
-nextCoro :: Generator Int [LATree]
-nextCoro = error ""
+            where nextDec1 :: Travel -> LATree Travel
+                  nextDec1 trvl =
+                    let n'' = case kind $ view nodes graph M.! cur trvl of
+                            NEntity (ENonTerm _) -> n'
+                            -- avoid infinite recursing for productions
+                            -- referring no nonterminals other than itself.
+                            Stop                 -> n'
+                            _                    -> n
+
+                    in nextK graph trvl n''
+
+mergeLATrees ::  [LATree a] -> [LATree a]
+mergeLATrees las = LA1 cases' : tl
+    where
+        frec :: [LATree a] -> ([LATree a], [(Case, [LATree a])])
+        frec  = \case
+            []        -> ([], [])
+            LA1 mp:xs -> (fst &&& (M.toList mp ++) . snd) $ frec xs
+            a:xs      -> ((a:) . fst &&& snd) $ frec xs
+
+        (tl, cases) = frec las
+        cases' = M.map mergeLATrees $ M.fromListWith (++) cases
+
 
 
 

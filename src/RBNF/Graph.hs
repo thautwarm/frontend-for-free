@@ -19,6 +19,8 @@ import Debug.Trace
 data NodeKind =
       NEntity Entity
     | NProc [(Int, IR)] SlotIdx
+    | Stop
+    | Start
     | DoNothing
     deriving (Show)
 
@@ -43,11 +45,15 @@ makeLenses ''Graph
 
 initGraph syms =
     let n        = length syms
-        initNode = Node DoNothing [] Nothing
-        nodes'   = M.fromList [(i-1, initNode) | i <- [1..(2*n)]]
-        starts'  = M.fromList [(s, 2*i+1) |(s, i) <- zip syms [0..(n-1)]]
-        ends'    = M.fromList [(s, 2*i) |(s, i) <- zip syms [0..(n-1)]]
-    in Graph nodes' starts' ends'
+        initNo k = Node k [] Nothing
+        starts'  = [(s, 2*i+1) |(s, i) <- zip syms [0..(n-1)]]
+        ends'    = [(s, 2*i) |(s, i) <- zip syms [0..(n-1)]]
+        nodes'   = [(i, initNo Start)   | (_, i) <- starts']
+                   ++ [(i, initNo Stop) | (_, i) <- ends']
+
+        map_ :: Ord k => [(k, a)] -> Map k a
+        map_     = M.fromList
+    in Graph (map_ nodes') (map_ starts') (map_ ends')
 
 newNode :: NodeKind -> State Graph Int
 newNode kind = do

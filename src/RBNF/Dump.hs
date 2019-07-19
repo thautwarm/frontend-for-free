@@ -37,8 +37,7 @@ instance ToJSON IR where
         IRVar n       -> object ["ctor" .= str_ "IRVar", "name" .= n]
         IRMkSExp s ir -> object ["ctor" .= str_ "IRMkSExp", "name" .= s, "val" .= ir]
         IRCall f args -> object ["ctor" .= str_ "IRCall", "f" .= f, "args" .= args]
-        IRPushScope   -> object ["ctor" .= str_ "IRPushScope"]
-        IRPopScope    -> object ["ctor" .= str_ "IRPopScope"]
+        a             -> object ["ctor" .= show a]
 
 instance ToJSON Entity where
     -- | ENonTerm String
@@ -76,7 +75,7 @@ instance ToJSON NodeKind where
                 , "codes" .= codes
                 , "returnIdx" .= i
             ]
-        DoNothing -> object ["ctor" .= str_ "DoNothing"]
+        a -> object ["ctor" .= show a]
     --
 instance ToJSON Node where
   --

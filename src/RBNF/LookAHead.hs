@@ -145,4 +145,4 @@ lookAHeadRoot i graph s =
         trvls = [root {par = Just root, cur=next} | next <- nexts]
         n     = intToNat i
     in
-    mergeLATrees [const (cur trvl) <$> nextK graph trvl n | trvl <- trvls]
+    mergeLATrees [cur trvl <$ nextK graph trvl n | trvl <- trvls]

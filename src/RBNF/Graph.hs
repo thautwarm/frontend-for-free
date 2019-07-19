@@ -27,8 +27,8 @@ data NodeKind =
 data Node =
     Node {
           kind :: NodeKind
-        , _nextBrs :: [Int]
-        , _elseBr  :: Maybe Int
+        , _thenBrs :: [Int]
+        , _optionBr  :: Maybe Int
     }
     deriving (Show)
 
@@ -75,7 +75,7 @@ buildNext lr headIdx semans =
             retVal = ret x
 
         newNodeIdx' <- newNode $ NProc codes' retVal
-        adjustHd headIdx $ over elseBr (const $ Just newNodeIdx')
+        adjustHd headIdx $ over optionBr (const $ Just newNodeIdx')
         (newNodeIdx':) <$> ms
     _ -> error "invalid syntax" -- TODO: invalid syntax
   where
@@ -95,7 +95,7 @@ buildNext lr headIdx semans =
       mGBase lr (hd, semans) = do
         newNodeIdx' <- newNode (NEntity hd)
         indices     <- buildNext lr newNodeIdx' semans
-        adjustHd headIdx $ over nextBrs (newNodeIdx':)
+        adjustHd headIdx $ over thenBrs (newNodeIdx':)
         return indices
 
       mG = case lr of
@@ -113,14 +113,14 @@ buildNonTerm (sym, semans) | not $ L.null semans = do
   endIdx   <- gets $ (M.! sym) . view ends
   indices  <- buildNext Nothing startIdx semans
   forM_ indices $ \i ->
-    adjustHd i $ over nextBrs (endIdx:)
+    adjustHd i $ over thenBrs (endIdx:)
 
 buildLeftR :: (String, [Seman]) -> State Graph ()
 buildLeftR (sym, semans) | not $ L.null semans = do
   endIdx   <- gets $ (M.! sym) . view ends
   indices  <- buildNext (Just sym) endIdx semans
   forM_ indices $ \i ->
-    adjustHd i $ over nextBrs (endIdx:)
+    adjustHd i $ over thenBrs (endIdx:)
 
 buildGraph :: Grammar Seman -> Graph
 buildGraph g =

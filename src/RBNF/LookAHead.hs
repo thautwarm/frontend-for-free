@@ -19,6 +19,7 @@ import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Maybe as Maybe
 
+
 type Map = M.Map
 
 data Travel = Travel { par :: Maybe Travel , cur :: Int }
@@ -57,6 +58,9 @@ getStartIdx i = asks $ (M.! i) . view starts
 uniqueCat :: Eq a => [a] -> [a] -> [a]
 uniqueCat a b = L.nub $ a ++ b
 
+nextBrs :: Node -> [Int]
+nextBrs n = Maybe.maybeToList (view optionBr n) ++ view thenBrs n
+
 next1 :: Graph -> Travel -> Map Case [Travel]
 next1 graph travel =
     case kind curNode of
@@ -72,7 +76,7 @@ next1 graph travel =
                 ([], Nothing) -> M.empty
                 ([], Just parent) ->
                     let parNode = nodeStore M.! cur parent
-                        trvls   = [parent {cur = i} | i <- view nextBrs parNode]
+                        trvls   = [parent {cur = i} | i <- nextBrs parNode]
                     in M.unionsWith uniqueCat $ map frec trvls
                 (xs, _) ->
                     let trvls = [travel {cur = i} | i <- nextIndices]
@@ -85,7 +89,7 @@ next1 graph travel =
 
         curIdx       = cur travel
         curNode      = nodeStore M.! curIdx
-        nextIndices  = view nextBrs curNode
+        nextIndices  = nextBrs curNode
 
 isRec Travel {cur, par=Just par} = frec cur par
         where
@@ -145,7 +149,7 @@ type LANum = Int
 lookAHeadRoot :: LANum -> Graph -> Int -> LATree Int
 lookAHeadRoot k graph idx =
     let root  = Travel {cur=idx, par=Nothing}
-        nexts = view nextBrs $ view nodes graph M.! idx
+        nexts = nextBrs $ view nodes graph M.! idx
         trvls = [root {par = Just root, cur=next} | next <- nexts]
         n     = intToNat k
     in
@@ -158,6 +162,6 @@ makeLATables k graph =
     view nodes graph)      $
     \case
     (idx, node)
-        | L.length (view nextBrs node) > 1 ->
+        | L.length (nextBrs node) > 1 ->
         modify $ M.insert idx (lookAHeadRoot k graph idx)
     _ -> return ()

@@ -3,11 +3,13 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE TemplateHaskell #-}
 module RBNF.LookAHead where
 
 import RBNF.Graph
 import RBNF.Semantics
 import RBNF.Symbols (Case)
+import RBNF.Grammar (groupBy)
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -18,7 +20,8 @@ import Control.Lens (over, view, Lens', makeLenses)
 import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Maybe as Maybe
-
+import qualified Data.Vector as V
+import qualified Data.Set as S
 
 type Map = M.Map
 
@@ -177,14 +180,60 @@ makeLATables k graph =
         modify $ M.insert idx (lookAHeadRoot k graph idx)
     _ -> return ()
 
-cutRedundantTree :: LATree a -> LATree a
-cutRedundantTree = \case
-    a@(LAEnd _) -> a
-    _ -> error ""
 
--- data LAEdge = LAShift Case | LAReduce
---     deriving (Eq, Ord, Show)
--- data LATree a
---     = LA1 (Map LAEdge (LATree a))
---     | LAEnd [a]
---     deriving (Eq, Ord, Show, Functor)
+flattenLATree :: LATree a -> [([LAEdge], a)]
+flattenLATree = \case
+    LAEnd xs -> [([], x) | x <- xs]
+    LA1 m     ->
+        let groups = M.toList m
+        in flip concatMap groups $ \(case', la) ->
+            let xs = flattenLATree la
+            in flip map xs $ ((case':) . fst) &&& snd
+
+data ID3Decision elt cls
+    = ID3Split Int [(elt, ID3Decision elt cls)]
+    | ID3Leaf [cls]
+    deriving (Show, Eq, Ord)
+
+type Offsets = [Int]
+type Numbers = [Int]
+type PathsOfElements elt = V.Vector (V.Vector elt)
+type States cls = V.Vector cls
+data DecisionProcess
+    = DP {
+        _offsets :: [Int],
+        _numbers :: [Int]
+    }
+
+makeLenses ''DecisionProcess
+
+argmaxBy :: (Foldable f,  Eq o, Ord o) => (a -> o) -> f a -> Int
+argmaxBy fn xs =
+    let (_, _, selected) = foldl max2 (Nothing, 0, 0) xs
+    in fromInteger selected
+    where max2 old@(prev, i, selected) new =
+            let new' = fn new
+            in case prev of
+                Nothing -> (Just new', i + 1, i)
+                Just prev
+                    | new' > prev -> (Just new', i + 1, i)
+                    | otherwise -> old
+
+classifInfo :: (Eq cls, Ord elt) => [cls] -> [elt] -> Double
+classifInfo clses elts =
+    let separated = map (map snd) $ M.elems $ groupBy fst $ zip elts clses
+    in sum $ map distinctness separated
+    where
+        lengthf = fromIntegral . length
+        distinctness xs = lengthf (L.nub xs) /  lengthf xs
+
+decideID3 :: (Ord elt, Ord cls) => StateT DecisionProcess (Reader (States cls, PathsOfElements elt)) (ID3Decision elt cls)
+decideID3 = do
+    offsets' <- gets $ view offsets
+    let validOffsets = offsets' -- TODO : necessary
+    numbers' <- gets $ view numbers
+    (states, paths) <- lift ask
+    let states' = V.toList states
+    let a = argmaxBy (\j -> classifInfo states' [(paths V.! i) V.! j | i <- numbers']) validOffsets
+    error ""
+

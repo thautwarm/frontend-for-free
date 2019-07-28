@@ -229,11 +229,23 @@ classifInfo clses elts =
 
 decideID3 :: (Ord elt, Ord cls) => StateT DecisionProcess (Reader (States cls, PathsOfElements elt)) (ID3Decision elt cls)
 decideID3 = do
+    env@(states, paths) <- lift ask
     offsets' <- gets $ view offsets
-    let validOffsets = offsets' -- TODO : necessary
+    let minLen = minimum $ V.map V.length paths
+        validOffsets :: [Int]
+        validOffsets = takeWhile (<= minLen) offsets'
     numbers' <- gets $ view numbers
-    (states, paths) <- lift ask
     let states' = V.toList states
-    let a = argmaxBy (\j -> classifInfo states' [(paths V.! i) V.! j | i <- numbers']) validOffsets
-    error ""
+        nth = argmaxBy (\j -> classifInfo states' [paths V.! i V.! j | i <- numbers']) validOffsets
+        split = M.toList $ groupBy (\i -> paths V.! i V.! nth) $ numbers'
+        offsets'' = L.delete nth offsets'
+        recurse = \case
+            [] -> return []
+            (elt:clses):xs -> do
+                s <- get
+                let hd = flip runState env $
+                         flip runStateT s {_offsets = offsets'', _numbers = clses} $ error ""
+                (hd :) <$> recurse xs
+    a <- recurse split -- ??
+    return $ ID3Split nth a
 

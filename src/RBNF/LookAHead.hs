@@ -4,6 +4,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RankNTypes #-}
 module RBNF.LookAHead where
 
 import RBNF.Graph
@@ -201,23 +202,21 @@ type PathsOfElements elt = V.Vector (V.Vector elt)
 type States cls = V.Vector cls
 data DecisionProcess
     = DP {
-        _offsets :: [Int],
-        _numbers :: [Int]
+        offsets :: [Int],
+        numbers :: [Int]
     }
 
-makeLenses ''DecisionProcess
+data ArgMax a = ArgMax {idx:: !Int, val:: !a}
+instance Eq a => Eq (ArgMax a) where
+    a == b = val a == val b
 
-argmaxBy :: (Foldable f,  Eq o, Ord o) => (a -> o) -> f a -> Int
-argmaxBy fn xs =
-    let (_, _, selected) = foldl max2 (Nothing, 0, 0) xs
-    in fromInteger selected
-    where max2 old@(prev, i, selected) new =
-            let new' = fn new
-            in case prev of
-                Nothing -> (Just new', i + 1, i)
-                Just prev
-                    | new' > prev -> (Just new', i + 1, i)
-                    | otherwise -> old
+instance Ord a => Ord (ArgMax a) where
+    a <= b = val a <= val b
+
+argmaxWithVal :: (Ord a) => [a] -> (Int, a)
+argmaxWithVal xs =
+    let ArgMax {idx, val} = maximum $ zipWith ArgMax [0..] xs
+    in (idx, val)
 
 classifInfo :: (Eq cls, Ord elt) => [cls] -> [elt] -> Double
 classifInfo clses elts =
@@ -225,27 +224,31 @@ classifInfo clses elts =
     in sum $ map distinctness separated
     where
         lengthf = fromIntegral . length
-        distinctness xs = lengthf (L.nub xs) /  lengthf xs
+        distinctness xs = (lengthf (L.nub xs) - 1) /  lengthf xs
 
 decideID3 :: (Ord elt, Ord cls) => StateT DecisionProcess (Reader (States cls, PathsOfElements elt)) (ID3Decision elt cls)
 decideID3 = do
+    cur <- get
     env@(states, paths) <- lift ask
-    offsets' <- gets $ view offsets
-    let minLen = minimum $ V.map V.length paths
-        validOffsets :: [Int]
-        validOffsets = takeWhile (<= minLen) offsets'
-    numbers' <- gets $ view numbers
-    let states' = V.toList states
-        nth = argmaxBy (\j -> classifInfo states' [paths V.! i V.! j | i <- numbers']) validOffsets
-        split = M.toList $ groupBy (\i -> paths V.! i V.! nth) $ numbers'
-        offsets'' = L.delete nth offsets'
-        recurse = \case
-            [] -> return []
-            (elt:clses):xs -> do
-                s <- get
-                let hd = flip runState env $
-                         flip runStateT s {_offsets = offsets'', _numbers = clses} $ error ""
-                (hd :) <$> recurse xs
-    a <- recurse split -- ??
-    return $ ID3Split nth a
 
+    let minLen       = minimum $ V.map V.length paths
+        validOffsets = takeWhile (<= minLen) $ offsets cur
+        states'      = V.toList states
+        clsfInfos    = flip map validOffsets $ \j ->
+                        classifInfo states' [paths V.! i V.! j | i <- numbers cur]
+        (nth, maxI)  = argmaxWithVal clsfInfos
+        split        = M.toList . groupBy (\i -> paths V.! i V.! nth) $ numbers cur
+        nextOffsets  = L.delete nth $ offsets cur
+        -- recurse :: [(elt, [Int])] -> [(elt, ID3Decision elt cls)]
+        recurse = \case
+            [] -> []
+            (elt, clses):xs ->
+                case L.nub clses of
+                    [cls] -> (elt, ID3Leaf [states V.! cls]):tl
+                    clses   ->
+                        let hd = flip runReader env $
+                                  evalStateT decideID3 cur {offsets = nextOffsets, numbers = clses}
+                        in  (elt, hd):tl
+                where tl = recurse xs
+    return $ if maxI == 0.0 then ID3Leaf states'
+             else ID3Split nth $ recurse split

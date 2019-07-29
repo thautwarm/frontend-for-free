@@ -10,7 +10,7 @@ import Debug.Trace
 
 import RBNF.Graph
 import RBNF.Semantics
-import RBNF.Symbols (Case)
+import RBNF.Symbols (Case, Map)
 import RBNF.Grammar (groupBy)
 
 import Control.Monad.Reader
@@ -24,8 +24,6 @@ import qualified Data.Map as M
 import qualified Data.Maybe as Maybe
 import qualified Data.Vector as V
 import qualified Data.Set as S
-
-type Map = M.Map
 
 data Travel = Travel { par :: Maybe Travel , cur :: Int }
     deriving (Eq, Ord, Show)
@@ -272,7 +270,7 @@ decideID3 = do
                             in  (elt, hd):tl
                     where tl = recurse xs
         in return $
-            if maxI == 0.0 || validOffsets == [] || L.length nums == 1
+        if maxI == 0.0 || L.null validOffsets || L.length nums == 1
             then ID3Leaf nums
             else ID3Split nth $ recurse split
 

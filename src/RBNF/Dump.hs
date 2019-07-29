@@ -47,11 +47,10 @@ instance ToJSON Entity where
     -- | EModify IR
     --
     toJSON = \case
-        ETerm Case {predicate, value} ->
+        ETerm (Case s) ->
             object [
                       "ctor" .= str_ "ETerm"
-                    , "pred" .= predicate
-                    , "val"  .= show value
+                    , "case" .= s
                 ]
         ENonTerm s -> object [
                 "ctor" .= str_ "ENonTerm"

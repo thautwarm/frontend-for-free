@@ -14,20 +14,8 @@ import Control.Lens (over, view, Lens')
 type Set a = S.Set a
 type Map a b = M.Map a b
 
-data Case = forall a. (Eq a, Ord a, Show a) => Case {predicate :: String, value :: a}
-
-instance Eq Case where
-    Case {predicate=predicate1, value=value1} ==
-        Case {predicate=predicate2, value=value2} =
-            predicate1 == predicate2 && show value1 == show value2
-
-instance Ord Case where
-    Case {predicate=predicate1, value=value1} <=
-        Case {predicate=predicate2, value=value2} =
-            (predicate1, show value1) <= (predicate2, show value2)
-
-instance Show Case where
-    show Case {predicate, value} = "<" ++ predicate ++ "="  ++ show value ++ ">"
+newtype Case = Case String
+    deriving (Show, Eq, Ord)
 
 data MiniLang
     = MTerm String

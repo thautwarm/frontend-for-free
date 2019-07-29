@@ -28,7 +28,6 @@ Add ::= Number | Add '+' Number
 -}
 
 infix 5 -->
-infix 6 =:=
 infix 6 |=
 
 number = "number"
@@ -38,16 +37,16 @@ multiply = "*"
 a |= b = CBind a b
 
 a --> b = (a, b, Nothing)
-a =:= b = CTerm (Case a b)
+case' a = CTerm (Case a)
 parsers = S.fromList [
-    "Number"   --> "name" =:= number
+    "Number"   --> case' number
     , "Factor" --> CAlt [
             CNonTerm "Number",
-            CSeq ["name" =:= negation, "a" |= CNonTerm "Factor" ]
+            CSeq [case' negation, "a" |= CNonTerm "Factor" ]
         ]
     , "Mul"    --> CAlt [
             CSeq [ CPred (MTerm "somePred"), CNonTerm "Factor" ],
-            CSeq [ CNonTerm "Mul", "name" =:= multiply, CNonTerm "Factor"]
+            CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Factor"]
         ]
     ]
 
@@ -63,7 +62,7 @@ main = do
     -- print ms
     let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
     forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do
-        putStrLn $ "========" ++ show i ++ "========"
+        putStrLn $ "======== Node" ++ show i ++ " ========"
         putStrLn $ dispLATree 2 latree
         putStrLn "--- LA optimization:"
         putStrLn $ dispID3Tree 2 id3tree

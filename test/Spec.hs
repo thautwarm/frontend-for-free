@@ -62,11 +62,12 @@ main = do
     let ms = buildGraph ks
     -- print ms
     let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
-    print $ argmaxWithVal [1, 2, 3, 4]
     forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do
         putStrLn $ "========" ++ show i ++ "========"
         putStrLn $ dispLATree 2 latree
+        putStrLn "--- LA optimization:"
         putStrLn $ dispID3Tree 2 id3tree
+        putStrLn ""
     writeFile "./test.json" (encodeToLazyText ms)
     -- putStrLn "left recursions:"
     -- for_ (M.toList $ _leftR ms) $ \(s, xs) -> do

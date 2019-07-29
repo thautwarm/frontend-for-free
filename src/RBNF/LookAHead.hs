@@ -235,11 +235,12 @@ decideID3 = do
         validOffsets = takeWhile (<= minLen) $ offsets cur
         states'      = V.toList states
         clsfInfos    = flip map validOffsets $ \j ->
-                        classifInfo states' [paths V.! i V.! j | i <- numbers cur]
+                            classifInfo states'
+                            [paths V.! i V.! j | i <- numbers cur]
         (nth, maxI)  = argmaxWithVal clsfInfos
         split        = M.toList . groupBy (\i -> paths V.! i V.! nth) $ numbers cur
         nextOffsets  = L.delete nth $ offsets cur
-        -- recurse :: [(elt, [Int])] -> [(elt, ID3Decision elt cls)]
+
         recurse = \case
             [] -> []
             (elt, clses):xs ->

@@ -20,6 +20,7 @@ import Control.Monad.State
 import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
+import Control.Arrow
 
 {-
 Number ::= <number>
@@ -60,10 +61,12 @@ main = do
     -- let syms = L.map fst prods'
     let ms = buildGraph ks
     -- print ms
-    let trees = makeLATables 1 ms
-    forM_ (M.toList trees) $ \(i, tree) -> do
-        putStrLn $ show i ++ ":" ++ "\n"
-        putStrLn $ dispLATree 2 tree
+    let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
+    print $ argmaxWithVal [1, 2, 3, 4]
+    forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do
+        putStrLn $ "========" ++ show i ++ "========"
+        putStrLn $ dispLATree 2 latree
+        putStrLn $ dispID3Tree 2 id3tree
     writeFile "./test.json" (encodeToLazyText ms)
     -- putStrLn "left recursions:"
     -- for_ (M.toList $ _leftR ms) $ \(s, xs) -> do

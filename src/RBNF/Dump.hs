@@ -81,11 +81,10 @@ instance ToJSON NodeKind where
     --
 instance ToJSON Node where
   --
-    toJSON Node {kind, _thenBrs, _optionBr} =
+    toJSON Node {kind, _followed} =
         object [
               "kind" .= kind
-            , "thenBrs" .= _thenBrs
-            , "optionBr"  .= _optionBr
+            , "followed" .= _followed
         ]
 
 

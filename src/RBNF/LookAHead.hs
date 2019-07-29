@@ -3,9 +3,10 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RankNTypes #-}
 module RBNF.LookAHead where
+
+import Debug.Trace
 
 import RBNF.Graph
 import RBNF.Semantics
@@ -39,14 +40,13 @@ data LATree a
 dispLATree :: Show a => Int -> LATree a -> String
 dispLATree i = \case
     LAEnd xs -> indent i $ show xs
-    LA1 m    -> body ++ "\n"
-        where body = L.intercalate "\n"     $
-                      flip map (M.toList m) $
-                       \(case', la) ->
-                            indent i $ (
-                                show case' ++
-                                "\n" ++
-                                dispLATree (i + 4) la)
+    LA1 m    -> L.intercalate "\n" $
+                flip map (M.toList m) $
+                    \(case', la) ->
+                    indent i $ (
+                        show case' ++
+                        "\n" ++
+                        dispLATree (i + 4) la)
 data Coro a o r
     = Coro { fp :: a -> Either r (o, Coro a o r) }
 
@@ -74,7 +74,7 @@ uniqueCat :: Eq a => [a] -> [a] -> [a]
 uniqueCat a b = L.nub $ a ++ b
 
 nextBrs :: Node -> [Int]
-nextBrs n = Maybe.maybeToList (view optionBr n) ++ view thenBrs n
+nextBrs = view followed
 
 next1 :: Graph -> Travel -> Map Case [Travel]
 next1 graph travel =
@@ -196,6 +196,18 @@ data ID3Decision elt cls
     | ID3Leaf [cls]
     deriving (Show, Eq, Ord)
 
+dispID3Tree :: (Show cls, Show elt) => Int -> ID3Decision elt cls -> String
+dispID3Tree i = \case
+    ID3Leaf xs -> show xs
+    ID3Split n xs -> head ++ "\n" ++ body
+        where nextI = i + 4
+              head  = "case elts[" ++ show n ++ "]"
+              body  = L.intercalate "\n" . flip map xs $
+                        \(elt, tree) ->
+                            indent nextI (show elt) ++
+                            " => " ++
+                            dispID3Tree nextI tree
+
 type Offsets = [Int]
 type Numbers = [Int]
 type PathsOfElements elt = V.Vector (V.Vector elt)
@@ -206,7 +218,7 @@ data DecisionProcess
         numbers :: [Int]
     }
 
-data ArgMax a = ArgMax {idx:: !Int, val:: !a}
+data ArgMax a = ArgMax {idx:: Int, val:: a}
 instance Eq a => Eq (ArgMax a) where
     a == b = val a == val b
 
@@ -218,38 +230,60 @@ argmaxWithVal xs =
     let ArgMax {idx, val} = maximum $ zipWith ArgMax [0..] xs
     in (idx, val)
 
+-- f([1, 1, 1, ...], [1, 2, 3, ...]) = 0
+-- {1: [1, 2, 3, 4, ...]}
+-- f([1, 2, 3, ...], [1, 2, 3, ...]) = 1
+-- {1:[1], 2:[2], 3:[3], ...}
+
 classifInfo :: (Eq cls, Ord elt) => [cls] -> [elt] -> Double
 classifInfo clses elts =
     let separated = map (map snd) $ M.elems $ groupBy fst $ zip elts clses
-    in sum $ map distinctness separated
+    in  distinctness separated
     where
         lengthf = fromIntegral . length
-        distinctness xs = (lengthf (L.nub xs) - 1) /  lengthf xs
+        distinctness xs = 1.0 / (sum [lengthf (L.nub x) * lengthf x | x <- xs]) * sum (map lengthf xs)
 
 decideID3 :: (Ord elt, Ord cls) => StateT DecisionProcess (Reader (States cls, PathsOfElements elt)) (ID3Decision elt cls)
 decideID3 = do
     cur <- get
     env@(states, paths) <- lift ask
-
     let minLen       = minimum $ V.map V.length paths
-        validOffsets = takeWhile (<= minLen) $ offsets cur
+        validOffsets = takeWhile (< minLen) $ offsets cur
         states'      = V.toList states
-        clsfInfos    = flip map validOffsets $ \j ->
-                            classifInfo states'
-                            [paths V.! i V.! j | i <- numbers cur]
-        (nth, maxI)  = argmaxWithVal clsfInfos
-        split        = M.toList . groupBy (\i -> paths V.! i V.! nth) $ numbers cur
-        nextOffsets  = L.delete nth $ offsets cur
+        nums         = L.nub . map (states V.!) $ numbers cur
+    if L.null validOffsets then
+        return $ ID3Leaf nums
+    else let
+            clsfInfos    = flip map validOffsets $ \j ->
+                                classifInfo states'
+                                [paths V.! i V.! j | i <- numbers cur]
+            (nth, maxI)  = argmaxWithVal clsfInfos
+            split        = M.toList . groupBy (\i -> paths V.! i V.! nth) $ numbers cur
+            nextOffsets  = L.delete nth $ offsets cur
 
-        recurse = \case
-            [] -> []
-            (elt, clses):xs ->
-                case L.nub clses of
-                    [cls] -> (elt, ID3Leaf [states V.! cls]):tl
-                    clses   ->
-                        let hd = flip runReader env $
-                                  evalStateT decideID3 cur {offsets = nextOffsets, numbers = clses}
-                        in  (elt, hd):tl
-                where tl = recurse xs
-    return $ if maxI == 0.0 then ID3Leaf states'
-             else ID3Split nth $ recurse split
+            recurse = \case
+                [] -> []
+                (elt, nums):xs ->
+                    case L.nub nums of
+                        [num] -> (elt, ID3Leaf [states V.! num]):tl
+                        ns    ->
+                            let hd = flip runReader env $
+                                    evalStateT decideID3 cur {offsets = nextOffsets, numbers = ns}
+                            in  (elt, hd):tl
+                    where tl = recurse xs
+        in return $
+            if maxI == 0.0 || validOffsets == [] || L.length nums == 1
+            then ID3Leaf nums
+            else ID3Split nth $ recurse split
+
+decideId3FromLATree :: Ord cls => LATree cls -> ID3Decision LAEdge cls
+decideId3FromLATree tree =
+    let (paths_src, states_src) = unzip $ flattenLATree tree
+        paths  = V.fromList [V.fromList row | row <- paths_src]
+        states = V.fromList states_src
+        numbers = [0.. V.length paths - 1]
+        offsets = [0..maximum (V.map V.length paths) - 1]
+        env = (states, paths)
+        dp = DP {offsets = offsets, numbers = numbers}
+    in flip runReader env $
+        evalStateT decideID3 dp

@@ -27,8 +27,7 @@ data NodeKind =
 data Node =
     Node {
           kind :: NodeKind
-        , _thenBrs :: [Int]
-        , _optionBr  :: Maybe Int
+        , _followed :: [Int]
     }
     deriving (Show)
 
@@ -45,7 +44,7 @@ makeLenses ''Graph
 
 initGraph syms =
     let n        = length syms
-        initNo k = Node k [] Nothing
+        initNo k = Node k []
         starts'  = [(s, 2*i+1) |(s, i) <- zip syms [0..(n-1)]]
         ends'    = [(s, 2*i) |(s, i) <- zip syms [0..(n-1)]]
         nodes'   = [(i, initNo Start)   | (_, i) <- starts']
@@ -59,7 +58,7 @@ newNode :: NodeKind -> State Graph Int
 newNode kind = do
   nodes' <- gets $ view nodes
   let refIdx   = M.size nodes'
-      newNode' = Node kind [] Nothing
+      newNode' = Node kind []
   modify $ over nodes (M.insert refIdx newNode')
   return refIdx
 
@@ -75,7 +74,7 @@ buildNext lr headIdx semans =
             retVal = ret x
 
         newNodeIdx' <- newNode $ NProc codes' retVal
-        adjustHd headIdx $ over optionBr (const $ Just newNodeIdx')
+        adjustHd headIdx $ over followed (newNodeIdx':)
         (newNodeIdx':) <$> ms
     _ -> error "invalid syntax" -- TODO: invalid syntax
   where
@@ -95,7 +94,7 @@ buildNext lr headIdx semans =
       mGBase lr (hd, semans) = do
         newNodeIdx' <- newNode (NEntity hd)
         indices     <- buildNext lr newNodeIdx' semans
-        adjustHd headIdx $ over thenBrs (newNodeIdx':)
+        adjustHd headIdx $ over followed (newNodeIdx':)
         return indices
 
       mG = case lr of
@@ -113,14 +112,14 @@ buildNonTerm (sym, semans) | not $ L.null semans = do
   endIdx   <- gets $ (M.! sym) . view ends
   indices  <- buildNext Nothing startIdx semans
   forM_ indices $ \i ->
-    adjustHd i $ over thenBrs (endIdx:)
+    adjustHd i $ over followed (endIdx:)
 
 buildLeftR :: (String, [Seman]) -> State Graph ()
 buildLeftR (sym, semans) | not $ L.null semans = do
   endIdx   <- gets $ (M.! sym) . view ends
   indices  <- buildNext (Just sym) endIdx semans
   forM_ indices $ \i ->
-    adjustHd i $ over thenBrs (endIdx:)
+    adjustHd i $ over followed (endIdx:)
 
 buildGraph :: Grammar Seman -> Graph
 buildGraph g =

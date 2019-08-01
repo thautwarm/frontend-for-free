@@ -18,7 +18,7 @@ import Debug.Trace
 
 data NodeKind =
       NEntity Entity
-    | NProc [(Int, IR)] SlotIdx
+    | NReturn SlotIdx
     | Stop
     | Start
     | DoNothing
@@ -70,17 +70,16 @@ buildNext lr headIdx semans =
   case reachFinals of
     []  -> ms
     [x] -> do
-        let codes' = view prog x
-            retVal = ret x
+        let retVal = ret x
 
-        newNodeIdx' <- newNode $ NProc codes' retVal
+        newNodeIdx' <- newNode $ NReturn retVal
         adjustHd headIdx $ over followed (newNodeIdx':)
         (newNodeIdx':) <$> ms
     _ -> error "invalid syntax" -- TODO: invalid syntax
   where
       reachFinals = fst partitioned
       others      = snd partitioned
-      partitioned = L.partition ((== []) . view route) semans
+      partitioned = L.partition (L.null . view route) semans
 
       groups      =
         let tuples    :: [(Entity, Seman)]

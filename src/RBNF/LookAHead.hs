@@ -83,7 +83,7 @@ next1 graph travel =
             in frec descTrvl
         NEntity (ETerm c) ->
             let newTrvls = [travel {cur = nextIdx} | nextIdx <- nextIndices]
-            in M.singleton c $ newTrvls
+            in M.singleton c newTrvls
         _ ->
             case (nextIndices, par travel) of
                 ([], Nothing) -> M.empty

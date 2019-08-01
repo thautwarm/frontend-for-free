@@ -70,6 +70,10 @@ instance Show Entity where
             "pred<" ++ show p ++ ">"
         EModify f ->
             "modify<" ++ show f ++ ">"
+        EBind n ir -> n ++ " <- " ++ show ir
+        EProc irs -> L.intercalate ";" $ map show irs
+        EPushScope -> "pushscope"
+        EPopScope -> "popscope"
 
 maybeShift = \case
     PTerm c -> Just $ ETerm c
@@ -154,9 +158,9 @@ analyse' seman = \case
         obj@(SObj i) <- pop
         pos' <- gets $ view pos
         let ir     = irOfObj obj
-            seman' = over route (EBind s ir:) seman
         push obj
-        analyse' seman' xs
+        seman <- analyse' seman xs
+        return $ over route (EBind s ir:) seman
     PModif m:xs -> do
         seman <- analyse' seman xs
         let sideEffect = miniLangToIR m
@@ -165,10 +169,12 @@ analyse' seman = \case
         seman <- analyse' seman xs
         let predProg =  miniLangToIR m
         return $ over route (EPredicate predProg:) seman
-    PPushScope:xs ->
-        flip analyse' xs $  over route (EPushScope:) seman
-    PPopScope:xs ->
-        flip analyse' xs $  over route (EPopScope:) seman
+    PPushScope:xs -> do
+        seman <- analyse' seman xs
+        return $ over route (EPushScope:) seman
+    PPopScope:xs ->  do
+        seman <- analyse' seman xs
+        return $ over route (EPopScope:) seman
     PReduce m n:xs -> do
         tp  <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj
@@ -177,16 +183,17 @@ analyse' seman = \case
         let fn   = miniLangToIR m
             call = IRCall fn [tp]
             prog = EProc [refObj obj call]
-            seman' = over route (prog:) seman
-        analyse' seman' xs
+        seman <- analyse' seman xs
+        return $ over route (prog:) seman
+
     PPack n:xs -> do
         tp <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj
         push obj
         pos' <- gets $ view pos
         let prog   = EProc [refObj obj tp]
-            seman' = over route (prog:) seman
-        analyse' seman' xs
+        seman <- analyse' seman xs
+        return $ over route (prog:) seman
     PMkSExp s n:xs -> do
         tp <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj
@@ -194,8 +201,8 @@ analyse' seman = \case
         pos' <- gets $ view pos
         let ir     = IRMkSExp s tp
             prog   = EProc [refObj obj tp]
-            seman' = over route (prog:) seman
-        analyse' seman' xs
+        seman <- analyse' seman xs
+        return $ over route (prog:) seman
 
 analyse = analyse' emptySeman
 pGToSG :: Grammar [P] -> Grammar Seman

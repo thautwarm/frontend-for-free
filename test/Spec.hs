@@ -54,20 +54,23 @@ main = do
     putStrLn ""
     -- for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
     --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
-    let ks = pGToSG  . markedLeftRecur $ mkGrammar parsers
-    -- let prods' = M.toList $ view prods ks
+    let gbuilder = mkGrammar $ parsers
+    let g = markedLeftRecur gbuilder
+    let ks = pGToSG  g
+    let ps = view prods g
     -- let leftR' = M.toList $ view leftR ks
     -- let syms = L.map fst prods'
     let ms = buildGraph ks
-    -- print ms
-    let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
-    forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do
-        putStrLn $ "======== Node" ++ show i ++ " ========"
-        putStrLn $ dispLATree 2 latree
-        putStrLn "--- LA optimization:"
-        putStrLn $ dispID3Tree 2 id3tree
-        putStrLn ""
-    writeFile "./test.json" (encodeToLazyText ms)
+    forM_ gbuilder print
+    forM_ (view prods g) print
+    -- let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
+    -- forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do
+    --     putStrLn $ "======== Node" ++ show i ++ " ========"
+    --     putStrLn $ dispLATree 2 latree
+    --     putStrLn "--- LA optimization:"
+    --     putStrLn $ dispID3Tree 2 id3tree
+    --     putStrLn ""
+    -- writeFile "./test.json" (encodeToLazyText ms)
     -- putStrLn "left recursions:"
     -- for_ (M.toList $ _leftR ms) $ \(s, xs) -> do
     --     putStrLn $ "Rule:" ++ s

@@ -64,7 +64,7 @@ markedLeftRecur g =
                             let recurs' = S.insert name recurs
                                 arr = groups M.! name
                             in  mergeSplited $
-                                map (frec recurs') arr
+                                map (frec recurs' . (++ xs)) arr
                     x:xs ->
                         let separated = frec recurs xs
                             addHd rules = [x:rule | rule <- rules]

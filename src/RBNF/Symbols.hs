@@ -67,6 +67,8 @@ instance Show P where
         PBind    s     -> "=: " ++ s
         PModif   modif -> "!" ++ show modif
         PMkSExp  tag n -> "s-exp<" ++ tag ++ ", " ++ show n ++ ">"
+        PPushScope     -> "pushscope"
+        PPopScope      -> "popscope"
 
 -- Combinatorial
 data C

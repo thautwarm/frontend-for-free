@@ -39,7 +39,6 @@ instance ToJSON IR where
         IRVar n       -> object ["ctor" .= str_ "IRVar", "name" .= n]
         IRMkSExp s ir -> object ["ctor" .= str_ "IRMkSExp", "name" .= s, "val" .= ir]
         IRCall f args -> object ["ctor" .= str_ "IRCall", "f" .= f, "args" .= args]
-        a             -> object ["ctor" .= show a]
 
 instance ToJSON Entity where
     -- | ENonTerm String
@@ -64,6 +63,17 @@ instance ToJSON Entity where
                 "ctor" .= str_ "EPredicate"
               , "code" .= ir
             ]
+        EBind name ir -> object [
+              "ctor"  .= str_ "EBind",
+              "bind"  .= name,
+              "value" .= ir
+          ]
+        EProc irs -> object [
+            "ctor"   .= str_ "EProc",
+            "codes"  .= irs
+          ]
+        EPopScope -> object ["ctor" .= str_ "EPopScope"]
+        EPushScope -> object ["ctor" .= str_ "EPushScope"]
 
 instance ToJSON NodeKind where
     -- NEntity Entity
@@ -71,11 +81,7 @@ instance ToJSON NodeKind where
     -- | DoNothing
     toJSON = \case
         NEntity e -> object ["ctor" .= str_ "NEntity", "val" .= e]
-        NProc codes i -> object [
-                  "ctor" .= str_ "NEntity"
-                , "codes" .= codes
-                , "returnIdx" .= i
-            ]
+        NReturn i -> object ["ctor" .= str_ "NReturn", "slot" .=  i]
         a -> object ["ctor" .= show a]
     --
 instance ToJSON Node where

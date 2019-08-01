@@ -24,6 +24,7 @@ data ACode
     = ALet AName ACode
     | AVar AName
     | AInt Integer
+    | AStr String
     | ATuple [ACode]
     | ACall ACode [ACode]
     | AAttr ACode String
@@ -32,6 +33,7 @@ data ACode
     | AWhile ACode ACode
     | ASwitch ACode [(Int, ACode)] (Maybe ACode)
     | ADef VName [VName] ACode
+    | ALam VName ACode
     | ABlock [ACode]
     deriving (Show, Eq, Ord)
 
@@ -41,6 +43,9 @@ amoveForward = AVar $ ABuiltin "move_forward"
 amoveForward' = AVar $ ABuiltin "move_forward!"
 apeek0 = AVar $ ABuiltin "peek0"
 apeekN = AVar $ ABuiltin "peekN"
+amsg   = AVar $ ABuiltin "err_msg"
+amkError = AVar $ ABuiltin "mk_err"
+
 tokenId = "idint"
 aint = AInt . fromIntegral
 data CFG
@@ -81,7 +86,7 @@ mkSwitch c@CompilationInfo {
     return $ uncurry (ASwitch curInt) $ f xs
 
 codeGen :: CompilationInfo -> Int -> State CFG ACode
-codeGen CompilationInfo {
+codeGen c@CompilationInfo {
             tokenNames
           , decisions
           , graph
@@ -96,7 +101,12 @@ codeGen CompilationInfo {
           curInt   = AAttr curToken tokenId
           cmp      = ACall aeq [aint idx, curInt]
           nexts    = view followed node
+          ifNEq    = error ""
+              -- let msg = ACall amsg [tokensVar, curInt, AStr s]
+              -- in  ACall amkError []
        -- TODO
-      return $ AIf (ACall aeq [AInt . fromIntegral $ idx, tokensVar]) aeq aeq
-
-
+      ifEq <-
+          case nexts of
+            [i] -> codeGen c i
+            _   -> mkSwitch c $ decisions M.! i
+      return $ AIf (ACall aeq [AInt . fromIntegral $ idx, tokensVar]) ifEq ifNEq

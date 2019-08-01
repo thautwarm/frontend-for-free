@@ -63,6 +63,7 @@ main = do
     let ms = buildGraph ks
     -- forM_ gbuilder print
     -- forM_ (view prods g) print
+    print ms
     writeFile "./test.json" (encodeToLazyText ms)
     let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
     forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do

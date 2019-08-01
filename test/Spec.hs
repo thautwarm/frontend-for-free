@@ -61,16 +61,16 @@ main = do
     -- let leftR' = M.toList $ view leftR ks
     -- let syms = L.map fst prods'
     let ms = buildGraph ks
-    forM_ gbuilder print
-    forM_ (view prods g) print
-    -- let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
-    -- forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do
-    --     putStrLn $ "======== Node" ++ show i ++ " ========"
-    --     putStrLn $ dispLATree 2 latree
-    --     putStrLn "--- LA optimization:"
-    --     putStrLn $ dispID3Tree 2 id3tree
-    --     putStrLn ""
-    -- writeFile "./test.json" (encodeToLazyText ms)
+    -- forM_ gbuilder print
+    -- forM_ (view prods g) print
+    writeFile "./test.json" (encodeToLazyText ms)
+    let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
+    forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do
+        putStrLn $ "======== Node" ++ show i ++ " ========"
+        putStrLn $ dispLATree 2 latree
+        putStrLn "--- LA optimization:"
+        putStrLn $ dispID3Tree 2 id3tree
+        putStrLn ""
     -- putStrLn "left recursions:"
     -- for_ (M.toList $ _leftR ms) $ \(s, xs) -> do
     --     putStrLn $ "Rule:" ++ s

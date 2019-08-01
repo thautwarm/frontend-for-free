@@ -74,17 +74,25 @@ uniqueCat a b = L.nub $ a ++ b
 nextBrs :: Node -> [Int]
 nextBrs = view followed
 
-next1 :: Graph -> Travel -> Map Case [Travel]
+data Next1
+    = Next1 {
+        foundStop :: Bool
+      , nextTravel :: Travel
+    }
+    deriving (Eq, Ord, Show)
+
+next1 :: Graph -> Travel -> Map Case [Next1]
 next1 graph travel =
     case kind curNode of
         NEntity (ENonTerm s) ->
             let idx      = startIndices M.! s
                 descTrvl = Travel (Just travel) idx
-            in frec descTrvl
+            in M.map (map stop) $ frec descTrvl
         NEntity (ETerm c) ->
-            let newTrvls = [travel {cur = nextIdx} | nextIdx <- nextIndices]
-            in M.singleton c newTrvls
-        _ ->
+            let next1s = [Next1 False travel {cur = nextIdx} | nextIdx <- nextIndices]
+            in M.singleton c next1s
+        ent ->
+            flip detectStop ent $
             case (nextIndices, par travel) of
                 ([], Nothing) -> M.empty
                 ([], Just parent) ->
@@ -104,6 +112,11 @@ next1 graph travel =
         curNode      = nodeStore M.! curIdx
         nextIndices  = nextBrs curNode
 
+        stop x       = x {foundStop = True}
+        detectStop a = \case
+            Stop -> M.map (map stop) a
+            _    -> a
+
 isRec Travel {cur, par=Just par} = frec cur par
         where
             frec i Travel {cur, par}
@@ -118,20 +131,15 @@ nextK graph trvl n =
     case n of
         _ | M.null xs -> LAEnd [trvl]
         NZ     -> LA1 . M.mapKeys LAShift $
-                  M.map LAEnd xs
+                  M.map (LAEnd . map nextTravel) xs
         NS n'  -> LA1 . M.mapKeys LAShift $
                   M.map (mergeLATrees . L.nub . map nextDec1) xs
 
-            where nextDec1 :: Travel -> LATree Travel
-                  nextDec1 trvl =
-                    let n'' = case kind $ view nodes graph M.! cur trvl of
-                            NEntity (ENonTerm _) -> n'
-                            -- avoid infinite recursing for productions
-                            -- referring no nonterminals other than itself.
-                            Stop                 -> n'
-                            _                    -> n
+            where nextDec1 :: Next1 -> LATree Travel
+                  nextDec1 Next1 {foundStop, nextTravel} =
+                    nextK graph nextTravel $
+                        if foundStop then n' else n
 
-                    in nextK graph trvl n''
     where xs = next1 graph trvl
 
 mergeLATrees ::  [LATree a] -> LATree a

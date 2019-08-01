@@ -21,3 +21,7 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 test.json
+
+# python generated
+Digraph.gv
+Digraph.gv.pdf

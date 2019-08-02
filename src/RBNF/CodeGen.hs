@@ -4,7 +4,7 @@
 -- Generate codes from the parsing graph and the ID3 decision tree.
 -- HOW-TO:
 {-
-Firstly introduce some builtins:
+Introduce some builtins:
   type token_view = {tokens : token array, offset :: int}
   peekable_n(token_view, int) -> bool
   peek_n(token_view, int) -> token
@@ -14,75 +14,6 @@ Firstly introduce some builtins:
 
   type err_msg_root = [(int, string)] (* offset, rule name *)
 
-for a part of parsing graph:
-  start c
-  |
-  nonterm b
-  |
-  term a
-  |
-  ...(regularly build ast)
-  |
-  end c
-
-we produce codes:
-
-define parse_c(state, token_view view) -> Either err_msg_root _ {
-  ## push scope, prefix append "/"
-  offset = view.offset
-  slot0 = parse_b(view)
-  case slot0 of
-  Left  l -> return  (Left ((offset, "rule b")::l))
-  Right a ->
-  case slot1 of
-  if case of slot0 is Left _ {
-    return Left (offset + 0, "rule b")::slot0
-  }
-  else {
-    slot0 = case slot0 of Right a -> a
-  }
-  slot1 = peek_n(token_view, 1)
-  slot1 = parse_b(view)
-  if case of slot1 is Left _{
-    return (offset + 1, "token a")::slot1
-  }
-  build_ast("c", (slot0, slot1))
-}
-
-for a part of parsing graph:
-  start c
-  |
-  pushscope
-  |
-  term a
-  |
-  proc: slot[-1] <- slot[0]
-  |
-  bind var slot[-1]
-  |
-  proc: slot[-2] <- f(slot[-1])
-  |
-  popscope
-  |
-  return -2
-  |
-  end c
-
-we produce codes:
-
-define parse_c(state, token_view view) -> Either err_msg_root _ {
-  offset = view.offset
-  slot0 = parse_b(view)
-  if case of slot0 is Left _ {
-    return (offset + 0, "rule b")::slot0
-  }
-
-  slot1 = parse_b(view)
-  if case of slot1 is Left _{
-    return (offset + 1, "token a")::slot1
-  }
-  build_ast("c", (slot0, slot1))
-}
 -}
 
 module RBNF.CodeGen where
@@ -99,7 +30,7 @@ import qualified Data.Map as M
 
 data CompilationInfo
     = CompilationInfo {
-          tokenNames :: Map String Int -- token name to its integer index.
+          tokenIds   :: Map String Int -- token name to its integer index.
         , graph      :: Graph
         , decisions  :: Map Int (ID3Decision LAEdge Int)
       }
@@ -108,94 +39,89 @@ data AName = ALocal String | ASlot Int | ABuiltin String
   deriving (Show, Eq, Ord)
 
 data ACode
-    = ALet AName ACode
-    | AVar AName
-    | AInt Integer
-    | AStr String
-    | ATuple [ACode]
+    = ALocalBind AName ACode -- work inside the nearest ABlock
+    | AAssign AName -- work in whole fn scope
     | ACall ACode [ACode]
     | AAttr ACode String
     | APrj  ACode ACode
     | AIf ACode ACode ACode
     | AWhile ACode ACode
+    -- similar to switch but not exactly. the default case will get proceeded
+    -- once all cases failed.
     | ASwitch ACode [(Int, ACode)] (Maybe ACode)
     | ADef VName [VName] ACode
     | ALam VName ACode
     | ABlock [ACode]
+    -- literal
+    | AVar AName
+    | AInt Integer
+    | AStr String
+    | ATuple [ACode]
     deriving (Show, Eq, Ord)
 
 
--- polymorphic equal
-aeq = AVar $ ABuiltin "=="
 
-amoveForward = AVar $ ABuiltin "move_forward"
-amoveForward' = AVar $ ABuiltin "move_forward!"
-apeek0 = AVar $ ABuiltin "peek0"
-apeekN = AVar $ ABuiltin "peekN"
-amsg   = AVar $ ABuiltin "err_msg"
-amkError = AVar $ ABuiltin "mk_err"
+dsl_eq         = AVar $ ABuiltin "=="
+dsl_mv_forward = AVar $ ABuiltin "move_forward!"
+dsl_peekable_n = AVar $ ABuiltin "peek_n"
+dsl_peek_n     = AVar $ ABuiltin "peek_n"
+dsl_reset      = AVar $ ABuiltin "reset!"
+dsl_cons       = AVar $ ABuiltin "cons"
+dsl_null       = AVar $ ABuiltin "null"
+dsl_int        = AInt . fromIntegral
 
 tokenId = "idint"
-aint = AInt . fromIntegral
+
+
 data CFG
   = CFG {
-      offset :: Int
-    , tokens :: ACode
+      slot      :: Int
+    , tkview    :: ACode
     , topLevels :: [String]
+    , scopes    :: [Map String String]
   }
 
 mkSwitch :: CompilationInfo -> ID3Decision LAEdge Int -> State CFG ACode
 mkSwitch c@CompilationInfo {
-          tokenNames
+          tokenIds
         , decisions
         , graph
         } = \case
   ID3Leaf [] -> error "invalid" -- TODO
   ID3Leaf [a] -> codeGen c a
-  ID3Leaf xs -> error "Backtracing not supported yet. Try enlarge K to resolve conflicts."
+  ID3Leaf xs -> error "Backtracing not supported yet. Try enlarge K to resolve ambiguities."
   ID3Split k xs -> do
-    tokensVar <- gets tokens
-    tokenOffset <- gets offset
     cfg <- get
-    let f :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(Int, ACode)], Maybe ACode)
-        f = fImpl [] Nothing
-        fImpl :: [(Int, ACode)]-> Maybe ACode -> [(LAEdge, ID3Decision LAEdge Int)] -> ([(Int, ACode)], Maybe ACode)
-        fImpl cases default' = \case
+    let dsl_tokens = tkview cfg
+        hs_slot    = slot   cfg
+
+        switch :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(Int, ACode)], Maybe ACode)
+        switch = switchImpl [] Nothing
+        switchImpl cases default' = \case
           [] -> (cases, default')
           (LAReduce, subDecision):xs ->
               let cont = flip evalState cfg $ mkSwitch c subDecision
-              in  fImpl cases (Just cont) xs
+              in  switchImpl cases (Just cont) xs
           (LAShift (Case t), subDecision):xs ->
-              let idx   = tokenNames M.! t
+              let idx   = tokenIds M.! t
                   cont  = flip evalState cfg $ mkSwitch c subDecision
                   case' = (idx, cont)
-              in  fImpl (case':cases) default' xs
-        curToken = ACall apeekN [tokensVar, aint tokenOffset]
-        curInt   = AAttr curToken tokenId
-    return $ uncurry (ASwitch curInt) $ f xs
+              in  switchImpl (case':cases) default' xs
+        dsl_cur_token = ACall dsl_peek_n [dsl_tokens, dsl_int k]
+        dsl_cur_int   = AAttr dsl_cur_token tokenId
+        dsl_peekable  = ACall dsl_peekable_n [dsl_tokens, dsl_int k]
+
+    return $
+      AIf dsl_peekable
+          (uncurry (ASwitch dsl_cur_int) $ switch xs)
+          dsl_null
 
 codeGen :: CompilationInfo -> Int -> State CFG ACode
 codeGen c@CompilationInfo {
-            tokenNames
+            tokenIds
           , decisions
           , graph
          } i =
   let node = view nodes graph M.! i in
-  case node of
-    Node {kind = NEntity (ETerm (Case s))} -> do
-      tokensVar <- gets tokens
-      tokenOffset <- gets offset
-      let idx      = tokenNames M.! s
-          curToken = ACall apeekN [tokensVar, aint tokenOffset]
-          curInt   = AAttr curToken tokenId
-          cmp      = ACall aeq [aint idx, curInt]
-          nexts    = view followed node
-          ifNEq    = error ""
-              -- let msg = ACall amsg [tokensVar, curInt, AStr s]
-              -- in  ACall amkError []
-       -- TODO
-      ifEq <-
-          case nexts of
-            [i] -> codeGen c i
-            _   -> mkSwitch c $ decisions M.! i
-      return $ AIf (ACall aeq [AInt . fromIntegral $ idx, tokensVar]) ifEq ifNEq
+  case kind node of
+    NEntity (ETerm (Case t)) -> error ""

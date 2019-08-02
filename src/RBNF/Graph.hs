@@ -20,6 +20,7 @@ data NodeKind =
       NEntity Entity
     | NReturn SlotIdx
     | Stop
+    | LeftRecur
     | Start
     | DoNothing
     deriving (Show)
@@ -116,6 +117,7 @@ buildNonTerm (sym, semans) | not $ L.null semans = do
 buildLeftR :: (String, [Seman]) -> State Graph ()
 buildLeftR (sym, semans) | not $ L.null semans = do
   endIdx   <- gets $ (M.! sym) . view ends
+  adjustHd endIdx $ \a -> a {kind = LeftRecur}
   indices  <- buildNext (Just sym) endIdx semans
   forM_ indices $ \i ->
     adjustHd i $ over followed (endIdx:)

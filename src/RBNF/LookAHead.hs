@@ -114,8 +114,9 @@ next1 graph travel =
 
         stop x       = x {foundStop = True}
         detectStop a = \case
-            Stop -> M.map (map stop) a
-            _    -> a
+            Stop      -> M.map (map stop) a
+            LeftRecur -> M.map (map stop) a
+            _         -> a
 
 isRec Travel {cur, par=Just par} = frec cur par
         where

@@ -1,6 +1,92 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE LambdaCase #-}
+
+-- Generate codes from the parsing graph and the ID3 decision tree.
+-- HOW-TO:
+{-
+Firstly introduce some builtins:
+  type token_view = {tokens : token array, offset :: int}
+  peekable_n(token_view, int) -> bool
+  peek_n(token_view, int) -> token
+  peek(token_view, int) -> token
+  move_forward!(token_view) -> unit
+  reset!(token_view, int) -> unit
+
+  type err_msg_root = [(int, string)] (* offset, rule name *)
+
+for a part of parsing graph:
+  start c
+  |
+  nonterm b
+  |
+  term a
+  |
+  ...(regularly build ast)
+  |
+  end c
+
+we produce codes:
+
+define parse_c(state, token_view view) -> Either err_msg_root _ {
+  ## push scope, prefix append "/"
+  offset = view.offset
+  slot0 = parse_b(view)
+  case slot0 of
+  Left  l -> return  (Left ((offset, "rule b")::l))
+  Right a ->
+  case slot1 of
+  if case of slot0 is Left _ {
+    return Left (offset + 0, "rule b")::slot0
+  }
+  else {
+    slot0 = case slot0 of Right a -> a
+  }
+  slot1 = peek_n(token_view, 1)
+  slot1 = parse_b(view)
+  if case of slot1 is Left _{
+    return (offset + 1, "token a")::slot1
+  }
+  build_ast("c", (slot0, slot1))
+}
+
+for a part of parsing graph:
+  start c
+  |
+  pushscope
+  |
+  term a
+  |
+  proc: slot[-1] <- slot[0]
+  |
+  bind var slot[-1]
+  |
+  proc: slot[-2] <- f(slot[-1])
+  |
+  popscope
+  |
+  return -2
+  |
+  end c
+
+we produce codes:
+
+define parse_c(state, token_view view) -> Either err_msg_root _ {
+  offset = view.offset
+  slot0 = parse_b(view)
+  if case of slot0 is Left _ {
+    return (offset + 0, "rule b")::slot0
+  }
+
+  slot1 = parse_b(view)
+  if case of slot1 is Left _{
+    return (offset + 1, "token a")::slot1
+  }
+  build_ast("c", (slot0, slot1))
+}
+-}
+
 module RBNF.CodeGen where
+
 
 import RBNF.Symbols
 import RBNF.Semantics hiding (CFG)
@@ -20,6 +106,7 @@ data CompilationInfo
 
 data AName = ALocal String | ASlot Int | ABuiltin String
   deriving (Show, Eq, Ord)
+
 data ACode
     = ALet AName ACode
     | AVar AName
@@ -38,7 +125,9 @@ data ACode
     deriving (Show, Eq, Ord)
 
 
+-- polymorphic equal
 aeq = AVar $ ABuiltin "=="
+
 amoveForward = AVar $ ABuiltin "move_forward"
 amoveForward' = AVar $ ABuiltin "move_forward!"
 apeek0 = AVar $ ABuiltin "peek0"

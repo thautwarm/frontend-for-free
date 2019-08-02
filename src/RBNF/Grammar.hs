@@ -38,8 +38,8 @@ stackEff = \case
         PPred _     -> 0
         PBind   _   -> 0
         PModif  _   -> 0
-        PPushScope  -> 0
-        PPopScope   -> 0
+        PPushScope _ -> 0
+        PPopScope  _ -> 0
 
 parsedLength :: PRule -> Int
 parsedLength = sum . map stackEff
@@ -91,12 +91,12 @@ inline g = concatMap inlineProd g
     where groups = M.map (map snd) $ groupBy fst g
           inlineProd :: PProd -> [PProd]
           inlineProd (me, rule) =
-            let letBlock :: [P] -> [P]
-                letBlock xs = PPushScope:xs ++ [PPopScope]
+            let letBlock :: String -> [P] -> [P]
+                letBlock s xs = PPushScope s:xs ++ [PPopScope s]
                 inlineP :: P -> [PRule]
                 inlineP = \case
                     x@(PNonTerm s) | s /= me  ->
-                            map letBlock $ groups M.! s
+                            map (letBlock s) $ groups M.! s
                     x              -> [[x]]
             in map ((const me &&& id) . concat) $
                mapM inlineP rule

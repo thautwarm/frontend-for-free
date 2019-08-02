@@ -50,8 +50,8 @@ data P
 
     | PMkSExp String Int
 
-    | PPushScope
-    | PPopScope
+    | PPushScope String -- String for debugging
+    | PPopScope  String -- String for debugging
     deriving (Eq, Ord)
 
 type PRule = [P]
@@ -67,8 +67,8 @@ instance Show P where
         PBind    s     -> "=: " ++ s
         PModif   modif -> "!" ++ show modif
         PMkSExp  tag n -> "s-exp<" ++ tag ++ ", " ++ show n ++ ">"
-        PPushScope     -> "pushscope"
-        PPopScope      -> "popscope"
+        PPushScope  s  -> "pushscope " ++ s
+        PPopScope   s  -> "popscope " ++ s
 
 -- Combinatorial
 data C

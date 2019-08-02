@@ -72,8 +72,8 @@ instance ToJSON Entity where
             "ctor"   .= str_ "EProc",
             "codes"  .= irs
           ]
-        EPopScope -> object ["ctor" .= str_ "EPopScope"]
-        EPushScope -> object ["ctor" .= str_ "EPushScope"]
+        EPopScope s -> object ["ctor" .= str_ "EPopScope", "scope" .= s]
+        EPushScope s -> object ["ctor" .= str_ "EPushScope", "scope" .= s]
 
 instance ToJSON NodeKind where
     -- NEntity Entity

@@ -58,8 +58,8 @@ data Entity
     | EModify IR
     | EBind String IR
     | EProc [IR]
-    | EPushScope
-    | EPopScope
+    | EPushScope String
+    | EPopScope  String
     deriving (Eq, Ord)
 
 instance Show Entity where
@@ -72,8 +72,8 @@ instance Show Entity where
             "modify<" ++ show f ++ ">"
         EBind n ir -> n ++ " <- " ++ show ir
         EProc irs -> L.intercalate ";" $ map show irs
-        EPushScope -> "pushscope"
-        EPopScope -> "popscope"
+        EPushScope s -> "pushscope " ++ s
+        EPopScope  s -> "popscope " ++ s
 
 maybeShift = \case
     PTerm c -> Just $ ETerm c
@@ -169,12 +169,12 @@ analyse' seman = \case
         seman <- analyse' seman xs
         let predProg =  miniLangToIR m
         return $ over route (EPredicate predProg:) seman
-    PPushScope:xs -> do
+    PPushScope s:xs -> do
         seman <- analyse' seman xs
-        return $ over route (EPushScope:) seman
-    PPopScope:xs ->  do
+        return $ over route (EPushScope s:) seman
+    PPopScope s:xs ->  do
         seman <- analyse' seman xs
-        return $ over route (EPopScope:) seman
+        return $ over route (EPopScope s:) seman
     PReduce m n:xs -> do
         tp  <- IRTuple . reverse . map irOfObj <$> replicateM n pop
         obj <- newObj

@@ -1,5 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 -- Generate codes from the parsing graph and the ID3 decision tree.
 -- HOW-TO:
@@ -20,7 +21,7 @@ module RBNF.CodeGen where
 
 
 import RBNF.Symbols
-import RBNF.Semantics hiding (CFG)
+import RBNF.Semantics hiding (CFG, emptyCFG)
 import RBNF.Graph
 import RBNF.LookAHead
 import Control.Monad.State
@@ -52,8 +53,7 @@ data ACode
     -- similar to switch but not exactly. the default case will get proceeded
     -- once all cases failed.
     | ASwitch ACode [(Int, ACode)] (Maybe ACode)
-    | ADef VName [VName] ACode
-    | ALam VName ACode
+    | ADef AName [AName] ACode
     | ABlock [ACode]
     -- literal
     | AVar AName
@@ -65,6 +65,7 @@ data ACode
     deriving (Show, Eq, Ord)
 
 dsl_eq         = AVar $ ABuiltin "=="
+dsl_neq        = AVar $ ABuiltin "!="
 dsl_mv_forward = AVar $ ABuiltin "move_forward!"
 dsl_peekable_n = AVar $ ABuiltin "peekable_n"
 dsl_peek_n     = AVar $ ABuiltin "peek_n"
@@ -94,12 +95,29 @@ data CFG
   = CFG {
       slot      :: Int
     , tmp       :: Int
-    , tkview    :: ACode
+    , tokens    :: AName
     , offname   :: AName
-    , topLevels :: [String]
+    , globST    :: AName
     , scopes    :: [String]
+    , ret       :: ACode
+    , isLR      :: Bool
     , ctx       :: [Map String String]
   }
+
+emptyCFG scope tokens' offname' globST' = CFG {
+      slot    = 0
+    , tmp     = 0
+    , scopes  = [scope]
+    , ret     = dsl_int 0
+    , ctx     = [M.empty]
+    , isLR    = False
+
+    , globST  = globST'
+    , tokens  = tokens'
+    , offname = offname'
+  }
+
+tkview cfg = AVar $ tokens cfg
 
 build :: Monad m => a -> StateT [a] m ()
 build a   = modify (a:)
@@ -107,6 +125,9 @@ build a   = modify (a:)
 
 consBlock a (ABlock xs) = ABlock (a:xs)
 consBlock a x           = ABlock [a, x]
+
+prependBlock xs' (ABlock xs) = ABlock (xs' ++ xs)
+prependBlock xs' x           = ABlock $ xs' ++ [x]
 
 block [a] = a
 block xs  = ABlock xs
@@ -197,7 +218,14 @@ codeGen c@CompilationInfo {
           , graph
           , withTrace
          } i =
-  let node = view nodes graph M.! i in
+  let node          = view nodes graph M.! i
+      getCont i cfg = block $
+          flip evalState cfg $
+          flip execStateT [] $
+            case (i `M.lookup` decisions, view followed node) of
+            (Just decision, _) -> mkSwitch c decision
+            (_, [followI])     -> codeGen c followI
+  in
   case kind node of
     NEntity (ETerm (Case t)) -> do
       cfg <- lift get
@@ -208,12 +236,7 @@ codeGen c@CompilationInfo {
       cfg <- lift $ modified (\a -> a {slot = slot a + 1})
       build $ AAssign dsl_off_name (AAttr dsl_tokens tokenOff)
       build $ AAssign dsl_sloti_n  (ACall dsl_match_tk [dsl_tokens, dsl_int $ tokenIds M.! t])
-      let cont = block $
-                 flip evalState cfg $
-                 flip execStateT [] $
-                   case (i `M.lookup` decisions, view followed node) of
-                    (Just decision, _) -> mkSwitch c decision
-                    (_, [followI])     -> codeGen c followI
+      let cont = getCont i cfg
       build $ let ifErr = if withTrace then
                               let err_hd = ATuple [AVar dsl_off_name, AStr t]
                                   errs   = ACall dsl_to_any [ACall dsl_cons [err_hd, dsl_nil]]
@@ -233,12 +256,7 @@ codeGen c@CompilationInfo {
       cfg <- lift $ modified $ \a -> a {slot = slot a + 1}
       build $ AAssign dsl_off_name (AAttr dsl_tokens tokenOff)
       build $ AAssign dsl_sloti_chk (ACall dsl_parse [AStr n, dsl_tokens])
-      let cont = block $
-                 flip evalState cfg $
-                 flip execStateT [] $
-                   case (i `M.lookup` decisions, view followed node) of
-                    (Just decision, _) -> mkSwitch c decision
-                    (_, [followI])     -> codeGen c followI
+      let cont = getCont i cfg
           result   = ACall dsl_to_res [APrj (AVar dsl_sloti_chk) 1]
           assSlot  = AAssign dsl_sloti_n result
           ifNotErr = consBlock assSlot cont
@@ -250,6 +268,94 @@ codeGen c@CompilationInfo {
       else build $ AIf (ACall dsl_eq [AVar dsl_sloti_n, dsl_null])
                       dsl_null
                       ifNotErr
+    NEntity (EPredicate ir) -> do
+      expr <- lift $ irToCode ir
+      cfg  <- lift get
+      let cont = getCont i cfg
+      build $
+        AIf expr cont $
+          if withTrace then
+            ATuple [dsl_int 0, ACall dsl_to_any [dsl_nil]]
+          else
+            dsl_null
+    NEntity (EModify ir) -> do
+      sideEffect <- lift $ irToCode ir
+      cfg  <- lift get
+      let cont = getCont i cfg
+      build $ consBlock sideEffect cont
+    NEntity (EBind name ir) -> do
+      bind <- lift $ irToCode (IRAss (Local name) ir)
+      cfg  <- lift get
+      let cont = getCont i cfg
+      build $ consBlock bind cont
+    NEntity (EProc irs) -> do
+      stmts <- lift $ mapM irToCode irs
+      cfg  <- lift get
+      let cont = getCont i cfg
+      build $ prependBlock stmts cont
+    NEntity (EPushScope s) -> do
+      cfg <- lift $ modified $ \cfg ->
+        let hd:tl = ctx cfg
+        in cfg {scopes = s:scopes cfg, ctx = hd:hd:tl}
+      build $ getCont i cfg
+    NEntity (EPopScope s) -> do
+      cfg <- lift $ modified $ \cfg ->
+        let _:tl_ctx   = ctx cfg
+            _:tl_scope = scopes cfg
+        in cfg {scopes = tl_scope, ctx = tl_ctx}
+      build $ getCont i cfg
+    NReturn slotId -> do
+      expr <- lift $ irToCode $ IRVar (Slot slotId)
+      cfg  <- lift $ modified $ \cfg -> cfg {ret = expr} :: CFG
+      build $ getCont i cfg
+    Stop -> do
+      cfg <- lift get
+      let CFG {ret} = cfg
+      build ret
+    LeftRecur -> do
+      cfg <- lift get
+      if not $ isLR cfg then do
+        let CFG {ret} = cfg
+        build ret
+      else do
+        let name = L.head $ scopes cfg
+            cfg'   = cfg {
+                  slot = 1
+                , tmp  = 0
+                , scopes = [name]
+                , ctx    = [M.empty]
+                , ret    = dsl_int 0
+                , isLR   = True
+              }
+        let cont = getCont i cfg'
+            arg0 = AName $ slotToStr 0
+            recn = AName $ "left_recur/" ++ name
+            try  = AName $ "left_recur/" ++ name ++ "/try"
+            cond = if withTrace
+                  then ACall dsl_neq [APrj (AVar try) 0, dsl_int 0]
+                  else ACall dsl_neq [AVar try, dsl_null]
+            -- fold left recursion:
+            -- arg0 <- arg0 a b c ...
+            fold = if withTrace
+                  then ACall dsl_to_res [APrj (AVar try) 1]
+                  else AVar try
+            defun = ADef recn [arg0, globST cfg, tokens cfg] $
+                      ABlock [
+                          AAssign try cont
+                        , AWhile cond $ ABlock [
+                              AAssign arg0 fold
+                            , AAssign try cont
+                          ]
+                        , AVar arg0
+                      ]
+        let CFG {ret} = cfg
+        build $ ABlock [
+            defun
+            , ACall (AVar recn) [ret, AVar $ globST cfg, tkview cfg]
+          ]
+    _ -> do
+      cfg <- lift get
+      build $ getCont i cfg
 
 irToCode :: IR -> State CFG ACode
 irToCode ir = do

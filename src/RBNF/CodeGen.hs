@@ -78,12 +78,17 @@ dsl_null       = AVar $ ABuiltin "null"
 dsl_to_errs    = AVar $ ABuiltin "cast_to_errs"
 dsl_to_res     = AVar $ ABuiltin "cast_to_result"
 dsl_to_any     = AVar $ ABuiltin "cast_to_any"
+dsl_mkast      = AVar $ ABuiltin "mk_ast"
 dsl_int        = AInt . fromIntegral
 
 tokenId = "idint"
 tokenOff = "offset"
 
 slotToStr i = "/slot/" ++ show i
+scopedStr scopes s = L.intercalate "/" $ L.reverse (s:scopes)
+vNameToStr = \case
+  Local s -> s
+  Slot  i -> slotToStr i
 
 data CFG
   = CFG {
@@ -245,3 +250,30 @@ codeGen c@CompilationInfo {
       else build $ AIf (ACall dsl_eq [AVar dsl_sloti_n, dsl_null])
                       dsl_null
                       ifNotErr
+
+irToCode :: IR -> State CFG ACode
+irToCode ir = do
+  cfg <- get
+  let hs_scopes        = scopes cfg
+      cur_ctx:ctx_tl   = ctx cfg
+      frec = \case
+        IRAss (Local s) ir -> do
+            i <- incTmp
+            let nameStr = scopedStr hs_scopes s ++ "/" ++ show i
+            code <- AAssign (AName nameStr) <$> irToCode ir
+            put $ cfg {ctx=M.insert s nameStr cur_ctx:ctx_tl}
+            return code
+        IRAss (Slot i) ir ->
+          AAssign (AName $ slotToStr i) <$> irToCode ir
+        IRTuple irs ->
+          ATuple <$> mapM irToCode irs
+        IRMkSExp n ir -> do
+          content <- irToCode ir
+          return $ ACall dsl_mkast [AStr n, content]
+        IRCall f args ->
+          ACall <$> irToCode f <*> mapM irToCode args
+        IRVar (Local s) ->
+          return $ AVar $ AName $ M.findWithDefault s s cur_ctx
+        IRVar (Slot i) ->
+          return $ AVar $ AName $ slotToStr i
+  frec ir

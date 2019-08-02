@@ -50,8 +50,6 @@ data ACode
     | APrj  ACode Int
     | AIf ACode ACode ACode
     | AWhile ACode ACode
-    -- similar to switch but not exactly. the default case will get proceeded
-    -- once all cases failed.
     | ASwitch ACode [(Int, ACode)] (Maybe ACode)
     | ADef AName [AName] ACode
     | ABlock [ACode]

@@ -1,7 +1,7 @@
 # RBNF
 
 ## Note: Front End
-```
+```haskell
 infix 5 -->
 infix 6 |=
 
@@ -98,50 +98,51 @@ case elts[1]
 ## Note: Code Generation
 
 ```
-def parse.Mul(.slot.0, %state, %tokens)
-   if somePred
-   then if %peekable_n(%tokens, 1)
-      then switch %peek_n(%tokens, 1).idint
-            case 2 : %off =  %tokens.offset
-                     .slot.0 =  %match_token(%tokens, 1)
-                     if %==(.slot.0, %null)
-                     then tuple(0, %cast_to_any(%cons(tuple(%off, "-"), %nil)))
-                     else %off =  %tokens.offset
-                           .slot.1.check =  %parse("Factor", %tokens)
-                           if %==(.slot.1[0], 0)
-                           then .slot.1.check
-                           else .slot.1 =  %cast_to_result(.slot.1.check[1])
-                              Mul.Factor.a.0 =  .slot.1
-                              .slot.-1 =  tuple(.slot.0, .slot.1)
-                              .slot.-2 =  %mk_ast("Factor", tuple(.slot.-1))
-                              .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
-                              lr.Mul(.slot.-3, %state, %tokens)
-            case 1 : %off =  %tokens.offset
-                     .slot.0 =  %match_token(%tokens, 1)
-                     if %==(.slot.0, %null)
-                     then tuple(0, %cast_to_any(%cons(tuple(%off, "-"), %nil)))
-                     else %off =  %tokens.offset
-                           .slot.1.check =  %parse("Factor", %tokens)
-                           if %==(.slot.1[0], 0)
-                           then .slot.1.check
-                           else .slot.1 =  %cast_to_result(.slot.1.check[1])
-                              Mul.Factor.a.0 =  .slot.1
-                              .slot.-1 =  tuple(.slot.0, .slot.1)
-                              .slot.-2 =  %mk_ast("Factor", tuple(.slot.-1))
-                              .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
-                              lr.Mul(.slot.-3, %state, %tokens)
-            case 0 : %off =  %tokens.offset
-                     .slot.0 =  %match_token(%tokens, 2)
-                     if %==(.slot.0, %null)
-                     then tuple( 0
-                           , %cast_to_any(%cons(tuple(%off, "number"), %nil)) )
-                     else .slot.-1 =  %mk_ast("Number", tuple(.slot.0))
-                           .slot.-2 =  %mk_ast("Factor", tuple(.slot.-1))
-                           .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
-                           lr.Mul(.slot.-3, %state, %tokens)
-
-      else tuple(0, %cast_to_any(%nil))
-   else tuple(0, %cast_to_any(%nil))
+def parse.Mul(%state, %tokens)
+    if somePred
+    then if %peekable_n(%tokens, 1)
+         then switch %peek_n(%tokens, 1).idint
+              case 2 : %off =  %tokens.offset
+                       .slot.0 =  %match_token(%tokens, 1)
+                       if %==(.slot.0, %null)
+                       then tuple( 0
+                            , %cast_to_any(%cons(tuple(%off, "-"), %nil)) )
+                       else %off =  %tokens.offset
+                            .slot.1.check =  parse.Factor(%tokens, %state)
+                            if %==(.slot.1[0], 0)
+                            then .slot.1.check
+                            else .slot.1 =  %cast_to_result(.slot.1.check[1])
+                                 Mul.Factor.a.0 =  .slot.1
+                                 .slot.-1 =  tuple(.slot.0, .slot.1)
+                                 .slot.-2 =  %mk_ast("Factor", tuple(.slot.-1))
+                                 .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
+                                 lr.Mul(.slot.-3, %state, %tokens)
+              case 1 : %off =  %tokens.offset
+                       .slot.0 =  %match_token(%tokens, 1)
+                       if %==(.slot.0, %null)
+                       then tuple( 0
+                            , %cast_to_any(%cons(tuple(%off, "-"), %nil)) )
+                       else %off =  %tokens.offset
+                            .slot.1.check =  parse.Factor(%tokens, %state)
+                            if %==(.slot.1[0], 0)
+                            then .slot.1.check
+                            else .slot.1 =  %cast_to_result(.slot.1.check[1])
+                                 Mul.Factor.a.0 =  .slot.1
+                                 .slot.-1 =  tuple(.slot.0, .slot.1)
+                                 .slot.-2 =  %mk_ast("Factor", tuple(.slot.-1))
+                                 .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
+                                 lr.Mul(.slot.-3, %state, %tokens)
+              case 0 : %off =  %tokens.offset
+                       .slot.0 =  %match_token(%tokens, 2)
+                       if %==(.slot.0, %null)
+                       then tuple( 0
+                            , %cast_to_any(%cons(tuple(%off, "number"), %nil)) )
+                       else .slot.-1 =  %mk_ast("Number", tuple(.slot.0))
+                            .slot.-2 =  %mk_ast("Factor", tuple(.slot.-1))
+                            .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
+                            lr.Mul(.slot.-3, %state, %tokens)
+         else tuple(0, %cast_to_any(%nil))
+    else tuple(0, %cast_to_any(%nil))
 def lr.Mul(.slot.0, %state, %tokens)
     lr.Mul.try =
         %off =  %tokens.offset
@@ -156,7 +157,7 @@ def lr.Mul(.slot.0, %state, %tokens)
                            then tuple( 0
                                 , %cast_to_any(%cons(tuple(%off, "-"), %nil)) )
                            else %off =  %tokens.offset
-                                .slot.3.check =  %parse("Factor", %tokens)
+                                .slot.3.check =  parse.Factor(%tokens, %state)
                                 if %==(.slot.3[0], 0)
                                 then .slot.3.check
                                 else .slot.3 =  %cast_to_result(.slot.3.check[1])
@@ -175,7 +176,7 @@ def lr.Mul(.slot.0, %state, %tokens)
                            then tuple( 0
                                 , %cast_to_any(%cons(tuple(%off, "-"), %nil)) )
                            else %off =  %tokens.offset
-                                .slot.3.check =  %parse("Factor", %tokens)
+                                .slot.3.check =  parse.Factor(%tokens, %state)
                                 if %==(.slot.3[0], 0)
                                 then .slot.3.check
                                 else .slot.3 =  %cast_to_result(.slot.3.check[1])
@@ -189,7 +190,7 @@ def lr.Mul(.slot.0, %state, %tokens)
                                      .slot.-4 =  %mk_ast("Mul", tuple(.slot.-3))
                                      .slot.-4
                   case 0 : %off =  %tokens.offset
-                           .slot.2.check =  %parse("Number", %tokens)
+                           .slot.2.check =  parse.Number(%tokens, %state)
                            if %==(.slot.2[0], 0)
                            then .slot.2.check
                            else .slot.2 =  %cast_to_result(.slot.2.check[1])
@@ -197,7 +198,6 @@ def lr.Mul(.slot.0, %state, %tokens)
                                 .slot.-2 =  tuple(.slot.0, .slot.1, .slot.-1)
                                 .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
                                 .slot.-3
-
              else tuple(0, %cast_to_any(%nil))
     while %!=(lr.Mul.try[0], 0)
         .slot.0 =  %cast_to_result(lr.Mul.try[1])
@@ -215,7 +215,8 @@ def lr.Mul(.slot.0, %state, %tokens)
                                     , %cast_to_any(%cons(tuple(%off, "-"),
                                                    %nil)) )
                                else %off =  %tokens.offset
-                                    .slot.3.check =  %parse("Factor", %tokens)
+                                    .slot.3.check =  parse.Factor(%tokens,
+                                                     %state)
                                     if %==(.slot.3[0], 0)
                                     then .slot.3.check
                                     else .slot.3 =  %cast_to_result(.slot.3.check[1])
@@ -236,7 +237,8 @@ def lr.Mul(.slot.0, %state, %tokens)
                                     , %cast_to_any(%cons(tuple(%off, "-"),
                                                    %nil)) )
                                else %off =  %tokens.offset
-                                    .slot.3.check =  %parse("Factor", %tokens)
+                                    .slot.3.check =  parse.Factor(%tokens,
+                                                     %state)
                                     if %==(.slot.3[0], 0)
                                     then .slot.3.check
                                     else .slot.3 =  %cast_to_result(.slot.3.check[1])
@@ -251,7 +253,7 @@ def lr.Mul(.slot.0, %state, %tokens)
                                                      tuple(.slot.-3))
                                          .slot.-4
                       case 0 : %off =  %tokens.offset
-                               .slot.2.check =  %parse("Number", %tokens)
+                               .slot.2.check =  parse.Number(%tokens, %state)
                                if %==(.slot.2[0], 0)
                                then .slot.2.check
                                else .slot.2 =  %cast_to_result(.slot.2.check[1])
@@ -262,7 +264,6 @@ def lr.Mul(.slot.0, %state, %tokens)
                                                 , .slot.-1 )
                                     .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
                                     .slot.-3
-
                  else tuple(0, %cast_to_any(%nil))
     .slot.0
 ```

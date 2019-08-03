@@ -83,7 +83,7 @@ data CFG
     , ctx       :: [Map String String]
   }
 
-emptyCFG scope tokens' offname' globST' = CFG {
+emptyCFG scope = CFG {
       slot    = 0
     , tmp     = 0
     , scopes  = [scope]
@@ -221,7 +221,8 @@ codeGen c@CompilationInfo {
           dsl_sloti_n    = AName $ slotToStr hs_slot
       cfg <- lift $ modified $ \a -> a {slot = slot a + 1}
       build $ AAssign dsl_off_n (AAttr dsl_tokens tokenOff)
-      build $ AAssign dsl_sloti_chk (ACall dsl_parse [AStr n, dsl_tokens])
+      let theParser = AVar . AName $ "parse." ++ n
+      build $ AAssign dsl_sloti_chk (ACall theParser [dsl_tokens, AVar dsl_globST_n])
       let cont = getCont i cfg
           result   = ACall dsl_to_res [APrj (AVar dsl_sloti_chk) 1]
           assSlot  = AAssign dsl_sloti_n result
@@ -324,11 +325,13 @@ codeGen c@CompilationInfo {
                           ]
                         , AVar arg0
                       ]
-        let CFG {ret} = cfg
         build defun
-    _ -> do
+    Start -> do
       cfg <- lift get
-      build $ getCont i cfg
+      let name = L.head $ scopes cfg
+          fnName = AName $ "parse." ++ name
+          cont = getCont i cfg
+      build $ ADef fnName [dsl_globST_n, dsl_tokens_n] cont
 
 irToCode :: IR -> State CFG ACode
 irToCode ir = do

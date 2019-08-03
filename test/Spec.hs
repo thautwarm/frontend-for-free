@@ -111,7 +111,7 @@ test3 = do
     let s = "Mul"
         i = view starts graph M.! s
     putStrLn s
-    let cfg = emptyCFG s (AName "tokens") (AName "offname") (AName "state")
+    let cfg = emptyCFG s
 
 
     codeToString 80 $ runToCode cfg $ codeGen c i
@@ -120,4 +120,4 @@ test3 = do
     let s' = "Mul"
         i' = view ends graph M.! s'
     codeToString 80 $ runToCode cfg $ codeGen c {isLeftRec = True} i'
-main = test1
+main = test3

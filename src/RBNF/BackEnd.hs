@@ -32,6 +32,8 @@ data ACode
     deriving (Eq, Ord)
 
 codeToDoc = align . \case
+    AAssign n (ABlock codes) ->
+        nest 4 $ sep $ pretty (show n ++ " ="): map codeToDoc codes
     AAssign n code -> pretty (show n ++ " = ") <+> codeToDoc code
     ACall   f args -> codeToDoc f <> (parens . sep . punctuate comma $ map codeToDoc args)
     AAttr val attr -> codeToDoc val <> pretty ("." ++ attr)
@@ -43,9 +45,10 @@ codeToDoc = align . \case
           , pretty "else" <+> nest 4 (codeToDoc br2)
         ]
     AWhile cond br ->
+        nest 4 $
         vsep [
             pretty "while" <+> codeToDoc cond
-          , nest 4 $ codeToDoc br
+          , codeToDoc br
         ]
     ASwitch expr cases default' ->
         vsep [
@@ -64,9 +67,10 @@ codeToDoc = align . \case
         let fnName = viaShow fname
             argDef =  sep $ punctuate comma $ map viaShow args
 
-        in  vsep [
-                pretty "def" <+> fnName <> (parens argDef)
-              , nest 4 $ codeToDoc body
+        in  nest 4 $
+            vsep [
+                pretty "def" <+> fnName <> parens argDef
+              , align $ nest 4 $ codeToDoc body
             ]
     ABlock suite ->
         vsep $ map codeToDoc suite

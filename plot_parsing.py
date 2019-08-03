@@ -21,15 +21,15 @@ for i, node in nodes.items():
         elif ctor == "ENonTerm":
             label = val['name']
         else:
-            label = ctor
+            label = ctor + " ..."
     elif ctor == "NReturn":
         label = "return"
     else:
-        label = ctor
-    if label == 'Start':
-        label += " " + str(starts[i])
+        label = ctor + " ..."
+    if label == 'Start ...':
+        label = "Start " + str(starts[i])
     label += " %d" % i
-    gnodes[i] = g.new(a.Label(label))
+    gnodes[i] = g.new(a.Label(label), a.Shape.box)
 
 for i, node in nodes.items():
     gnode = gnodes[i]

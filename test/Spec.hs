@@ -98,19 +98,26 @@ test3 = do
     let tokenNames = S.toList $ collectTokenNames gbuilder
     let g = markedLeftRecur gbuilder
     let ks = pGToSG  g
-    -- forM_ (view prods g) print
-    -- forM_ (view prods ks) print
+
     let graph = buildGraph ks
     let dectrees = M.map decideId3FromLATree $ makeLATables 1 graph
     let c = CompilationInfo {
               tokenIds = M.fromList $ L.zip tokenNames [0, 1..]
             , graph    = graph
             , decisions = dectrees
-            , withTrace = False
+            , withTrace = True
+            , isLeftRec = False
            }
-    let (s, i) = L.head $ M.toList $ view starts graph
+    let s = "Mul"
+        i = view starts graph M.! s
     putStrLn s
     let cfg = emptyCFG s (AName "tokens") (AName "offname") (AName "state")
-    let code = runToCode cfg $ codeGen c i
-    codeToString 80 $ code
-main = test3
+
+
+    codeToString 80 $ runToCode cfg $ codeGen c i
+
+    putStrLn ""
+    let s' = "Mul"
+        i' = view ends graph M.! s'
+    codeToString 80 $ runToCode cfg $ codeGen c {isLeftRec = True} i'
+main = test1

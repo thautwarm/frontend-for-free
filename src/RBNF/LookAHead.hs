@@ -1,3 +1,7 @@
+-- | Building Lookahead trees from parsing graphs
+-- Author: Taine Zhao(thautwarm)
+-- Date: 2019-07-18
+-- License: BSD-3-clause
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ExistentialQuantification #-}

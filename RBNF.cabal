@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7f9262487a3657924e5dfb6c65ebfb2bb927e900b7925dc1c43a5fe6abf76ac4
+-- hash: b9110d1a05cd25bbb35015ac20d90c4ceb9a5a4ca4d2c9306a1036a5a5a1f9db
 
 name:           RBNF
 version:        0.1.0.0
@@ -28,8 +28,9 @@ source-repository head
 library
   exposed-modules:
       RBNF
-      RBNF.BackEnd
       RBNF.CodeGen
+      RBNF.CodeGenIRs.A
+      RBNF.CodeGenIRs.B
       RBNF.Dump
       RBNF.Grammar
       RBNF.Graph

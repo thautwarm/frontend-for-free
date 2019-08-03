@@ -1,3 +1,7 @@
+-- | Generating codes through parsing graphs, token names and ID3 decision trees.
+-- Author: Taine Zhao(thautwarm)
+-- Date: 2019-08-03
+-- License: BSD-3-clause
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DuplicateRecordFields #-}
@@ -12,14 +16,14 @@ Introduce some builtins:
   peek(token_view, int) -> token
   move_forward!(token_view) -> unit
   reset!(token_view, int) -> unit
-
+  ...
   type err_msg_root = [(int, string)] (* offset, rule name *)
 
 -}
 
 module RBNF.CodeGen where
 
-import RBNF.BackEnd
+import RBNF.CodeGenIRs.A
 import RBNF.Symbols
 import RBNF.Semantics hiding (CFG, emptyCFG)
 import RBNF.Graph
@@ -78,7 +82,7 @@ data CFG
       slot      :: Int
     , tmp       :: Int
     , scopes    :: [String]
-    , ret       :: ACode
+    , ret       :: AIR
     , isLR      :: Bool
     , ctx       :: [Map String String]
   }
@@ -115,10 +119,10 @@ incTmp = do
   put $ s {tmp = tmp s + 1}
   return $ tmp s
 
-runToCode :: CFG -> StateT [ACode] (State CFG) () -> ACode
+runToCode :: CFG -> StateT [AIR] (State CFG) () -> AIR
 runToCode cfg = block . L.reverse . flip evalState cfg . flip execStateT []
 
-mkSwitch :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [ACode] (State CFG) ()
+mkSwitch :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [AIR] (State CFG) ()
 mkSwitch c@CompilationInfo {
           tokenIds
         , decisions
@@ -135,7 +139,7 @@ mkSwitch c@CompilationInfo {
         dsl_tmp_res_n  = AName $ ".tmp." ++ show hs_tmp_i ++ ".result"
 
     let dsl_tokens = AVar dsl_tokens_n
-        switch :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(Int, ACode)], Maybe ACode)
+        switch :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(Int, AIR)], Maybe AIR)
         switch = switchImpl [] Nothing
         switchImpl cases default' = \case
           [] -> (cases, default')
@@ -180,7 +184,7 @@ mkSwitch c@CompilationInfo {
                           default_expr
 
 
-codeGen :: CompilationInfo -> Int -> StateT [ACode] (State CFG) ()
+codeGen :: CompilationInfo -> Int -> StateT [AIR] (State CFG) ()
 codeGen c@CompilationInfo {
             tokenIds
           , decisions
@@ -333,7 +337,7 @@ codeGen c@CompilationInfo {
           cont = getCont i cfg
       build $ ADef fnName [dsl_globST_n, dsl_tokens_n] cont
 
-irToCode :: IR -> State CFG ACode
+irToCode :: IR -> State CFG AIR
 irToCode ir = do
   cfg <- get
   let hs_scopes        = scopes cfg

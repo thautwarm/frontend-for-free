@@ -6,7 +6,7 @@ import RBNF.Semantics hiding (CFG, emptyCFG)
 import RBNF.Graph
 import RBNF.Dump
 import RBNF.LookAHead
-import RBNF.BackEnd
+import RBNF.CodeGenIRs.A
 import RBNF.CodeGen
 
 import Prelude hiding (writeFile)
@@ -91,7 +91,7 @@ test1 = do
 test2 = do
     putStrLn ""
     let a = AIf (dsl_int 1) (dsl_int 2) (dsl_int 3)
-    codeToString 80 a
+    printAIR 80 a
 test3 = do
     putStrLn ""
     let gbuilder = mkGrammar $ parsers
@@ -114,10 +114,10 @@ test3 = do
     let cfg = emptyCFG s
 
 
-    codeToString 80 $ runToCode cfg $ codeGen c i
+    printAIR 80 $ runToCode cfg $ codeGen c i
 
     putStrLn ""
     let s' = "Mul"
         i' = view ends graph M.! s'
-    codeToString 80 $ runToCode cfg $ codeGen c {isLeftRec = True} i'
+    printAIR 80 $ runToCode cfg $ codeGen c {isLeftRec = True} i'
 main = test3

@@ -1,3 +1,7 @@
+-- | Solving left recursions and producing parsing grammar structs(RBNF.Grammar.Grammar)
+-- Author: Taine Zhao(thautwarm)
+-- Date: 2019-07-13
+-- License: BSD-3-clause
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -13,7 +17,7 @@ import qualified Data.Map  as M
 import qualified Data.Set  as S
 import qualified Data.List as L
 
--- SPILR
+-- hereafter as SPILR
 data SplitByIsLeftRecursive
     = SplitByIsLeftRecursive {_isLeftR :: [PRule], _notLeftR:: [PRule]}
     deriving (Show, Eq, Ord)

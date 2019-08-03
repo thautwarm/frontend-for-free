@@ -14,8 +14,6 @@ import Control.Monad.Reader
 import Control.Arrow
 import Control.Lens (over, view, Lens', makeLenses)
 
-import Debug.Trace
-
 data NodeKind =
       NEntity Entity
     | NReturn SlotIdx

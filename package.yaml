@@ -28,6 +28,7 @@ dependencies:
 - vector
 - aeson
 - transformers
+- prettyprinter
 library:
   source-dirs:
   - src

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e05050c58c5ccc0e3e5132641987ac501a6a2de4c37fa694781573c7184e780e
+-- hash: 7f9262487a3657924e5dfb6c65ebfb2bb927e900b7925dc1c43a5fe6abf76ac4
 
 name:           RBNF
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       RBNF
+      RBNF.BackEnd
       RBNF.CodeGen
       RBNF.Dump
       RBNF.Grammar
@@ -46,6 +47,7 @@ library
     , containers
     , lens
     , mtl
+    , prettyprinter
     , text
     , transformers
     , vector
@@ -65,6 +67,7 @@ executable RBNF-exe
     , containers
     , lens
     , mtl
+    , prettyprinter
     , text
     , transformers
     , vector
@@ -85,6 +88,7 @@ test-suite RBNF-test
     , containers
     , lens
     , mtl
+    , prettyprinter
     , text
     , transformers
     , vector

@@ -200,7 +200,7 @@ analyse' seman = \case
         push obj
         pos' <- gets $ view pos
         let ir     = IRMkSExp s tp
-            prog   = EProc [refObj obj tp]
+            prog   = EProc [refObj obj ir]
         seman <- analyse' seman xs
         return $ over route (prog:) seman
 

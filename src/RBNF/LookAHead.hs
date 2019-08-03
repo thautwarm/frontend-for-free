@@ -6,8 +6,6 @@
 {-# LANGUAGE RankNTypes #-}
 module RBNF.LookAHead where
 
-import Debug.Trace
-
 import RBNF.Graph
 import RBNF.Semantics
 import RBNF.Symbols (Case, Map)

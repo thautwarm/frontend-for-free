@@ -102,3 +102,10 @@ maybeShiftTerm = \case
     PTerm _ -> True
     PNonTerm _ -> True
     _ -> False
+
+collectTokenNamesM :: [P] -> State (Set String) ()
+collectTokenNamesM [] = return ()
+collectTokenNamesM (x:xs) = case x of
+    PTerm (Case c) -> modify (S.insert c) >> cont
+    _              -> cont
+    where cont = collectTokenNamesM xs

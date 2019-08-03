@@ -116,7 +116,6 @@ mkGrammar m =
                     return [(sym, packer rule) | rule <- prules]
             modify (concat a ++)
 
-
 data Grammar rhs
     = Grammar {
           _prods  :: Map String [rhs]
@@ -124,3 +123,7 @@ data Grammar rhs
     } deriving (Show, Eq, Ord)
 
 makeLenses ''Grammar
+
+collectTokenNames :: PGrammarBuilder -> Set String
+collectTokenNames xs =
+    flip execState S.empty $ forM_ xs $ collectTokenNamesM . snd

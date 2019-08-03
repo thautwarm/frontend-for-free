@@ -2,10 +2,12 @@
 import RBNF.Grammar
 import RBNF.Symbols
 import RBNF.LeftRecur
-import RBNF.Semantics
+import RBNF.Semantics hiding (CFG, emptyCFG)
 import RBNF.Graph
 import RBNF.Dump
 import RBNF.LookAHead
+import RBNF.BackEnd
+import RBNF.CodeGen
 
 import Prelude hiding (writeFile)
 import Data.Foldable
@@ -50,7 +52,7 @@ parsers = S.fromList [
         ]
     ]
 
-main = do
+test1 = do
     putStrLn ""
     -- for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
     --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
@@ -86,3 +88,29 @@ main = do
 
     -- putStrLn "" >>
     -- (forM_ parsers $ putStrLn . show)
+test2 = do
+    putStrLn ""
+    let a = AIf (dsl_int 1) (dsl_int 2) (dsl_int 3)
+    codeToString 80 a
+test3 = do
+    putStrLn ""
+    let gbuilder = mkGrammar $ parsers
+    let tokenNames = S.toList $ collectTokenNames gbuilder
+    let g = markedLeftRecur gbuilder
+    let ks = pGToSG  g
+    -- forM_ (view prods g) print
+    -- forM_ (view prods ks) print
+    let graph = buildGraph ks
+    let dectrees = M.map decideId3FromLATree $ makeLATables 1 graph
+    let c = CompilationInfo {
+              tokenIds = M.fromList $ L.zip tokenNames [0, 1..]
+            , graph    = graph
+            , decisions = dectrees
+            , withTrace = False
+           }
+    let (s, i) = L.head $ M.toList $ view starts graph
+    putStrLn s
+    let cfg = emptyCFG s (AName "tokens") (AName "offname") (AName "state")
+    let code = runToCode cfg $ codeGen c i
+    codeToString 80 $ code
+main = test3

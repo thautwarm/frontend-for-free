@@ -19,7 +19,7 @@ Introduce some builtins:
 
 module RBNF.CodeGen where
 
-
+import RBNF.BackEnd
 import RBNF.Symbols
 import RBNF.Semantics hiding (CFG, emptyCFG)
 import RBNF.Graph
@@ -40,27 +40,6 @@ data CompilationInfo
         , withTrace  :: Bool
       }
 
-data AName = AName String | ABuiltin String
-  deriving (Show, Eq, Ord)
-
-data ACode
-    = AAssign AName ACode -- work in whole fn scope
-    | ACall ACode [ACode]
-    | AAttr ACode String
-    | APrj  ACode Int
-    | AIf ACode ACode ACode
-    | AWhile ACode ACode
-    | ASwitch ACode [(Int, ACode)] (Maybe ACode)
-    | ADef AName [AName] ACode
-    | ABlock [ACode]
-    -- literal
-    | AVar AName
-    | AInt Integer
-    | AStr String
-    | ATuple [ACode]
-    | AAnd ACode ACode
-    | AOr  ACode ACode
-    deriving (Show, Eq, Ord)
 
 dsl_eq         = AVar $ ABuiltin "=="
 dsl_neq        = AVar $ ABuiltin "!="
@@ -83,8 +62,8 @@ dsl_int        = AInt . fromIntegral
 tokenId = "idint"
 tokenOff = "offset"
 
-slotToStr i = "/slot/" ++ show i
-scopedStr scopes s = L.intercalate "/" $ L.reverse (s:scopes)
+slotToStr i = ".slot." ++ show i
+scopedStr scopes s = L.intercalate "." $ L.reverse (s:scopes)
 vNameToStr = \case
   Local s -> s
   Slot  i -> slotToStr i
@@ -140,6 +119,8 @@ incTmp = do
   put $ s {tmp = tmp s + 1}
   return $ tmp s
 
+runToCode :: CFG -> StateT [ACode] (State CFG) () -> ACode
+runToCode cfg = block . L.reverse . flip evalState cfg . flip execStateT []
 
 mkSwitch :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [ACode] (State CFG) ()
 mkSwitch c@CompilationInfo {
@@ -154,8 +135,8 @@ mkSwitch c@CompilationInfo {
   ID3Split k xs -> do
     cfg  <- lift get
     hs_tmp_i <- lift incTmp
-    let dsl_tmp_flag_n = AName $ "/tmp/" ++ show hs_tmp_i ++ "/flag"
-        dsl_tmp_res_n  = AName $ "/tmp/" ++ show hs_tmp_i ++ "/result"
+    let dsl_tmp_flag_n = AName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
+        dsl_tmp_res_n  = AName $ ".tmp." ++ show hs_tmp_i ++ ".result"
 
     let dsl_tokens = tkview cfg
         switch :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(Int, ACode)], Maybe ACode)
@@ -163,17 +144,11 @@ mkSwitch c@CompilationInfo {
         switchImpl cases default' = \case
           [] -> (cases, default')
           (LAReduce, subDecision):xs ->
-              let cont =  block               $
-                          flip evalState cfg  $
-                          flip execStateT []  $
-                          mkSwitch c subDecision
+              let cont =  runToCode cfg $ mkSwitch c subDecision
               in  switchImpl cases (Just cont) xs
           (LAShift (Case t), subDecision):xs ->
               let idx   = tokenIds M.! t
-                  cont  = block               $
-                          flip evalState cfg  $
-                          flip execStateT []  $
-                          mkSwitch c subDecision
+                  cont  = runToCode cfg $ mkSwitch c subDecision
                   case' = (idx, cont)
               in  switchImpl (case':cases) default' xs
         dsl_cur_token = ACall dsl_peek_n [dsl_tokens, dsl_int k]
@@ -217,9 +192,7 @@ codeGen c@CompilationInfo {
           , withTrace
          } i =
   let node          = view nodes graph M.! i
-      getCont i cfg = block $
-          flip evalState cfg $
-          flip execStateT [] $
+      getCont i cfg = runToCode cfg $
             case (i `M.lookup` decisions, view followed node) of
             (Just decision, _) -> mkSwitch c decision
             (_, [followI])     -> codeGen c followI
@@ -249,7 +222,7 @@ codeGen c@CompilationInfo {
       let dsl_tokens     = tkview cfg
           dsl_off_name   = offname cfg
           hs_slot        = slot cfg
-          dsl_sloti_chk  = AName $ slotToStr hs_slot ++ "/check"
+          dsl_sloti_chk  = AName $ slotToStr hs_slot ++ ".check"
           dsl_sloti_n    = AName $ slotToStr hs_slot
       cfg <- lift $ modified $ \a -> a {slot = slot a + 1}
       build $ AAssign dsl_off_name (AAttr dsl_tokens tokenOff)
@@ -327,8 +300,8 @@ codeGen c@CompilationInfo {
               }
         let cont = getCont i cfg'
             arg0 = AName $ slotToStr 0
-            recn = AName $ "left_recur/" ++ name
-            try  = AName $ "left_recur/" ++ name ++ "/try"
+            recn = AName $ "left_recur." ++ name
+            try  = AName $ "left_recur." ++ name ++ ".try"
             cond = if withTrace
                   then ACall dsl_neq [APrj (AVar try) 0, dsl_int 0]
                   else ACall dsl_neq [AVar try, dsl_null]
@@ -363,7 +336,7 @@ irToCode ir = do
       frec = \case
         IRAss (Local s) ir -> do
             i <- incTmp
-            let nameStr = scopedStr hs_scopes s ++ "/" ++ show i
+            let nameStr = scopedStr hs_scopes s ++ "." ++ show i
             code <- AAssign (AName nameStr) <$> irToCode ir
             put $ cfg {ctx=M.insert s nameStr cur_ctx:ctx_tl}
             return code

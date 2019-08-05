@@ -17,7 +17,7 @@ for i, node in nodes.items():
         val = kind['val']
         ctor = val['ctor']
         if ctor == "ETerm":
-            label = repr(val['case'])
+            label = repr(val['val'])
         elif ctor == "ENonTerm":
             label = val['name']
         else:

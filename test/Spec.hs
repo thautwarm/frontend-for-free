@@ -129,9 +129,9 @@ test3 = do
 test4 = do
     putStrLn ""
     let a = flip evalState 0 $ aToB $ parserGen 1 False parsers
-        f ::FixT (BIR Int) -> IO ()
-        f a = forM_ (outT a) (\x -> print x >> putStrLn "" >> mapM_ f (outT x))
-    f a
+    mapM_ print a
+    putStrLn ""
+    mapM_ print (outT a)
 
 test5  = T.writeFile "a.txt" $ dumpCG parsers
 main = test4

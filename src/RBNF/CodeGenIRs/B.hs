@@ -2,7 +2,7 @@
 -- Author: Taine Zhao(thautwarm)
 -- Date: 2019-07-13
 -- License: BSD-3-clause
-{-# LANGUAGE FunctionalDependencies #-}
+-- {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
@@ -10,8 +10,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE FlexibleInstances #-}
--- {-# LANGUAGE AllowAmbiguousTypes #-}
-
+-- {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE StandaloneDeriving #-}
 module RBNF.CodeGenIRs.B where
 import RBNF.CodeGenIRs.A
 
@@ -23,7 +23,7 @@ import Control.Monad.State
 import Control.Arrow
 import Data.Functor
 
-data BIR b a
+data BIR a
     = BAssign AName a
     | BCall a [a]
     | BAttr a String
@@ -41,29 +41,19 @@ data BIR b a
     | BTuple [a]
     | BAnd a a
     | BOr  a a
-    | BTag b a
     deriving (Show, Eq, Ord, Generic, Functor, Foldable, Traversable)
 
 -- fix f a = f (fix f) a
 -- FixT :: (* -> *) -> *
 
-newtype FixT f = InT {outT :: f (FixT f)}
+data FixT f t = InT {tag :: t, outT :: f (FixT f t)}
+deriving instance Show b => Show (FixT BIR b)
+deriving instance Eq b => Eq (FixT BIR b)
+deriving instance Ord b => Ord (FixT BIR b)
+deriving instance Functor f => Functor (FixT f)
+deriving instance Foldable f => Foldable (FixT f)
+deriving instance Traversable f => Traversable (FixT f)
 
-instance Show i => Show (FixT (BIR i)) where
-    show (InT s) = "(" ++ show s ++ ")"
-
-instance Eq i => Eq (FixT (BIR i)) where
-    InT i == InT j = i == j
-
-instance Ord i => Ord (FixT (BIR i)) where
-    InT i <= InT j = i <= j
-
--- class BExt a b | a -> b where
---     ext  :: a -> b
---     bir   :: a -> BIR a
-
--- data a = BTag {tag :: a, ir :: BIR a}
---     deriving (Show, Eq, Ord, Generic, Functor, Foldable, Traversable)
 
 inc :: State Int Int
 inc = do
@@ -71,12 +61,12 @@ inc = do
     put $ i + 1
     return i
 
-aToB :: AIR -> State Int (FixT (BIR Int))
-aToB = f >=> return . InT
+
+aToB :: AIR -> State Int (FixT BIR Int)
+aToB = (InT <$> inc <*>) . f
     where
       f = \case
-        AAssign n ir -> do
-            BAssign n <$> aToB ir
+        AAssign n ir -> BAssign n <$> aToB ir
         ACall f args ->
             BCall <$> aToB f <*> mapM aToB args
         AAttr val attr ->

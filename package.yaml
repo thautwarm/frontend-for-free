@@ -29,12 +29,13 @@ dependencies:
 - aeson
 - transformers
 - prettyprinter
+- RSolve
 library:
   source-dirs:
   - src
 
-ghc-options:
-  - -fno-warn-partial-type-signatures
+# ghc-options:
+#   - -fno-warn-partial-type-signatures
 
 executables:
   RBNF-exe:

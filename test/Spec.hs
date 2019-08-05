@@ -1,3 +1,4 @@
+{-# LANGUAGE MonadComprehensions #-}
 
 import RBNF.Grammar
 import RBNF.Symbols
@@ -10,6 +11,7 @@ import RBNF.CodeGenIRs.A
 import RBNF.CodeGen
 import RBNF (parserGen)
 import RBNF.Serialization
+import RBNF.CodeGenIRs.B
 
 import Prelude hiding (writeFile)
 import Data.Foldable
@@ -47,14 +49,14 @@ a --> b = (a, b, Nothing)
 case' a = CTerm a
 parsers = CGrammar [
     "Number"   --> case' number
-    , "Factor" --> CAlt [
-            CNonTerm "Number",
-            CSeq [case' negation, "a" |= CNonTerm "Factor" ]
-        ]
-    , "Mul"    --> CAlt [
-            CSeq [ CPred (MTerm "somePred"), CNonTerm "Factor" ],
-            CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Factor"]
-        ]
+    -- , "Factor" --> CAlt [
+    --         CNonTerm "Number",
+    --         CSeq [case' negation, "a" |= CNonTerm "Factor" ]
+    --     ]
+    -- , "Mul"    --> CAlt [
+    --         CSeq [ CPred (MTerm "somePred"), CNonTerm "Factor" ],
+    --         CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Factor"]
+    --     ]
     ]
 
 test1 = do
@@ -126,6 +128,10 @@ test3 = do
 
 test4 = do
     putStrLn ""
-    printAIR 80 $ parserGen 1 False parsers
+    let a = flip evalState 0 $ aToB $ parserGen 1 False parsers
+        f ::FixT (BIR Int) -> IO ()
+        f a = forM_ (outT a) (\x -> print x >> putStrLn "" >> mapM_ f (outT x))
+    f a
+
 test5  = T.writeFile "a.txt" $ dumpCG parsers
-main = test5
+main = test4

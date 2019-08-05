@@ -10,13 +10,9 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE FlexibleInstances #-}
--- {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module RBNF.CodeGenIRs.B where
 import RBNF.CodeGenIRs.A
-
-
-import RSolve.HM
 
 import GHC.Generics
 import Control.Monad.State

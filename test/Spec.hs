@@ -53,10 +53,10 @@ parsers = CGrammar [
     --         CNonTerm "Number",
     --         CSeq [case' negation, "a" |= CNonTerm "Factor" ]
     --     ]
-    -- , "Mul"    --> CAlt [
-    --         CSeq [ CPred (MTerm "somePred"), CNonTerm "Factor" ],
-    --         CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Factor"]
-    --     ]
+    , "Mul"    --> CAlt [
+            CSeq [ CPred (MTerm "somePred"), CNonTerm "Number" ],
+            CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Number"]
+        ]
     ]
 
 test1 = do
@@ -129,9 +129,11 @@ test3 = do
 test4 = do
     putStrLn ""
     let a = flip evalState 0 $ aToB $ parserGen 1 False parsers
-    mapM_ print a
+    -- mapM_ print a
+    -- putStrLn ""
+    printBIR 80 $ a
     putStrLn ""
-    mapM_ print (outT a)
+    printBIR 80 $ flip evalState S.empty (resolveDecl a)
 
 test5  = T.writeFile "a.txt" $ dumpCG parsers
 main = test4

@@ -7,6 +7,7 @@
 module RBNF.CodeGenIRs.A (AIR(..), AName(..), printAIR) where
 import Data.Text.Prettyprint.Doc
 import Data.Text.Prettyprint.Doc.Util (putDocW)
+import GHC.Generics
 
 data AName = AName String | ABuiltin String
   deriving (Eq, Ord)
@@ -34,6 +35,7 @@ data AIR
     | AAnd AIR AIR
     | AOr  AIR AIR
     deriving (Eq, Ord)
+
 
 aIRToDoc = align . \case
     AAssign n (ABlock codes) ->

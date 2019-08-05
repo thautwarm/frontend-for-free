@@ -2,7 +2,10 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module RBNF.Symbols where
+import GHC.Generics (Generic)
 
 import qualified Data.Map  as M
 import qualified Data.Set  as S
@@ -15,12 +18,12 @@ type Set a = S.Set a
 type Map a b = M.Map a b
 
 newtype Case = Case String
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Generic)
 
 data MiniLang
     = MTerm String
     | MApp String [MiniLang]
-    deriving (Eq, Ord)
+    deriving (Eq, Ord, Generic)
 
 instance Show MiniLang where
     show = \case
@@ -80,7 +83,7 @@ data C
     | CBind    String C
     | CPred    MiniLang
     | CModif   MiniLang -- modify current context
-    deriving (Eq, Ord)
+    deriving (Eq, Ord, Generic)
 
 type CRule = C
 type CProd = (String, C, Maybe MiniLang)

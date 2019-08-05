@@ -2,12 +2,14 @@
 import RBNF.Grammar
 import RBNF.Symbols
 import RBNF.LeftRecur
-import RBNF.Semantics hiding (CFG, emptyCFG)
+import RBNF.Semantics
 import RBNF.Graph
 import RBNF.Dump
 import RBNF.LookAHead
 import RBNF.CodeGenIRs.A
 import RBNF.CodeGen
+import RBNF (parserGen)
+import RBNF.Serialization
 
 import Prelude hiding (writeFile)
 import Data.Foldable
@@ -22,6 +24,9 @@ import Control.Monad.State
 import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
+
+import qualified Data.Text.Lazy.IO as T
+
 import Control.Arrow
 
 {-
@@ -39,8 +44,8 @@ multiply = "*"
 a |= b = CBind a b
 
 a --> b = (a, b, Nothing)
-case' a = CTerm (Case a)
-parsers = S.fromList [
+case' a = CTerm a
+parsers = CGrammar [
     "Number"   --> case' number
     , "Factor" --> CAlt [
             CNonTerm "Number",
@@ -95,15 +100,13 @@ test2 = do
 test3 = do
     putStrLn ""
     let gbuilder = mkGrammar $ parsers
-    let tokenNames = S.toList $ collectTokenNames gbuilder
     let g = markedLeftRecur gbuilder
     let ks = pGToSG  g
 
     let graph = buildGraph ks
     let dectrees = M.map decideId3FromLATree $ makeLATables 1 graph
     let c = CompilationInfo {
-              tokenIds = M.fromList $ L.zip tokenNames [0, 1..]
-            , graph    = graph
+            graph    = graph
             , decisions = dectrees
             , withTrace = True
             , isLeftRec = False
@@ -120,4 +123,9 @@ test3 = do
     let s' = "Mul"
         i' = view ends graph M.! s'
     printAIR 80 $ runToCode cfg $ codeGen c {isLeftRec = True} i'
-main = test3
+
+test4 = do
+    putStrLn ""
+    printAIR 80 $ parserGen 1 False parsers
+test5  = T.writeFile "a.txt" $ dumpCG parsers
+main = test5

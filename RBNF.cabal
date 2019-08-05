@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e088793287237a6c935a7da34c717eb5c6d9106f17f0a92746baffd30412ce81
+-- hash: 1f40483e4bffcad377873c2d6093c1e28b819af9e5182854135d2f29ca55f8cc
 
 name:           RBNF
 version:        0.1.0.0
@@ -39,10 +39,12 @@ library
       RBNF.Semantics
       RBNF.Serialization
       RBNF.Symbols
+      RBNF.Utils
   other-modules:
       Paths_RBNF
   hs-source-dirs:
       src
+  ghc-options: -fno-warn-partial-type-signatures
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -61,7 +63,7 @@ executable RBNF-exe
       Paths_RBNF
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
     , aeson
@@ -82,7 +84,7 @@ test-suite RBNF-test
       Paths_RBNF
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
     , aeson

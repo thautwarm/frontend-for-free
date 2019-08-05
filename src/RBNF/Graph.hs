@@ -4,9 +4,11 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 module RBNF.Graph where
 
+import RBNF.Utils
 import RBNF.Symbols
 import RBNF.Grammar
 import RBNF.Semantics
+
 import qualified Data.List as L
 import qualified Data.Map as M
 import Control.Monad.State

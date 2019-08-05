@@ -6,6 +6,7 @@
 module RBNF.Grammar where
 
 import RBNF.Symbols
+import RBNF.Utils
 
 import qualified Data.Map   as M
 import qualified Data.Set   as S
@@ -13,9 +14,6 @@ import qualified Data.List  as L
 import Control.Monad.State
 import Control.Arrow
 import Control.Lens (over, view, Lens', makeLenses)
-
--- Combinatorial
-type CGrammar = Set CProd
 
 type PGrammarBuilder = [PProd]
 
@@ -84,8 +82,6 @@ standardizeRule = \case
     CPred app   -> return [[PPred app]]
     CModif mdf  -> return [[PModif mdf]]
 
-groupBy f = M.fromListWith (++) . map (f &&& pure)
-
 inline :: PGrammarBuilder -> PGrammarBuilder
 inline g = concatMap inlineProd g
     where groups = M.map (map snd) $ groupBy fst g
@@ -107,7 +103,7 @@ mkGrammar m =
     where
         procedure :: State PGrammarBuilder ()
         procedure = do
-            a <- forM (S.toList m) $ \(sym, crule, reduce) ->
+            a <- forM (L.nub $ getCGrammar m) $ \(sym, crule, reduce) ->
                 do  prules <- standardizeRule crule
                     let packer =
                             case reduce of

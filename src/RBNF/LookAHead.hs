@@ -12,8 +12,9 @@ module RBNF.LookAHead where
 
 import RBNF.Graph
 import RBNF.Semantics
-import RBNF.Symbols (Case, Map)
-import RBNF.Grammar (groupBy)
+import RBNF.Symbols
+import RBNF.Grammar
+import RBNF.Utils
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -30,7 +31,7 @@ import qualified Data.Set as S
 data Travel = Travel { par :: Maybe Travel , cur :: Int }
     deriving (Eq, Ord, Show)
 
-data LAEdge = LAShift Case | LAReduce
+data LAEdge = LAShift String | LAReduce
     deriving (Eq, Ord, Show)
 data LATree a
     = LA1 (Map LAEdge (LATree a))
@@ -83,7 +84,7 @@ data Next1
     }
     deriving (Eq, Ord, Show)
 
-next1 :: Graph -> Travel -> Map Case [Next1]
+next1 :: Graph -> Travel -> Map String [Next1]
 next1 graph travel =
     case kind curNode of
         NEntity (ENonTerm s) ->
@@ -250,7 +251,7 @@ classifInfo clses elts =
     in  distinctness separated
     where
         lengthf = fromIntegral . length
-        distinctness xs = 1.0 / (sum [lengthf (L.nub x) * lengthf x | x <- xs]) * sum (map lengthf xs)
+        distinctness xs = 1.0 / sum [lengthf (L.nub x) * lengthf x | x <- xs] * sum (map lengthf xs)
 
 decideID3 :: (Ord elt, Ord cls) => StateT DecisionProcess (Reader (States cls, PathsOfElements elt)) (ID3Decision elt cls)
 decideID3 = do

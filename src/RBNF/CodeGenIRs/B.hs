@@ -16,7 +16,7 @@ data BIR a
     | BPrj  a Int
     | BIf a a a
     | BWhile a a
-    | BSwitch a [(Int, a)] (Maybe a)
+    | BSwitch a [(a, a)] (Maybe a)
     | BDef AName [AName] a
     | BBlock [a]
     -- literal
@@ -58,7 +58,8 @@ aToB = (ID <$> inc <*>) . \case
     ASwitch val cases defau ->
         let cases' =
                 forM cases $ \(i, body) ->
-                aToB body >>= \body -> return (i, body)
+                aToB body >>= \body ->
+                aToB i    >>= \i    -> return (i, body)
             defau' = case defau of
                 Just defau -> Just <$> aToB defau
                 _          -> return Nothing

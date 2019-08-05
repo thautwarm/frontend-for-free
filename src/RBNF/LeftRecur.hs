@@ -7,8 +7,10 @@
 
 module RBNF.LeftRecur where
 
+import RBNF.Utils
 import RBNF.Symbols
 import RBNF.Grammar
+
 import Control.Monad.State
 import Control.Lens (makeLenses, Lens', over, view)
 import Control.Arrow

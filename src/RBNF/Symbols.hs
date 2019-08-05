@@ -1,10 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module RBNF.Symbols where
+import RBNF.Utils
+
 import GHC.Generics (Generic)
 
 import qualified Data.Map  as M
@@ -13,12 +14,6 @@ import qualified Data.List as L
 import Control.Monad.State
 import Control.Arrow
 import Control.Lens (over, view, Lens')
-
-type Set a = S.Set a
-type Map a b = M.Map a b
-
-newtype Case = Case String
-    deriving (Show, Eq, Ord, Generic)
 
 data MiniLang
     = MTerm String
@@ -37,7 +32,7 @@ instance Show MiniLang where
 -- Also can be regarded as IRs with
 -- stack-based VM instruction semantics.
 data P
-    = PTerm Case
+    = PTerm String
     -- PNonTerm symbol is_grammar_node
     | PNonTerm String
     -- advanced:
@@ -61,7 +56,7 @@ type PRule = [P]
 type PProd = (String, PRule) -- productions
 instance Show P where
     show = \case
-        PTerm c        -> "<" ++ show c ++ ">"
+        PTerm c        -> "<" ++ c ++ ">"
         PNonTerm s     -> s
         --
         PPack    n     -> "pack<" ++ show n ++ ">"
@@ -75,7 +70,7 @@ instance Show P where
 
 -- Combinatorial
 data C
-    = CTerm    Case
+    = CTerm    String
     | CNonTerm String
     | CSeq     [C]
     | CAlt     [C]
@@ -87,9 +82,14 @@ data C
 
 type CRule = C
 type CProd = (String, C, Maybe MiniLang)
+
+-- Combinatorial
+newtype CGrammar = CGrammar {getCGrammar :: [CProd]}
+    deriving (Generic)
+
 instance Show C where
     show = \case
-        CTerm c     -> "<" ++ show c ++ ">"
+        CTerm c     -> "<" ++ c ++ ">"
         CNonTerm s  -> s
         CSeq [c]    -> show c
         CSeq cs     -> "(" ++ unwords (map show cs) ++ ")"
@@ -109,6 +109,6 @@ maybeShiftTerm = \case
 collectTokenNamesM :: [P] -> State (Set String) ()
 collectTokenNamesM [] = return ()
 collectTokenNamesM (x:xs) = case x of
-    PTerm (Case c) -> modify (S.insert c) >> cont
+    PTerm c -> modify (S.insert c) >> cont
     _              -> cont
     where cont = collectTokenNamesM xs

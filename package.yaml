@@ -33,6 +33,9 @@ library:
   source-dirs:
   - src
 
+ghc-options:
+  - -fno-warn-partial-type-signatures
+
 executables:
   RBNF-exe:
     main:                Main.hs

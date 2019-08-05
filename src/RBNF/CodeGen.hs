@@ -23,9 +23,10 @@ Introduce some builtins:
 
 module RBNF.CodeGen where
 
+import RBNF.Utils
 import RBNF.CodeGenIRs.A
 import RBNF.Symbols
-import RBNF.Semantics hiding (CFG, emptyCFG)
+import RBNF.Semantics
 import RBNF.Graph
 import RBNF.LookAHead
 import Control.Monad.State
@@ -38,8 +39,7 @@ import qualified Data.List as L
 
 data CompilationInfo
     = CompilationInfo {
-          tokenIds   :: Map String Int -- token name to its integer index.
-        , graph      :: Graph
+        graph      :: Graph
         , decisions  :: Map Int (ID3Decision LAEdge Int)
         , withTrace  :: Bool
         , isLeftRec  :: Bool
@@ -48,19 +48,19 @@ data CompilationInfo
 
 dsl_eq         = AVar $ ABuiltin "=="
 dsl_neq        = AVar $ ABuiltin "!="
-dsl_mv_forward = AVar $ ABuiltin "move_forward!"
+dsl_mv_forward = AVar $ ABuiltin "mv_forward"
 dsl_peekable_n = AVar $ ABuiltin "peekable_n"
 dsl_peek_n     = AVar $ ABuiltin "peek_n"
-dsl_match_tk   = AVar $ ABuiltin "match_token"
-dsl_parse      = AVar $ ABuiltin "parse"
+dsl_match_tk   = AVar $ ABuiltin "match_tk"
+dsl_s_to_i     = AVar $ ABuiltin "tk_id"
 
-dsl_reset      = AVar $ ABuiltin "reset!"
+dsl_reset      = AVar $ ABuiltin "reset"
 dsl_cons       = AVar $ ABuiltin "cons"
 dsl_nil        = AVar $ ABuiltin "nil"
 dsl_null       = AVar $ ABuiltin "null"
-dsl_to_errs    = AVar $ ABuiltin "cast_to_errs"
-dsl_to_res     = AVar $ ABuiltin "cast_to_result"
-dsl_to_any     = AVar $ ABuiltin "cast_to_any"
+dsl_to_errs    = AVar $ ABuiltin "to_errs"
+dsl_to_res     = AVar $ ABuiltin "to_result"
+dsl_to_any     = AVar $ ABuiltin "to_any"
 dsl_mkast      = AVar $ ABuiltin "mk_ast"
 dsl_int        = AInt . fromIntegral
 
@@ -124,8 +124,7 @@ runToCode cfg = block . L.reverse . flip evalState cfg . flip execStateT []
 
 mkSwitch :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [AIR] (State CFG) ()
 mkSwitch c@CompilationInfo {
-          tokenIds
-        , decisions
+        decisions
         , graph
         , withTrace
         } = \case
@@ -139,15 +138,15 @@ mkSwitch c@CompilationInfo {
         dsl_tmp_res_n  = AName $ ".tmp." ++ show hs_tmp_i ++ ".result"
 
     let dsl_tokens = AVar dsl_tokens_n
-        switch :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(Int, AIR)], Maybe AIR)
+        switch :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(AIR, AIR)], Maybe AIR)
         switch = switchImpl [] Nothing
         switchImpl cases default' = \case
           [] -> (cases, default')
           (LAReduce, subDecision):xs ->
               let cont =  runToCode cfg $ mkSwitch c subDecision
               in  switchImpl cases (Just cont) xs
-          (LAShift (Case t), subDecision):xs ->
-              let idx   = tokenIds M.! t
+          (LAShift t, subDecision):xs ->
+              let idx   = ACall dsl_s_to_i [AStr t]
                   cont  = runToCode cfg $ mkSwitch c subDecision
                   case' = (idx, cont)
               in  switchImpl (case':cases) default' xs
@@ -186,8 +185,7 @@ mkSwitch c@CompilationInfo {
 
 codeGen :: CompilationInfo -> Int -> StateT [AIR] (State CFG) ()
 codeGen c@CompilationInfo {
-            tokenIds
-          , decisions
+          decisions
           , graph
           , withTrace
           , isLeftRec
@@ -199,14 +197,15 @@ codeGen c@CompilationInfo {
             (_, [followI])     -> codeGen c followI
   in
   case kind node of
-    NEntity (ETerm (Case t)) -> do
+    NEntity (ETerm t) -> do
       cfg <- lift get
       let dsl_tokens     = AVar dsl_tokens_n
           hs_slot        = slot cfg
           dsl_sloti_n    = AName $ slotToStr hs_slot
       cfg <- lift $ modified (\a -> a {slot = slot a + 1})
       build $ AAssign dsl_off_n (AAttr dsl_tokens tokenOff)
-      build $ AAssign dsl_sloti_n  (ACall dsl_match_tk [dsl_tokens, dsl_int $ tokenIds M.! t])
+      let tokenId = ACall dsl_s_to_i [AStr t]
+      build $ AAssign dsl_sloti_n  (ACall dsl_match_tk [dsl_tokens, tokenId])
       let cont = getCont i cfg
       build $ let ifErr = if withTrace then
                               let err_hd = ATuple [AVar dsl_off_n, AStr t]
@@ -224,7 +223,7 @@ codeGen c@CompilationInfo {
           dsl_sloti_chk  = AName $ slotToStr hs_slot ++ ".check"
           dsl_sloti_n    = AName $ slotToStr hs_slot
       cfg <- lift $ modified $ \a -> a {slot = slot a + 1}
-      build $ AAssign dsl_off_n (AAttr dsl_tokens tokenOff)
+      -- build $ AAssign dsl_off_n (AAttr dsl_tokens tokenOff)
       let theParser = AVar . AName $ "parse." ++ n
       build $ AAssign dsl_sloti_chk (ACall theParser [dsl_tokens, AVar dsl_globST_n])
       let cont = getCont i cfg

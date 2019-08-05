@@ -3,6 +3,7 @@
 -- Date: 2019-08-03
 -- License: BSD-3-clause
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module RBNF.CodeGenIRs.A (AIR(..), AName(..), printAIR) where
 import Data.Text.Prettyprint.Doc
@@ -10,7 +11,7 @@ import Data.Text.Prettyprint.Doc.Util (putDocW)
 import GHC.Generics
 
 data AName = AName String | ABuiltin String
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Generic)
 
 instance Show AName where
     show = \case
@@ -24,7 +25,7 @@ data AIR
     | APrj  AIR Int
     | AIf AIR AIR AIR
     | AWhile AIR AIR
-    | ASwitch AIR [(Int, AIR)] (Maybe AIR)
+    | ASwitch AIR [(AIR, AIR)] (Maybe AIR)
     | ADef AName [AName] AIR
     | ABlock [AIR]
     -- literal
@@ -34,7 +35,7 @@ data AIR
     | ATuple [AIR]
     | AAnd AIR AIR
     | AOr  AIR AIR
-    deriving (Eq, Ord)
+    deriving (Eq, Ord, Generic)
 
 
 aIRToDoc = align . \case
@@ -60,7 +61,7 @@ aIRToDoc = align . \case
         vsep [
              pretty "switch" <+> aIRToDoc expr
            , nest 4 $ align $ vsep [
-               pretty "case" <+> viaShow i <+>
+               pretty "case" <+> (aIRToDoc i) <+>
                pretty ":" <+>
                nest 4 (aIRToDoc case')
                | (i, case') <- cases

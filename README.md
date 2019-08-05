@@ -1,5 +1,19 @@
 # RBNF
 
+## Usage
+
+```
+RBNF -in <input json filename>
+     [-aeson <output json filename>]
+
+     # pretty print generated ir:
+     [-dump]
+     # look ahead k
+     -k int
+     # to specify if traceback supported(with a little performance cost)
+     [-trace]
+```
+
 ## Note: Front End
 ```haskell
 infix 5 -->

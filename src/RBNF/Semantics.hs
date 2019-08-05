@@ -5,13 +5,19 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module RBNF.Semantics where
+module RBNF.Semantics
+(
+SlotIdx, VName(..), IR(..), ParsingRoute, pGToSG,
+Entity(..), Seman(..), route
+)
+where
 
 import qualified Data.List as L
 import qualified Data.Map as M
 
 import RBNF.Symbols
 import RBNF.Grammar
+import RBNF.Utils
 
 import Control.Monad.State
 import Control.Monad.Reader
@@ -52,7 +58,7 @@ instance Show IR where
 
 type ParsingRoute = [Entity]
 data Entity
-    = ETerm Case
+    = ETerm String
     | ENonTerm String
     | EPredicate IR
     | EModify IR
@@ -64,7 +70,7 @@ data Entity
 
 instance Show Entity where
     show = \case
-        ETerm c -> show c
+        ETerm c -> c
         ENonTerm s -> s
         EPredicate p ->
             "pred<" ++ show p ++ ">"
@@ -89,7 +95,6 @@ data Seman = Seman {
 makeLenses ''Seman
 emptySeman = Seman [] 0
 
-indent n s = replicate n ' ' ++ s
 instance Show Seman where
     show Seman {_route, ret} =
         let

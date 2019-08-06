@@ -25,7 +25,7 @@ data AIR
     | APrj  AIR Int
     | AIf AIR AIR AIR
     | AWhile AIR AIR
-    | ASwitch AIR [(AIR, AIR)] (Maybe AIR)
+    | ASwitch AIR [(AIR, AIR)] AIR
     | ADef AName [AName] AIR
     | ABlock [AIR]
     -- literal
@@ -66,9 +66,7 @@ aIRToDoc = align . \case
                nest 4 (aIRToDoc case')
                | (i, case') <- cases
              ]
-           , case default' of
-               Just default' -> pretty "default :" <+> nest 4 (aIRToDoc default')
-               _             -> emptyDoc
+           , pretty "default :" <+> nest 4 (aIRToDoc default')
         ]
     ADef fname args body ->
         let fnName = viaShow fname

@@ -30,7 +30,7 @@ data BBase a
     | BPrj  a Int
     | BIf a a a
     | BWhile a a
-    | BSwitch a [(a, a)] (Maybe a)
+    | BSwitch a [(a, a)] a
     | BDef AName [AName] a
     | BBlock [a]
     -- literal
@@ -81,10 +81,7 @@ aToB = (InT <$> inc <*>) . f
                     forM cases $ \(i, body) ->
                     aToB body >>= \body ->
                     aToB i    >>= \i    -> return (i, body)
-                defau' = case defau of
-                    Just defau -> Just <$> aToB defau
-                    _          -> return Nothing
-            in BSwitch <$> aToB val <*> cases' <*> defau'
+            in BSwitch <$> aToB val <*> cases' <*> aToB defau
         ABlock suite -> BBlock <$> mapM aToB suite
         AVar  n      -> return $ BVar n
         AInt  i      -> return $ BInt i
@@ -134,7 +131,7 @@ resolveDecl bIR@InT {outT=base} =
       s <- get
       let (v, s') = flip runState s $ resolveDecl a
           cases   = [(case', flip evalState s' $ resolveDecl b) | (case', b) <- bs]
-          defau   = c >>= (return . flip evalState s' . resolveDecl)
+          defau   = flip evalState s' $ resolveDecl c
       return . resumeTag $ BSwitch v cases defau
     _ -> resumeTag <$> genericVisit
 
@@ -169,14 +166,12 @@ bIRToDoc InT {outT = base} = align $
         vsep [
              pretty "switch" <+> bIRToDoc expr
            , nest 4 $ align $ vsep [
-               pretty "case" <+> (bIRToDoc i) <+>
+               pretty "case" <+> bIRToDoc i <+>
                pretty ":" <+>
                nest 4 (bIRToDoc case')
                | (i, case') <- cases
              ]
-           , case default' of
-               Just default' -> pretty "default :" <+> nest 4 (bIRToDoc default')
-               _             -> emptyDoc
+           , pretty "default :" <+> nest 4 (bIRToDoc default')
         ]
     BDef fname args body ->
         let fnName = viaShow fname

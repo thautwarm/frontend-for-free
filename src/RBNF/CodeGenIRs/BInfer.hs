@@ -3,6 +3,8 @@
 -- Date: 2019-08-06
 -- License: BSD-3-clause
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE LambdaCase #-}
+
 
 module RBNF.CodeGenIRs.BInfer where
 
@@ -218,9 +220,9 @@ tc bIR@InT {outT=base} = case base of
         return InT {tag = tfield, outT=BAttr a attr}
     BPrj a dim -> do
         a <- tc a
-        unitT <- getPrim BTUnit
-        mtd <- getsMS $  maxTupleDim . view ext
-        elty <- TVar <$> newTVar
+        unitT  <- getPrim BTUnit
+        mtd    <- getsMS $ maxTupleDim . view ext
+        elty   <- TVar <$> newTVar
         initTp <- replicateM (dim-1) $ TVar <$> newTVar
         let ms = flip map [0 .. mtd - dim - 1] $ \i -> do
                    tailTp' <- replicateM i (TVar <$> newTVar)
@@ -234,4 +236,59 @@ tc bIR@InT {outT=base} = case base of
         tp <- alts
         assert_ $ tag a |==| tp
         return InT {tag=elty, outT=BPrj a dim}
+    BWhile a b -> do
+        unitT <- getPrim BTUnit
+        ext' <- getsMS $ view ext
+        cond <- tc a
+        bool <- getPrim BTBool
+        assert_ $ tag cond |==| bool
+        body <- tc b
+        reset ext'
+        return InT {tag = unitT, outT = BWhile cond body}
+    BSwitch a bs c -> do
+        ext' <- getsMS $ view ext
+        test <- tc a
+        ext'' <- getsMS $ view ext
+        -- can only switch on integer
+        int  <- getPrim BTInt
+        assert_ $ int |==| tag test
+
+        cases <- forM bs $ \(a, b) -> do
+             case' <- tc a
+            -- case i, i must be int
+             assert_ $ int |==| tag case'
+             body <- tc b
+             reset ext''
+             return (case', body)
+        defau <- tc c
+        forM_ cases $ assert_ . (tag defau |==|) . tag . snd
+        reset ext'
+        return InT {tag = tag defau, outT = BSwitch test cases defau}
+    BDef fnName argNames b -> do
+        ext'   <- getsMS $ view ext
+        tpArgs <- forM argNames $ const (TVar <$> newTVar)
+        unitT  <- getPrim BTUnit
+        let argType = nTupleST unitT tpArgs
+        retType <- TVar <$> newTVar
+        let fType = argType :-> retType
+
+        enterType fnName fType
+        forM_ (zip argNames tpArgs) (uncurry enterType)
+        body <- tc b
+        assert_ $ tag body |==| retType
+        reset ext'
+        return InT {tag=fType, outT=BDef fnName argNames body}
+    BBlock suite -> do
+        unitT  <- getPrim BTUnit
+        suite <- mapM tc suite
+        let t = case suite of
+                [] -> unitT
+                xs -> tag $ last suite
+        return InT {tag=t, outT=BBlock suite}
+    a@(BVar n) -> do
+        t <- typeOf n
+        return InT {tag=t, outT=a}
+    a@(BInt i) -> do
+        int  <- getPrim BTInt
+        return InT {tag=int, outT=a}
     _ -> error ".." -- TODO

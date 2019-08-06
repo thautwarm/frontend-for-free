@@ -112,15 +112,17 @@ mkSwitch c@CompilationInfo {
     hs_tmp_i <- lift incTmp
     let dsl_tmp_flag_n = AName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
         dsl_tmp_res_n  = AName $ ".tmp." ++ show hs_tmp_i ++ ".result"
-
+        failed = if withTrace
+                 then ATuple [dsl_int 0, ACall dsl_to_any [dsl_nil]]
+                 else dsl_null
     let dsl_tokens = AVar dsl_tokens_n
-        switch :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(AIR, AIR)], Maybe AIR)
-        switch = switchImpl [] Nothing
+        switch :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(AIR, AIR)], AIR)
+        switch = switchImpl [] failed
         switchImpl cases default' = \case
           [] -> (cases, default')
           (LAReduce, subDecision):xs ->
               let cont =  runToCode cfg $ mkSwitch c subDecision
-              in  switchImpl cases (Just cont) xs
+              in  switchImpl cases cont xs
           (LAShift t, subDecision):xs ->
               let idx   = ACall dsl_s_to_i [AStr t]
                   cont  = runToCode cfg $ mkSwitch c subDecision
@@ -133,30 +135,24 @@ mkSwitch c@CompilationInfo {
         cases    = fst switch'
         default' = snd switch'
         expr     = AIf dsl_peekable
-                      (ASwitch dsl_cur_int cases defaultWithFlagAssigned) $
-                      if withTrace
-                      then ATuple [dsl_int 0, ACall dsl_to_any [dsl_nil]]
-                      else dsl_null
+                      (ASwitch dsl_cur_int cases defaultWithFlagAssigned)
+                      failed
 
-        defaultWithFlagAssigned = flip fmap default' . consBlock $ AAssign dsl_tmp_flag_n (dsl_int 1)
+        defaultWithFlagAssigned = consBlock (AAssign dsl_tmp_flag_n (dsl_int 1)) default'
+      -- initialize the flag to test whether the default branch has got tried.
 
-    case default' of
-        Nothing -> build expr
-        Just default_expr -> do
-          -- initialize the flag to test whether the default branch has got tried.
-          build $ AAssign dsl_tmp_flag_n (dsl_int 0)
+    build $ AAssign dsl_tmp_flag_n (dsl_int 0)
+    build $ AAssign dsl_tmp_res_n expr
 
-          build $ AAssign dsl_tmp_res_n expr
-
-          -- check if any cases success or default branch has got tried.
-          -- otherwise we'll have a try on default branch
-          build $ let cond1 = if withTrace
-                              then ACall dsl_eq [dsl_int 1, APrj (AVar dsl_tmp_res_n) 0]
-                              else ACall dsl_eq [dsl_null, AVar dsl_tmp_res_n]
-                      cond2 = AVar dsl_tmp_flag_n
-                  in  AIf (AOr cond1 cond2)
-                          (AVar dsl_tmp_res_n)
-                          default_expr
+    -- check if any cases success or default branch has got tried.
+    -- otherwise we'll have a try on default branch
+    build $ let cond1 = if withTrace
+                        then ACall dsl_eq [dsl_int 1, APrj (AVar dsl_tmp_res_n) 0]
+                        else ACall dsl_eq [dsl_null, AVar dsl_tmp_res_n]
+                cond2 = AVar dsl_tmp_flag_n
+            in  AIf (AOr cond1 cond2)
+                    (AVar dsl_tmp_res_n)
+                    default'
 
 
 codeGen :: CompilationInfo -> Int -> StateT [AIR] (State CFG) ()

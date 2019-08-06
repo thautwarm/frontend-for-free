@@ -13,6 +13,7 @@ import RBNF.CodeGenIRs.ABuiltins
 import RBNF.CodeGenIRs.B
 import RBNF.CodeGenIRs.A (AName(..))
 import RBNF.CodeGenIRs.HM
+import RSolve.MapLike
 import RSolve.PropLogic
 import RSolve.MultiState
 import RBNF.Utils
@@ -21,8 +22,13 @@ import Control.Monad.State
 import Control.Monad.Trans.Reader
 import Control.Applicative ((<|>))
 
+import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc.Util (putDocW)
+import Data.Maybe (fromJust)
+
 import qualified Data.Map as M
 import qualified Data.Set as S
+import qualified Data.List as L
 
 type DNF = S.Set Unif
 -- All here are reference types!
@@ -34,31 +40,81 @@ data BTPrim
     | BTString
     | BTAny
     | BTBool
-    deriving (Eq, Ord)
+    deriving (Eq, Ord, Show)
 
+-- instance Show BTPrim wh
 data BT
     = BTPrim BTPrim
-    | Tuple [BT]
+    | BTTuple [BT]
     | BTFunc BT BT
-    | BTStruct [(String, BT)]
+    | BTApp BT BT
+    | BTSig String Int
+    | BTVar String
+    | BTGeneric [String] BT
+    deriving (Eq, Ord)
 
+
+instance Show BT where
+    show = \case
+        BTVar s -> s
+        BTPrim s    -> show s
+        BTFunc a b  -> showNest a ++ " -> " ++ show b
+        BTTuple xs  -> "(" ++ L.intercalate "," (map show xs) ++ ")"
+        BTGeneric xs t -> "forall " ++ (unwords xs) ++ ". " ++ show t
+        BTApp t1 t2  -> show t1 ++ " " ++ showNest t2
+        BTSig s _    -> s
+        where
+            showNest s
+                | isNest s  = "(" ++ show s ++ ")"
+                | otherwise = show s
+            isNest s = case s of
+                BTFunc _ _    -> True
+                BTGeneric _ _    -> True
+                BTTuple _   -> True
 -- | Each module will hold a 'TInfo'
 data TInfo
     = TInfo {
-          _prims  :: Map BTPrim Int
+          _prims      :: [(BT, Int)]
           -- | a map that maps a field name to
           -- candicate lists of (structTypec, fieldType)
-        , _fields :: Map String [(S.Set String, T, T)]
+        , _fields     :: Map String [(S.Set String, T, T)]
+        , _sigs       :: Set BT
+        , _constr     :: [WFF Unif] -- _constraints
+        , maxTupleDim :: Int
+        -- context sensitive
         , _types  :: Map AName T
         , _kinds  :: Map AName T
-        , _constr :: [WFF Unif] -- _constraints
-        , maxTupleDim :: Int
        }
 
 makeLenses ''TInfo
 
+
+toBT :: T -> MS (TCEnv TInfo) BT
+toBT = \case
+    TApp a b -> BTApp <$> toBT a <*> toBT b
+    a :* b   -> do
+        hd <- toBT a
+        let packTl = \case
+                b1 :* b2 -> do
+                    b1 <- toBT b1
+                    (b1:) <$> packTl b2
+                a -> do
+                    a <- toBT a
+                    case a of
+                        BTPrim BTUnit -> return []
+                        a -> return [a]
+        tl <-  packTl b
+        return $ BTTuple $ hd:tl
+    a :-> b -> BTFunc <$> toBT a <*> toBT b
+    TForall xs t -> BTGeneric (S.toList xs) <$> toBT t
+    TFresh a -> return $ BTVar a
+    TVar i   -> error "unknown"
+    TNom i   -> do
+        let index = fromJust . L.find (\(a, b) -> b == i)
+        getsMS $ fst . index . view (ext . prims)
+
 addPrim :: BTPrim -> Int -> TInfo -> TInfo
-addPrim t i = over prims (M.insert t i)
+addPrim t i = over prims (insert (BTPrim t) i)
 
 addField :: String -> S.Set String -> T -> T -> TInfo -> TInfo
 addField fieldName freshvars tapp fieldType =
@@ -70,26 +126,23 @@ addType tname t = over types (M.insert tname t)
 addTypeApp :: AName -> T -> TInfo -> TInfo
 addTypeApp tname t = over kinds (M.insert tname t)
 
--- zipS :: MS s1 () -> MS s2 () -> MS (s1, s2) ()
--- zipS m1 m2 =
---     let f1 = runMS m1 -- \s1 -> [((), s1)]
---         f2 = runMS m2
---     in MS $ \(s1, s2) -> zipWith (\((), s1') ((), s2') -> ((), (s1', s2'))) (f1 s1) (f2 s2)
+addSig :: Int -> String -> TInfo -> TInfo
+addSig i tname = over sigs (S.insert (BTSig tname i))
 
 nTupleST :: T -> [T] -> T
 nTupleST unitT []     =  unitT
 nTupleST unitT (x:xs) =  foldr (:*) x xs
 
-declareStruct :: [String] -> [(String, T)] -> StateT TInfo (MS (TCEnv ext)) T
+declareStruct :: [String] -> [(String, T)] ->  MS (TCEnv TInfo) Int
 declareStruct typeParams fields = do
     let freshvars = S.fromList typeParams
-    structTId  <- lift newTNom
+    structTId  <- newTNom
     let tsig = TNom structTId
-    unitT      <- gets $ TNom . (M.! BTUnit) . view prims
+    unitT      <- getsMS $ TNom . (! (BTPrim BTUnit)) . view (ext . prims)
     let struct = TApp tsig $ nTupleST unitT [TFresh p | p <- typeParams]
     forM_ fields $ \(fieldName, fieldType) ->
-        modify $ addField fieldName freshvars struct fieldType
-    return tsig
+        modifyMS $ over ext (addField fieldName freshvars struct fieldType)
+    return structTId
 
 fixState :: Monad m => StateT s m a -> ReaderT s m a
 fixState a = fst <$> (ReaderT $ runStateT a)
@@ -102,15 +155,17 @@ mutReader a =
             return (a, s)
     in StateT fn
 
-basicTCEnv :: StateT TInfo (MS (TCEnv ctx)) ()
+basicTCEnv :: MS (TCEnv TInfo) ()
 basicTCEnv = do
-    unit  <- lift newTNom
-    int   <- lift newTNom
-    float <- lift newTNom
-    str   <- lift newTNom
-    bool  <- lift newTNom
-    sup   <- lift newTNom
-    modify $
+    -- primitive
+    unit  <- newTNom
+    int   <- newTNom
+    float <- newTNom
+    str   <- newTNom
+    bool  <- newTNom
+    sup   <- newTNom
+    let modify'  f = modifyMS $ over ext f
+    modify' $
         addPrim BTInt int .
         addPrim BTFloat float .
         addPrim BTUnit unit .
@@ -124,7 +179,10 @@ basicTCEnv = do
             (tokenVal,  TNom str),
             (tokenName, TNom str)
         ]
-    modify $ addTypeApp (AName "token") tsig
+    modify' $ addTypeApp (AName "token") $ TNom tsig
+    modify' $ addSig tsig "token"
+
+    -- TODO: add intrinsics.
     return ()
 
 -- assignTVar :: BIR a -> ReaderT TInfo (MS (TCEnv ctx)) (BIR T)
@@ -133,7 +191,13 @@ basicTCEnv = do
 --     i    <- lift newTVar
 --     return $ InT {tag = TVar i, outT = base}
 
-reset ext' = modifyMS $ over ext (const ext')
+commit = do
+    s <- getsMS $ view ext
+    return (view kinds s, view types s)
+
+reset (kinds', types') =
+    modifyMS $  over (ext . kinds) (const kinds') .
+                over (ext . kinds) (const types')
 
 enterType n t = modifyMS $ over ext (addType n t)
 
@@ -149,7 +213,7 @@ infixl 2 |/=|
 a |/=| b = Atom $ Unif {lhs=a, rhs=b, neq=True}
 
 getPrim :: BTPrim -> MS (TCEnv TInfo) T
-getPrim t = getsMS $ TNom . (M.! t) . view (ext . prims)
+getPrim t = getsMS $ TNom . (! (BTPrim t)) . view (ext . prims)
 
 tc :: BIR a -> MS (TCEnv TInfo) (BIR T)
 tc bIR@InT {outT=base} = case base of
@@ -163,7 +227,7 @@ tc bIR@InT {outT=base} = case base of
       -- auto recursive
       enterType n t
       -- for resume
-      ext' <- getsMS $ view ext
+      ext' <- commit
       a    <- tc a
       -- resume scope
       reset ext'
@@ -172,14 +236,14 @@ tc bIR@InT {outT=base} = case base of
       return $ InT {tag=t, outT=BDecl n a}
     BIf a b c -> do
         -- for resume
-        ext' <- getsMS $ view ext
+        ext' <- commit
 
         -- if a, typeof a == bool
         cond <- tc a
         bool <- getPrim BTBool
         assert_ $ tag cond |==| bool
 
-        ext'' <- getsMS $ view ext
+        ext'' <- commit
 
         tCls <- tc b
         reset ext''
@@ -238,7 +302,7 @@ tc bIR@InT {outT=base} = case base of
         return InT {tag=elty, outT=BPrj a dim}
     BWhile a b -> do
         unitT <- getPrim BTUnit
-        ext' <- getsMS $ view ext
+        ext' <- commit
         cond <- tc a
         bool <- getPrim BTBool
         assert_ $ tag cond |==| bool
@@ -246,9 +310,9 @@ tc bIR@InT {outT=base} = case base of
         reset ext'
         return InT {tag = unitT, outT = BWhile cond body}
     BSwitch a bs c -> do
-        ext' <- getsMS $ view ext
+        ext' <- commit
         test <- tc a
-        ext'' <- getsMS $ view ext
+        ext'' <- commit
         -- can only switch on integer
         int  <- getPrim BTInt
         assert_ $ int |==| tag test
@@ -265,7 +329,7 @@ tc bIR@InT {outT=base} = case base of
         reset ext'
         return InT {tag = tag defau, outT = BSwitch test cases defau}
     BDef fnName argNames b -> do
-        ext'   <- getsMS $ view ext
+        ext'   <- commit
         tpArgs <- forM argNames $ const (TVar <$> newTVar)
         unitT  <- getPrim BTUnit
         let argType = nTupleST unitT tpArgs
@@ -299,4 +363,79 @@ tc bIR@InT {outT=base} = case base of
         unit  <- getPrim BTUnit
         let tp = nTupleST unit (map tag xs)
         return InT {tag=tp, outT=BTuple xs}
-    _ -> error ".." -- TODO
+    BAnd a b -> do
+        bool <- getPrim BTBool
+        a <- tc a
+        assert_ $ tag a |==| bool
+        b <- tc b
+        assert_ $ tag b |==| bool
+        return  InT {tag = bool, outT = BAnd a b}
+    BOr a b -> do
+        bool <- getPrim BTBool
+        a <- tc a
+        assert_ $ tag a |==| bool
+        b <- tc b
+        assert_ $ tag b |==| bool
+        return  InT {tag = bool, outT = BOr a b}
+
+
+pruneTypedBIR :: BIR T -> MS (TCEnv TInfo) (BIR BT)
+pruneTypedBIR InT {tag = t, outT = a} = do
+    t <- prune t
+    t <- toBT t
+    a <- traverse pruneTypedBIR a
+    return InT {tag = t, outT = a}
+
+typedBIRToDoc :: BIR BT -> Doc ann
+typedBIRToDoc = frec
+    where
+        frec InT {tag=t, outT=base} = align $ pretty ("[" ++ show t ++ "]") <+> case base of
+            BDecl n InT {outT = BBlock codes} ->
+                nest 4 $ sep $ pretty ("var " ++ show n ++ " ="): map frec codes
+            BDecl n code -> pretty ("var " ++ show n ++ " = ") <+> frec code
+            BAssign n InT {outT = BBlock codes} ->
+                nest 4 $ sep $ pretty (show n ++ " ="): map frec codes
+            BAssign n code -> pretty (show n ++ " = ") <+> frec code
+            BCall   f args -> frec f <> (parens . sep . punctuate comma $ map frec args)
+            BAttr val attr -> frec val <> pretty ("." ++ attr)
+            BPrj val dim   -> frec val <> brackets (viaShow dim)
+            BIf cond br1 br2 ->
+                vsep [
+                    pretty "if"   <+> nest 4 (frec cond)
+                , pretty "then" <+> nest 4 (frec br1)
+                , pretty "else" <+> nest 4 (frec br2)
+                ]
+            BWhile cond br ->
+                nest 4 $
+                vsep [
+                    pretty "while" <+> frec cond
+                , frec br
+                ]
+            BSwitch expr cases default' ->
+                vsep [
+                    pretty "switch" <+> frec expr
+                , nest 4 $ align $ vsep [
+                    pretty "case" <+> frec i <+>
+                    pretty ":" <+>
+                    nest 4 (frec case')
+                    | (i, case') <- cases
+                    ]
+                , pretty "default :" <+> nest 4 (frec default')
+                ]
+            BDef fname args body ->
+                let fnName = viaShow fname
+                    argDef =  sep $ punctuate comma $ map viaShow args
+
+                in  nest 4 $
+                    vsep [
+                        pretty "def" <+> fnName <> parens argDef
+                    , align $ nest 4 $ frec body
+                    ]
+            BBlock suite ->
+                vsep $ map frec suite
+            BVar n -> viaShow n
+            BInt i -> viaShow i
+            BStr s -> viaShow s
+            BTuple elts -> pretty "tuple" <> tupled (map frec elts)
+            BAnd a b -> frec a <+> pretty "and" <+> frec b
+            BOr a b -> frec a <+> pretty "or" <+> frec b

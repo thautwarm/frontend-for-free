@@ -139,7 +139,7 @@ resolveDecl bIR@InT {outT=base} =
     genericVisit = traverse resolveDecl base
     resumeTag  base = bIR {outT = base}
 
-bIRToDoc InT {outT = base} = align $
+bIRToDoc InT {outT=base} = align $
   case base of
     BDecl n InT {outT = BBlock codes} ->
       nest 4 $ sep $ pretty ("var " ++ show n ++ " ="): map bIRToDoc codes

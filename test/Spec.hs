@@ -12,6 +12,8 @@ import RBNF.CodeGen
 import RBNF (parserGen)
 import RBNF.Serialization
 import RBNF.CodeGenIRs.B
+import RBNF.CodeGenIRs.BInfer
+import RBNF.CodeGenIRs.ABuiltins
 
 import Prelude hiding (writeFile)
 import Data.Foldable
@@ -132,8 +134,10 @@ test4 = do
     -- mapM_ print a
     -- putStrLn ""
     printBIR 80 $ a
+    let b = flip evalState S.empty (resolveDecl a)
     putStrLn ""
-    printBIR 80 $ flip evalState S.empty (resolveDecl a)
+    printBIR 80 $ b
+    
 
 test5  = T.writeFile "a.txt" $ dumpCG parsers
 main = test4

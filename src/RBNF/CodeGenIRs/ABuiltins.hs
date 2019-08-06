@@ -2,6 +2,15 @@ module RBNF.CodeGenIRs.ABuiltins
 where
 
 import RBNF.CodeGenIRs.A
+
+tokenId = "idint"
+tokenOff = "offset"
+tokenCol = "colomn"
+tokenLine = "lineno"
+tokenVal = "val"
+tokenName = "name" -- identical to Id
+
+
 dsl_eq         = AVar $ ABuiltin "=="
 dsl_neq        = AVar $ ABuiltin "!="
 dsl_mv_forward = AVar $ ABuiltin "mv_forward"

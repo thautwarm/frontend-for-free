@@ -8,12 +8,10 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module RBNF.CodeGenIRs.B where
 import RBNF.CodeGenIRs.A
-
 import GHC.Generics
 import Control.Monad.State
 import Data.Functor
@@ -22,6 +20,7 @@ import Data.Text.Prettyprint.Doc
 import Data.Text.Prettyprint.Doc.Util (putDocW)
 
 import qualified Data.Set as S
+import qualified Data.Map as M
 
 data BBase a
     = BAssign AName a
@@ -145,10 +144,10 @@ resolveDecl bIR@InT {outT=base} =
 
 bIRToDoc InT {outT = base} = align $
   case base of
-    BDecl n (InT {outT = BBlock codes}) ->
+    BDecl n InT {outT = BBlock codes} ->
       nest 4 $ sep $ pretty ("var " ++ show n ++ " ="): map bIRToDoc codes
     BDecl n code -> pretty ("var " ++ show n ++ " = ") <+> bIRToDoc code
-    BAssign n (InT {outT = BBlock codes}) ->
+    BAssign n InT {outT = BBlock codes} ->
         nest 4 $ sep $ pretty (show n ++ " ="): map bIRToDoc codes
     BAssign n code -> pretty (show n ++ " = ") <+> bIRToDoc code
     BCall   f args -> bIRToDoc f <> (parens . sep . punctuate comma $ map bIRToDoc args)

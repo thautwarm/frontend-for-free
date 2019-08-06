@@ -46,8 +46,6 @@ data CompilationInfo
         , isLeftRec  :: Bool
       }
 
-tokenId = "idint"
-tokenOff = "offset"
 
 slotToStr i = ".slot." ++ show i
 scopedStr scopes s = L.intercalate "." $ L.reverse (s:scopes)

@@ -285,10 +285,18 @@ tc bIR@InT {outT=base} = case base of
                 [] -> unitT
                 xs -> tag $ last suite
         return InT {tag=t, outT=BBlock suite}
-    a@(BVar n) -> do
+    BVar n -> do
         t <- typeOf n
-        return InT {tag=t, outT=a}
-    a@(BInt i) -> do
+        return InT {tag=t, outT=BVar n}
+    BInt i -> do
         int  <- getPrim BTInt
-        return InT {tag=int, outT=a}
+        return InT {tag=int, outT=BInt i}
+    BStr s -> do
+        str  <- getPrim BTString
+        return InT {tag=str, outT=BStr s}
+    BTuple xs -> do
+        xs <- mapM tc xs
+        unit  <- getPrim BTUnit
+        let tp = nTupleST unit (map tag xs)
+        return InT {tag=tp, outT=BTuple xs}
     _ -> error ".." -- TODO

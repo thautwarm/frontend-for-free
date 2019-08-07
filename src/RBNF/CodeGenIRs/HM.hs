@@ -19,6 +19,8 @@ import Control.Lens (Lens', view, over, makeLenses)
 import Control.Applicative
 import Control.Monad
 
+-- import Debug.Trace
+
 import qualified Data.List as L
 import qualified Data.Map  as M
 import qualified Data.Set  as S
@@ -28,24 +30,25 @@ type Fix a = a -> a
 infixl 6 :->
 infixr 6 :*
 
-data T
+-- | Hindley-milner type
+data HMT nom
     = TVar Int
     | TFresh String
-    | T :-> T
-    | T :*  T -- tuple
-    | TForall (S.Set String) T
-    | TApp T T -- type application
-    | TNom Int -- nominal type index
+    | HMT nom :-> HMT nom
+    | HMT nom :*  HMT nom -- tuple
+    | TForall (S.Set String) (HMT nom)
+    | TApp (HMT nom) (HMT nom) -- type application
+    | TNom nom -- nominal type index
     deriving (Eq, Ord)
 
-deConsTOp :: T -> Maybe (T -> T -> T, T, T)
+deConsTOp :: HMT nom -> Maybe (HMT nom -> HMT nom -> HMT nom, HMT nom, HMT nom)
 deConsTOp = \case
     a :-> b  -> Just ((:->), a, b)
     a :*  b  -> Just ((:*),  a, b)
     TApp a b -> Just (TApp,  a, b)
     _ -> Nothing
 
-instance Show T where
+instance Show nom => Show (HMT nom) where
     show = \case
         TVar idx    -> "@" ++ show idx
         TFresh s    -> s
@@ -53,7 +56,7 @@ instance Show T where
         a :*  b     -> showNest a ++ " * " ++ show b
         TForall l t -> "forall " ++ (unwords $ S.toList l) ++ ". " ++ show t
         TApp t1 t2  -> show t1 ++ " " ++ showNest t2
-        TNom i       -> "@t" ++ show i
+        TNom i      -> show i
         where
             showNest s
                 | isNest s  = "(" ++ show s ++ ")"
@@ -65,50 +68,43 @@ instance Show T where
                 _ :* _      -> True
                 _           -> False
 
-data Unif
+data HMUnif nom
     = Unif {
-          lhs :: T
-        , rhs :: T
+          lhs :: HMT nom
+        , rhs :: HMT nom
         , neq :: Bool
       }
     deriving (Eq, Ord)
 
-instance Show Unif where
+instance Show nom => Show (HMUnif nom) where
     show Unif {lhs, rhs, neq} =
         let op = if neq then " /= " else " == "
         in  show lhs ++ op ++ show rhs
 
-instance AtomF Unif where
+instance (Ord nom, Show nom) => AtomF (HMUnif nom) where
     notA a@Unif {neq} = [a {neq = not neq}]
 
-data TCEnv ext = TCEnv {
+data HMTCEnv nom ext = TCEnv {
           _ext   :: ext
-        , _noms  :: M.Map Int T  -- nominal type ids
-        , _tvars :: M.Map Int T  -- type variables
-        , _neqs  :: S.Set (T, T) -- negation constraints
+        , _tvars :: M.Map Int (HMT nom)  -- type variables
+        , _neqs  :: S.Set (HMT nom, HMT nom) -- negation constraints
     }
     deriving (Show)
 
-emptyTCEnv ext = TCEnv ext M.empty M.empty S.empty
+emptyTCEnv ext = TCEnv ext M.empty S.empty
 
-makeLenses ''TCEnv
+makeLenses ''HMTCEnv
 
-newTVar :: MS (TCEnv ext) Int
+newTVar :: Ord nom => MS (HMTCEnv nom ext) Int
 newTVar = do
     i <- getsMS $ M.size . view tvars
     modifyMS $ over tvars $ M.insert i (TVar i)
     return i
 
-newTNom :: MS (TCEnv ext) Int
-newTNom = do
-    i <- getsMS $ M.size . view noms
-    modifyMS $ over noms $ M.insert i (TNom i)
-    return i
-
-loadTVar :: Int -> MS (TCEnv ext) T
+loadTVar :: Ord nom => Int -> MS (HMTCEnv nom ext) (HMT nom)
 loadTVar i = getsMS $ (M.! i) . view tvars
 
-occurIn :: Int -> T -> MS (TCEnv ext) Bool
+occurIn :: Ord nom => Int -> HMT nom -> MS (HMTCEnv nom ext) Bool
 occurIn l = contains
     where
         contains (deConsTOp -> Just (_, a, b)) = (||) <$> contains a <*> contains b
@@ -123,7 +119,7 @@ occurIn l = contains
                     TVar a' | a' == a -> return False
                     _                 -> contains tvar
 
-free :: M.Map String T -> T -> T
+free :: M.Map String (HMT nom) -> (HMT nom) -> (HMT nom)
 free m = mkFree
     where
         mkFree (deConsTOp -> Just (op, a, b)) = op (mkFree a) (mkFree b)
@@ -134,7 +130,7 @@ free m = mkFree
 
 freepair freevar = (freevar,) . TVar <$> newTVar
 
-prune :: T -> MS (TCEnv ext) T
+prune :: Ord nom => HMT nom -> MS (HMTCEnv nom ext) (HMT nom)
 prune = \case
         (deConsTOp   -> Just (op, a, b)) -> op <$> prune a <*> prune b
         a@(TNom i)   -> return a
@@ -149,13 +145,13 @@ prune = \case
         a@(TFresh _) -> return a
         TForall a b  -> TForall a <$> prune b
 
-update :: Int -> T -> MS (TCEnv ext) ()
+update :: Ord nom => Int -> HMT nom -> MS (HMTCEnv nom ext) ()
 update i t = modifyMS $ over tvars $ M.insert i t
 
-addNEq :: (T, T) -> MS (TCEnv ext) ()
+addNEq :: Ord nom => (HMT nom, HMT nom) -> MS (HMTCEnv nom ext) ()
 addNEq t = modifyMS $ over neqs (S.insert t)
 
-unify :: Fix (Unif -> MS (TCEnv ext) ())
+unify :: (Show nom, Ord nom) => Fix (HMUnif nom -> MS (HMTCEnv nom ext) ())
 unify self Unif {lhs, rhs, neq=True} = addNEq (lhs, rhs)
 
 unify self Unif {lhs=TForall freevars poly, rhs} = do
@@ -198,7 +194,7 @@ unify self Unif {lhs=TApp l1 l2, rhs= TApp r1 r2} =
 unify self Unif {lhs, rhs} =
     error $ show lhs ++ " ? " ++ show rhs
 
-instance CtxSolver (TCEnv ext) Unif where
+instance (Show nom, Ord nom) => CtxSolver (HMTCEnv nom ext) (HMUnif nom) where
     solve =
         let frec = unify (pruneUnif >=> frec)
         in  pruneUnif >=> frec
@@ -207,4 +203,4 @@ instance CtxSolver (TCEnv ext) Unif where
             pruneUnif a@Unif {lhs, rhs} = do
                 lhs <- prune lhs
                 rhs <- prune rhs
-                return $ a {lhs=lhs , rhs=rhs}
+                return $ {- trace (show lhs ++ " unify " ++ show rhs) $ -} a {lhs=lhs , rhs=rhs}

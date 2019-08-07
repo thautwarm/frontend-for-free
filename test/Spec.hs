@@ -60,10 +60,10 @@ parsers = CGrammar [
             CNonTerm "Number",
             CSeq [CTerm negation, "a" |= CNonTerm "Factor" ]
         ]
-    , "Mul"    --> CAlt [
-            CSeq [ CPred (MTerm "always_true"), CNonTerm "Factor" ],
-            CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Factor"]
-        ]
+    -- , "Mul"    --> CAlt [
+    --         CSeq [ CPred (MTerm "always_true"), CNonTerm "Factor" ],
+    --         CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Factor"]
+    --     ]
     ]
 
 test1 = do

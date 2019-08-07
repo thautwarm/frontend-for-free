@@ -134,7 +134,7 @@ mkSwitch c@CompilationInfo {
     let switch'  = switch xs
         cases    = fst switch'
         default' = snd switch'
-        expr     = AIf dsl_peekable
+        expr     = AIf dsl_la_cond
                       (ASwitch dsl_cur_int cases defaultWithFlagAssigned)
                       failed
 
@@ -197,7 +197,7 @@ codeGen c@CompilationInfo {
       cfg <- lift $ modified $ \a -> a {slot = slot a + 1}
       -- build $ AAssign dsl_off_n (AAttr dsl_tokens tokenOff)
       let theParser = AVar . AName $ "parse." ++ n
-      build $ AAssign dsl_sloti_chk (ACall theParser [dsl_tokens, AVar dsl_globST_n])
+      build $ AAssign dsl_sloti_chk (ACall theParser [AVar dsl_globST_n, dsl_tokens])
       let cont = getCont i cfg
           result
             | withTrace = ACall dsl_to_res [APrj (AVar dsl_sloti_chk) 1]

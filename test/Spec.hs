@@ -60,10 +60,10 @@ parsers = CGrammar [
             CNonTerm "Number",
             CSeq [CTerm negation, "a" |= CNonTerm "Factor" ]
         ]
-    -- , "Mul"    --> CAlt [
-    --         CSeq [ CPred (MTerm "always_true"), CNonTerm "Factor" ],
-    --         CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Factor"]
-    --     ]
+    , "Mul"    --> CAlt [
+            CSeq [ CPred (MTerm "always_true"), CNonTerm "Factor" ],
+            CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Factor"]
+        ]
     ]
 
 test1 = do
@@ -144,6 +144,7 @@ test3 = do
 test4 = do
     putStrLn ""
     let a = parserGen 1 False parsers
+    printAIR 80 $ a
     -- let a =
     --       ADef (AName "parse.Number") [ABuiltin "state", ABuiltin "tokens"] $
     --           ABlock [
@@ -156,11 +157,11 @@ test4 = do
     --           ]
     let b = flip evalState 0 $ aToB $ a
     -- mapM_ print a
-    -- putStrLn ""
+    putStrLn "\nb IR:"
     -- printBIR 80 $ b
     let bWithDecl = flip evalState S.empty (resolveDecl b)
-    putStrLn "\n BIR with declarations:"
-    printBIR 80 $ bWithDecl
+    -- putStrLn "\n BIR with declarations:"
+    -- printBIR 80 $ bWithDecl
     let env = emptyTCEnv emptyTInfo
     let res = flip runMS env $ do
             basicTCEnv True

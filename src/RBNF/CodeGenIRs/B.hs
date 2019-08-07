@@ -23,6 +23,9 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
 
+
+import Debug.Trace
+
 data BBase a
     = BAssign AName a
     | BDecl AName a

@@ -167,11 +167,13 @@ unify self Unif {lhs=TNom a, rhs=TNom b}
     | a == b      = return ()
     | otherwise   = empty
 
-unify self Unif {lhs=TVar a, rhs = TVar b} = do
-    recursive <- occurIn a (TVar b)
-    if recursive
-    then error "ill formed definition like a = a -> b"
-    else update a (TVar b)
+unify self Unif {lhs=TVar a, rhs = TVar b}
+    | a == b = return ()
+    | otherwise = do
+        recursive <- occurIn a (TVar b)
+        if recursive
+        then error "ill formed definition like a = a -> b"
+        else update a (TVar b)
 
 unify self Unif {lhs=TVar id, rhs, neq} = update id rhs
 

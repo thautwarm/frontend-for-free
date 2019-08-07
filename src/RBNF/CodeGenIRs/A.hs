@@ -4,6 +4,7 @@
 -- License: BSD-3-clause
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module RBNF.CodeGenIRs.A (AIR(..), AName(..), printAIR) where
 import Data.Text.Prettyprint.Doc
@@ -38,10 +39,25 @@ data AIR
     | AOr  AIR AIR
     deriving (Eq, Ord, Generic)
 
+isSimpleExpr = \case
+    AInt _ -> True
+    AStr _ -> True
+    ABool _ -> True
+    AVar _ -> True
+    AAttr _ _ -> True
+    ACall _ _ -> True
+    APrj _ _ -> True
+    ATuple xs -> all isSimpleExpr xs
+    AIf x y z ->    isSimpleExpr x
+                 && isSimpleExpr y
+                 && isSimpleExpr z
+    _ -> False
 
 aIRToDoc = align . \case
     AAssign n (ABlock codes) ->
         nest 4 $ sep $ pretty (show n ++ " ="): map aIRToDoc codes
+    AAssign n code@(isSimpleExpr -> False) ->
+        nest 4 $ vsep [ pretty (show n ++ " = "), aIRToDoc code]
     AAssign n code -> pretty (show n ++ " = ") <+> aIRToDoc code
     ACall   f args -> aIRToDoc f <> (parens . sep . punctuate comma $ map aIRToDoc args)
     AAttr val attr -> aIRToDoc val <> pretty ("." ++ attr)
@@ -61,11 +77,11 @@ aIRToDoc = align . \case
     ASwitch expr cases default' ->
         vsep [
              pretty "switch" <+> aIRToDoc expr
-           , nest 4 $ align $ vsep [
-               pretty "case" <+> (aIRToDoc i) <+>
-               pretty ":" <+>
-               nest 4 (aIRToDoc case')
-               | (i, case') <- cases
+           , nest 2 $ align $ vsep [
+               nest 2 $ vsep [
+                    pretty "case" <+> (aIRToDoc i) <+> pretty ":"
+                  , aIRToDoc case'
+               ] | (i, case') <- cases
              ]
            , pretty "default :" <+> nest 4 (aIRToDoc default')
         ]

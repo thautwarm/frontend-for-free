@@ -28,16 +28,15 @@ parserGen k withTrace cg = ABlock $ lrCodes ++ nonLRCodes
            }
         startNodeIds = M.toList . view starts $ graph
         endsNodeIds  = M.toList . view ends   $ graph
-        nonLRCodes   =
-            flip map startNodeIds $ \(s, i) ->
+        nonLRCodes   = startNodeIds >>= \(s, i) ->
                 let cfg = emptyCFG s
-                in  runToCode cfg $ codeGen c i
+                in  runToCodeSuite cfg $ codeGen c i
         lrCodes      =
             endsNodeIds >>= \(s, i) ->
                 case kind $ view nodes graph M.! i of
                     LeftRecur ->
                         let cfg = emptyCFG s
-                        in  [runToCode cfg $ codeGen c {isLeftRec = True} i]
+                        in  runToCodeSuite cfg $ codeGen c {isLeftRec = True} i
                     _ -> []
 
 parsingGraph :: CGrammar -> Graph

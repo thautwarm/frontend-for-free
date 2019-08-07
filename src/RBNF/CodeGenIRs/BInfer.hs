@@ -4,6 +4,7 @@
 -- License: BSD-3-clause
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ViewPatterns #-}
 
 
 module RBNF.CodeGenIRs.BInfer where
@@ -29,6 +30,8 @@ import Data.Maybe (fromJust)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Data.List as L
+
+import Debug.Trace
 
 type DNF = S.Set Unif
 -- All here are reference types!
@@ -477,17 +480,33 @@ pruneTypedBIR InT {tag = t, outT = a} = do
     a <- traverse pruneTypedBIR a
     return InT {tag = t, outT = a}
 
+isSimpleExpr = \case
+    BInt _ -> True
+    BStr _ -> True
+    BBool _ -> True
+    BVar _ -> True
+    BAttr _ _ -> True
+    BCall _ _ -> True
+    BPrj _ _ -> True
+    BMutual ns xs -> L.length ns > 1 || all isSimpleExpr (map outT xs)
+    BTuple xs -> all isSimpleExpr (map outT xs)
+    BIf x y z -> all isSimpleExpr $ map outT [x, y, z]
+    _ -> False
+
 typedBIRToDoc :: BIR BT -> Doc ann
 typedBIRToDoc = frec
     where
         frec InT {tag=t, outT=base} =
             let ts = show t in align $ case base of
-            BDecl n InT {outT = BMutual [] codes} ->
-                nest 4 $ sep $ pretty ("var " ++ show n ++ " :" ++ ts ++ " ="): map frec codes
+
+            BDecl n v@InT {outT = isSimpleExpr -> False} ->
+                nest 4 $ vsep [ pretty ("var " ++ show n ++ " :" ++ ts ++ " ="), frec v]
             BDecl n code -> pretty ("var " ++ show n ++ " :" ++ ts ++ " = ") <+> frec code
-            BAssign n InT {outT = BMutual [] codes} ->
-                nest 4 $ sep $ pretty (show n ++ " :" ++ ts ++ " ="): map frec codes
+
+            BAssign n v@InT {outT = isSimpleExpr -> False} ->
+                nest 4 $ vsep [ pretty (show n ++ " :" ++ ts ++ " ="), frec v]
             BAssign n code -> pretty (show n ++ " :" ++ ts ++ " = ") <+> frec code
+
             BCall   f args -> vsep [
                     pretty ("[" ++ ts ++ "]"),
                     frec f <> (parens . sep . punctuate comma $ map frec args)
@@ -510,12 +529,12 @@ typedBIRToDoc = frec
                 ]
             BSwitch expr cases default' ->
                 vsep [
-                  pretty ("[" ++ ts ++ "]") <> pretty "switch" <+> frec expr
-                , nest 4 $ align $ vsep [
-                    pretty "case" <+> frec i <+>
-                    pretty ":" <+>
-                    nest 4 (frec case')
-                    | (i, case') <- cases
+                    pretty "switch" <+> frec expr
+                , nest 2 $ align $ vsep [
+                    nest 2 $ vsep [
+                            pretty "case" <+> (frec i) <+> pretty ":"
+                            , frec case'
+                    ] | (i, case') <- cases
                     ]
                 , pretty "default :" <+> nest 4 (frec default')
                 ]
@@ -540,7 +559,8 @@ typedBIRToDoc = frec
             BMutual names suite ->
                 let n         = length names
                     (l1, l2)  = L.splitAt n suite
-                    recursive = zipWith (\name v -> pretty ("rec " ++ show name ++ " =") <+> frec v)
+                    recursive = zipWith (\name v -> nest 4 $
+                                            vsep [ pretty ("rec " ++ show name ++ " ="), frec v])
                                         names l1
                 in vsep $ recursive ++ map frec l2
             BAnd a b -> frec a <+> pretty "and" <+> frec b

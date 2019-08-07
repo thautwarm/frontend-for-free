@@ -95,8 +95,12 @@ incTmp = do
   put $ s {tmp = tmp s + 1}
   return $ tmp s
 
+
+runToCodeSuite :: CFG -> StateT [AIR] (State CFG) () -> [AIR]
+runToCodeSuite cfg = L.reverse . flip evalState cfg . flip execStateT []
+
 runToCode :: CFG -> StateT [AIR] (State CFG) () -> AIR
-runToCode cfg = block . L.reverse . flip evalState cfg . flip execStateT []
+runToCode cfg = block . runToCodeSuite cfg
 
 mkSwitch :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [AIR] (State CFG) ()
 mkSwitch c@CompilationInfo {
@@ -265,7 +269,7 @@ codeGen c@CompilationInfo {
       else do
         let CFG {ret} = cfg
             name = L.head $ scopes cfg
-            recn = AName $ "lr." ++ name
+            recn = AName $ "lr.loop." ++ name
         build $ ACall (AVar recn) [ret, AVar dsl_globST_n, AVar dsl_tokens_n]
     LeftRecur | isLeftRec -> do
       cfg <- lift get
@@ -284,7 +288,8 @@ codeGen c@CompilationInfo {
               }
         let cont = getCont i cfg'
             arg0 = AName $ slotToStr 0
-            recn = AName $ "lr." ++ name
+            rec1 = AName $ "lr.loop." ++ name
+            rec2 = AName $ "lr.step." ++ name
             try  = AName $ "lr." ++ name ++ ".try"
             cond = if withTrace
                   then ACall dsl_neq [APrj (AVar try) 0, dsl_false]
@@ -294,16 +299,20 @@ codeGen c@CompilationInfo {
             fold = if withTrace
                   then ACall dsl_to_res [APrj (AVar try) 1]
                   else AVar try
-            defun = ADef recn [arg0, dsl_globST_n, dsl_tokens_n] $
+            args3   = [arg0, dsl_globST_n, dsl_tokens_n]
+            params3 = map AVar args3
+            step    = ADef rec2 args3 cont
+            loop    = ADef rec1 args3 $
                       ABlock [
-                          AAssign try cont
+                          AAssign try $ ACall (AVar rec2) params3
                         , AWhile cond $ ABlock [
                               AAssign arg0 fold
-                            , AAssign try cont
+                            , AAssign try $ ACall (AVar rec2) params3
                           ]
                         , AVar arg0
                       ]
-        build defun
+        build step
+        build loop
     Start -> do
       cfg <- lift get
       let name = L.head $ scopes cfg

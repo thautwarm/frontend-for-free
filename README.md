@@ -49,12 +49,7 @@ Mul    -> ?always_true Factor
         | Mul '*' Factor
 ```
 
-## Note: Left Recursion Hamdling
-
-Left recursion handling, lookahead decision trees,
-type inference, etc.
-
-- Left recursion handling:
+## Note: Left Recursion Handling
 
 ![Left recur](./lr.png)
 

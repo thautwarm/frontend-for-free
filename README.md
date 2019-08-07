@@ -335,8 +335,7 @@ def parse.Number(%state, %tokens)
 ## Pretty Printing of Generated B IR
 
 ```
-rec lr.step.Mul =
-    [((ast (),State),Tokens) -> ast ()]
+rec lr.step.Mul : (State,Tokens) -> ast () =
     (.slot.0, %state, %tokens) ->
         var %off :int =  [int]%tokens.offset
         var .slot.1 :(bool,any) =  [(bool,any)]
@@ -436,8 +435,7 @@ rec lr.step.Mul =
                         %==(%null, .tmp.0.result) or .tmp.0.flag
              then .tmp.0.result
              else %null
-rec lr.loop.Mul =
-    [((ast (),State),Tokens) -> ast ()]
+rec lr.loop.Mul : (State,Tokens) -> ast () =
     (.slot.0, %state, %tokens) ->
         var lr.Mul.try :ast () =  [ast ()]
                                   lr.step.Mul(.slot.0, %state, %tokens)
@@ -447,8 +445,7 @@ rec lr.loop.Mul =
             lr.Mul.try :ast () =  [ast ()]
                                   lr.step.Mul(.slot.0, %state, %tokens)
         .slot.0
-rec parse.Factor =
-    [(State,Tokens) -> ast ()]
+rec parse.Factor : (State,Tokens) -> ast () =
     (%state, %tokens) ->
         var .tmp.0.flag :bool =  False
         var .tmp.0.result :ast () =
@@ -504,8 +501,7 @@ rec parse.Factor =
                    %==(%null, .tmp.0.result) or .tmp.0.flag
         then .tmp.0.result
         else %null
-rec parse.Mul =
-    [(State,Tokens) -> ast ()]
+rec parse.Mul : (State,Tokens) -> ast () =
     (%state, %tokens) ->
         [ast ()]if [bool]
                    always_true(%state)
@@ -600,8 +596,7 @@ rec parse.Mul =
              then .tmp.0.result
              else %null
         else %null
-rec parse.Number =
-    [(State,Tokens) -> ast ()]
+rec parse.Number : (State,Tokens) -> ast () =
     (%state, %tokens) ->
         var %off :int =  [int]%tokens.offset
         var .slot.0 :(bool,any) =  [(bool,any)]
@@ -613,4 +608,5 @@ rec parse.Number =
                                      %mk_ast("Number",
                                      [(bool,any)]tuple(.slot.0))
              .slot.-1
+
 ```

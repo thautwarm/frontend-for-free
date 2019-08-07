@@ -543,10 +543,7 @@ typedBIRToDoc = frec
 
                 in  nest 4 $
                     vsep [
-                        align $ vsep [
-                            pretty ("[" ++ ts ++ "]")
-                          , parens argDef <+> pretty "->"
-                        ]
+                        parens argDef <+> pretty "->"
                       , align $ nest 4 $ frec body
                     ]
             BVar n -> viaShow n
@@ -560,7 +557,7 @@ typedBIRToDoc = frec
                 let n         = length names
                     (l1, l2)  = L.splitAt n suite
                     recursive = zipWith (\name v -> nest 4 $
-                                            vsep [ pretty ("rec " ++ show name ++ " ="), frec v])
+                                            vsep [ pretty ("rec " ++ show name ++ " : " ++ ts ++ " ="), frec v])
                                         names l1
                 in vsep $ recursive ++ map frec l2
             BAnd a b -> frec a <+> pretty "and" <+> frec b

@@ -130,7 +130,7 @@ mkSwitch c@CompilationInfo {
               in  switchImpl (case':cases) default' xs
         dsl_cur_token = ACall dsl_peek [dsl_tokens, dsl_int k]
         dsl_cur_int   = AAttr dsl_cur_token tokenId
-        dsl_peekable  = ACall dsl_peekable [dsl_tokens, dsl_int k]
+        dsl_la_cond   = ACall dsl_peekable [dsl_tokens, dsl_int k]
     let switch'  = switch xs
         cases    = fst switch'
         default' = snd switch'
@@ -178,15 +178,15 @@ codeGen c@CompilationInfo {
       build $ AAssign dsl_off_n (AAttr dsl_tokens tokenOff)
       let tokenId = ACall dsl_s_to_i [AStr t]
       build $ AAssign dsl_sloti_n  (ACall dsl_match_tk [dsl_tokens, tokenId])
-      let cont = getCont i cfg
-      build $ let ifErr = if withTrace then
-                              let err_hd = ATuple [AVar dsl_off_n, AStr t]
-                                  errs   = ACall dsl_to_any [ACall dsl_cons [err_hd, dsl_nil]]
-                              in  ATuple [dsl_false, errs]
-                          else dsl_null
-              in  AIf (ACall dsl_eq [AVar dsl_sloti_n, dsl_null])
-                      ifErr
-                      cont
+      let cont   = getCont i cfg
+          err_hd = ATuple [AVar dsl_off_n, AStr t]
+          errs   = ACall dsl_to_any [ACall dsl_cons [err_hd, dsl_nil]]
+          ifErr
+            | withTrace = ATuple [dsl_false, errs]
+            | otherwise = dsl_null
+      build $ AIf (ACall dsl_eq [AVar dsl_sloti_n, dsl_null])
+                    ifErr
+                    cont
 
     NEntity (ENonTerm n) -> do
       cfg <- lift get
@@ -199,7 +199,9 @@ codeGen c@CompilationInfo {
       let theParser = AVar . AName $ "parse." ++ n
       build $ AAssign dsl_sloti_chk (ACall theParser [dsl_tokens, AVar dsl_globST_n])
       let cont = getCont i cfg
-          result   = ACall dsl_to_res [APrj (AVar dsl_sloti_chk) 1]
+          result
+            | withTrace = ACall dsl_to_res [APrj (AVar dsl_sloti_chk) 1]
+            | otherwise = AVar dsl_sloti_chk
           assSlot  = AAssign dsl_sloti_n result
           ifNotErr = consBlock assSlot cont
       if withTrace then do
@@ -207,7 +209,7 @@ codeGen c@CompilationInfo {
            build $ AIf (ACall dsl_eq [APrj (AVar dsl_sloti_chk) 0, dsl_false])
                       ifErr
                       ifNotErr
-      else build $ AIf (ACall dsl_eq [AVar dsl_sloti_n, dsl_null])
+      else build $ AIf (ACall dsl_eq [AVar dsl_sloti_chk, dsl_null])
                       dsl_null
                       ifNotErr
     NEntity (EPredicate ir) -> do

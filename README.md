@@ -42,7 +42,8 @@ parsers = S.fromList [
 
 ## Note: Analyses
 
-Left recursion handling, lookahead decision trees, etc.
+Left recursion handling, lookahead decision trees,
+type inference, etc.
 
 - Left recursion handling:
 
@@ -108,6 +109,8 @@ case elts[1]
       LAShift (Case "-") => [39]
       LAShift (Case "number") => [39]
 ```
+
+The type inference is based on HM unification and propositioinal logics(logic formulas in disjunctive normal form).
 
 ## Note: Code Generation
 

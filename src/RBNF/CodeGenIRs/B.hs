@@ -21,6 +21,7 @@ import Data.Text.Prettyprint.Doc.Util (putDocW)
 
 import qualified Data.Set as S
 import qualified Data.Map as M
+import qualified Data.List as L
 
 data BBase a
     = BAssign AName a
@@ -31,8 +32,8 @@ data BBase a
     | BIf a a a
     | BWhile a a
     | BSwitch a [(a, a)] a
-    | BDef AName [AName] a
-    | BBlock [a]
+    | BDef [AName] a
+    | BMutual [AName] [a]
     -- literal
     | BVar AName
     | BInt Integer
@@ -76,14 +77,24 @@ aToB = (InT <$> inc <*>) . f
             BIf <$> aToB cond <*> aToB cla1 <*> aToB cla2
         AWhile cond body ->
             BWhile <$> aToB cond <*> aToB body
-        ADef n args body -> BDef n args <$> aToB body
+        ADef _ args body -> BDef args <$> aToB body
         ASwitch val cases defau ->
             let cases' =
                     forM cases $ \(i, body) ->
                     aToB body >>= \body ->
                     aToB i    >>= \i    -> return (i, body)
             in BSwitch <$> aToB val <*> cases' <*> aToB defau
-        ABlock suite -> BBlock <$> mapM aToB suite
+        ABlock  suite -> do
+          let group defs bs = \case
+                [] -> (reverse defs, reverse bs)
+                def@(ADef n args body):xs -> group ((n, def):defs) bs xs
+                x:xs                -> group defs (x:bs) xs
+              (defs, bs) = group [] [] suite
+              names = map fst defs
+          defs <- mapM (aToB . snd) defs
+          bs   <- mapM aToB bs
+          let suite' = defs ++ bs
+          return $ BMutual names suite'
         AVar  n      -> return $ BVar n
         AInt  i      -> return $ BInt i
         AStr  s      -> return $ BStr s
@@ -123,7 +134,7 @@ resolveDecl bIR@InT {outT=base} =
       let (cond, s') = flip runState  s  $ resolveDecl a
           body       = flip evalState s' $ resolveDecl b
       return . resumeTag $ BWhile cond body
-    BDef _ args b -> do
+    BDef args b -> do
       s' <- get
       put $ S.fromList args
       ret <- genericVisit
@@ -135,6 +146,13 @@ resolveDecl bIR@InT {outT=base} =
           cases   = [(case', flip evalState s' $ resolveDecl b) | (case', b) <- bs]
           defau   = flip evalState s' $ resolveDecl c
       return . resumeTag $ BSwitch v cases defau
+    BMutual xs bs -> do
+        s <- get
+        modify $ S.union (S.fromList xs)
+        base <- genericVisit
+        let ret = resumeTag base
+        put s
+        return ret
     _ -> resumeTag <$> genericVisit
 
   where
@@ -143,10 +161,10 @@ resolveDecl bIR@InT {outT=base} =
 
 bIRToDoc InT {outT=base} = align $
   case base of
-    BDecl n InT {outT = BBlock codes} ->
+    BDecl n InT {outT = BMutual [] codes} ->
       nest 4 $ sep $ pretty ("var " ++ show n ++ " ="): map bIRToDoc codes
     BDecl n code -> pretty ("var " ++ show n ++ " = ") <+> bIRToDoc code
-    BAssign n InT {outT = BBlock codes} ->
+    BAssign n InT {outT = BMutual [] codes} ->
         nest 4 $ sep $ pretty (show n ++ " ="): map bIRToDoc codes
     BAssign n code -> pretty (show n ++ " = ") <+> bIRToDoc code
     BCall   f args -> bIRToDoc f <> (parens . sep . punctuate comma $ map bIRToDoc args)
@@ -175,17 +193,20 @@ bIRToDoc InT {outT=base} = align $
              ]
            , pretty "default :" <+> nest 4 (bIRToDoc default')
         ]
-    BDef fname args body ->
-        let fnName = viaShow fname
-            argDef =  sep $ punctuate comma $ map viaShow args
+    BDef args body ->
+        let argDef =  sep $ punctuate comma $ map viaShow args
 
         in  nest 4 $
             vsep [
-                pretty "def" <+> fnName <> parens argDef
+                parens argDef <+> pretty "->"
               , align $ nest 4 $ bIRToDoc body
             ]
-    BBlock suite ->
-        vsep $ map bIRToDoc suite
+    BMutual names suite ->
+        let n         = length names
+            (l1, l2)  = L.splitAt n suite
+            recursive = zipWith (\name v -> pretty ("rec " ++ show name ++ " =") <+> bIRToDoc v)
+                                names l1
+        in vsep $ recursive ++ map bIRToDoc l2
     BVar n  -> viaShow n
     BInt i  -> viaShow i
     BStr s  -> viaShow s

@@ -418,7 +418,7 @@ tc bIR@InT {outT=base} = case base of
         forM_ (tag defau:map (tag . snd) cases) $ assert_ . (t |==|)
         reset ext'
         return InT {tag = tag defau, outT = BSwitch test cases defau}
-    BDef fnName argNames b -> do
+    BDef argNames b -> do
         ext'   <- commit
         tpArgs <- forM argNames $ \case
                 ABuiltin "tokens" -> getPrim BTTokens
@@ -429,19 +429,25 @@ tc bIR@InT {outT=base} = case base of
         retType <- TVar <$> newTVar
         let fType = argType :-> retType
 
-        enterType fnName fType
         forM_ (zip argNames tpArgs) (uncurry enterType)
         body <- tc b
         assert_ $ tag body |==| retType
         reset ext'
-        return InT {tag=fType, outT=BDef fnName argNames body}
-    BBlock suite -> do
+        return InT {tag=fType, outT=BDef argNames body}
+
+    BMutual names suite -> do
+        xs <- forM names $ const (TVar <$> newTVar)
+        forM (zip names xs) $ uncurry enterType
         unitT  <- getPrim BTUnit
         suite <- mapM tc suite
+        forM (zip xs suite) $ \(x, expr) ->
+            assert_ $ x |==| tag expr
+
         let t = case suite of
-                [] -> unitT
-                xs -> tag $ last suite
-        return InT {tag=t, outT=BBlock suite}
+                    [] -> unitT
+                    xs -> tag $ last suite
+        return InT {tag=t, outT=BMutual names suite}
+
     BVar n@(ABuiltin "tokens") -> do
         tokensTy  <- getPrim BTTokens
         return InT {tag = tokensTy, outT = BVar n}
@@ -495,10 +501,10 @@ typedBIRToDoc = frec
     where
         frec InT {tag=t, outT=base} =
             let ts = show t in align $ case base of
-            BDecl n InT {outT = BBlock codes} ->
+            BDecl n InT {outT = BMutual [] codes} ->
                 nest 4 $ sep $ pretty ("var " ++ show n ++ " :" ++ ts ++ " ="): map frec codes
             BDecl n code -> pretty ("var " ++ show n ++ " :" ++ ts ++ " = ") <+> frec code
-            BAssign n InT {outT = BBlock codes} ->
+            BAssign n InT {outT = BMutual [] codes} ->
                 nest 4 $ sep $ pretty (show n ++ " :" ++ ts ++ " ="): map frec codes
             BAssign n code -> pretty (show n ++ " :" ++ ts ++ " = ") <+> frec code
             BCall   f args -> vsep [
@@ -532,24 +538,28 @@ typedBIRToDoc = frec
                     ]
                 , pretty "default :" <+> nest 4 (frec default')
                 ]
-            BDef fname args body ->
-                let fnName = viaShow fname
-                    argDef =  sep $ punctuate comma $ map viaShow args
+            BDef args body ->
+                let argDef =  sep $ punctuate comma $ map viaShow args
 
                 in  nest 4 $
                     vsep [
                         align $ vsep [
                             pretty ("[" ++ ts ++ "]")
-                          , pretty "def" <+> fnName <> parens argDef
+                          , parens argDef <+> pretty "->"
                         ]
                       , align $ nest 4 $ frec body
                     ]
-            BBlock suite ->
-                vsep $ map frec suite
             BVar n -> viaShow n
             BInt i -> viaShow i
             BStr s -> viaShow s
             BTuple elts ->
                 pretty ("[" ++ ts ++ "]") <> pretty "tuple" <> tupled (map frec elts)
+
+            BMutual names suite ->
+                let n         = length names
+                    (l1, l2)  = L.splitAt n suite
+                    recursive = zipWith (\name v -> pretty ("rec " ++ show name ++ " =") <+> frec v)
+                                        names l1
+                in vsep $ recursive ++ map frec l2
             BAnd a b -> frec a <+> pretty "and" <+> frec b
             BOr a b  -> frec a <+> pretty "or" <+> frec b

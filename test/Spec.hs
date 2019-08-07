@@ -56,14 +56,14 @@ a |= b = CBind a b
 a --> b = (a, b, Nothing)
 parsers = CGrammar [
     "Number"   --> CTerm number
-    -- , "Factor" --> CAlt [
-    --         CNonTerm "Number",
-    --         CSeq [case' negation, "a" |= CNonTerm "Factor" ]
-    --     ]
-    -- , "Mul"    --> CAlt [
-    --         CSeq [ CPred (MTerm "always_true"), CNonTerm "Number" ],
-    --         CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Number"]
-    --     ]
+    , "Factor" --> CAlt [
+            CNonTerm "Number",
+            CSeq [CTerm negation, "a" |= CNonTerm "Factor" ]
+        ]
+    , "Mul"    --> CAlt [
+            CSeq [ CPred (MTerm "always_true"), CNonTerm "Factor" ],
+            CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Factor"]
+        ]
     ]
 
 test1 = do
@@ -161,24 +161,24 @@ test4 = do
     let bWithDecl = flip evalState S.empty (resolveDecl b)
     putStrLn ""
     printBIR 80 $ bWithDecl
-    let env = emptyTCEnv emptyTInfo
-    let res = flip runMS env $ do
-            basicTCEnv True
-            bWithAnnotated <- tc bWithDecl
-            constrs <- getsMS $ view (ext . constr)
-            let dnfs = unionEquations $ forM_ constrs assert
-                ms =  flip L.map dnfs $ \dnf ->
-                            forM dnf solve
-                alts = case ms of
-                        [] -> error "emm"
-                        x:xs -> L.foldl (<|>) x xs
-            alts
-            bTyped <- pruneTypedBIR bWithAnnotated
-            return $ typedBIRToDoc bTyped
-    putStrLn ""
-    -- print $ L.length res
-    forM_ res $ \(doc, _) ->
-        print doc
+    -- let env = emptyTCEnv emptyTInfo
+    -- let res = flip runMS env $ do
+    --         basicTCEnv True
+    --         bWithAnnotated <- tc bWithDecl
+    --         constrs <- getsMS $ view (ext . constr)
+    --         let dnfs = unionEquations $ forM_ constrs assert
+    --             ms =  flip L.map dnfs $ \dnf ->
+    --                         forM dnf solve
+    --             alts = case ms of
+    --                     [] -> error "emm"
+    --                     x:xs -> L.foldl (<|>) x xs
+    --         alts
+    --         bTyped <- pruneTypedBIR bWithAnnotated
+    --         return $ typedBIRToDoc bTyped
+    -- putStrLn ""
+    -- -- print $ L.length res
+    -- forM_ res $ \(doc, _) ->
+        -- print doc
 
 test5  = T.writeFile "a.txt" $ dumpCG parsers
 main = test4

@@ -83,9 +83,8 @@ instance Show BT where
                 | otherwise = show s
             isNest s = case s of
                 BTFunc _ _    -> True
-                BTGeneric _ _    -> True
-                BTTuple _   -> True
-                _           -> False
+                BTGeneric _ _ -> True
+                _             -> False
 -- | Each module will hold a 'TInfo'
 data TInfo
     = TInfo {

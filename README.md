@@ -182,17 +182,17 @@ RBNF currentlt provides 2 sorts of IRs named after alphabet table:
 
 ```
 def lr.step.Mul(.slot.0, %state, %tokens)
-    %off =  %tokens.offset
+    .off.0 =  %tokens.offset
     .slot.1 =  %match_tk(%tokens, %tk_id("*"))
     if %==(.slot.1, %null)
     then %null
     else .tmp.0.flag =  False
-         %off =  %tokens.offset
-         .tmp.0.result =
+         .off.0 =  %tokens.offset
+         .tmp.0.result = 
              if %peekable(%tokens, 1)
              then switch %peek(%tokens, 1).idint
                   case %tk_id("number") :
-                    %off =  %tokens.offset
+                    .off.0 =  %tokens.offset
                     .slot.2 =  %match_tk(%tokens, %tk_id("-"))
                     if %==(.slot.2, %null)
                     then %null
@@ -207,7 +207,7 @@ def lr.step.Mul(.slot.0, %state, %tokens)
                               .slot.-4 =  %mk_ast("Mul", tuple(.slot.-3))
                               .slot.-4
                   case %tk_id("-") :
-                    %off =  %tokens.offset
+                    .off.0 =  %tokens.offset
                     .slot.2 =  %match_tk(%tokens, %tk_id("-"))
                     if %==(.slot.2, %null)
                     then %null
@@ -235,25 +235,25 @@ def lr.step.Mul(.slot.0, %state, %tokens)
              else %null
          if %==(%null, .tmp.0.result) or .tmp.0.flag
          then .tmp.0.result
-         else %reset(%tokens, %off)
+         else %reset(%tokens, .off.0)
               %null
 def lr.loop.Mul(.slot.0, %state, %tokens)
-    %off =  %tokens.offset
+    .off.0 =  %tokens.offset
     lr.Mul.try =  lr.step.Mul(.slot.0, %state, %tokens)
     while %!=(lr.Mul.try, %null)
-        %off =  %tokens.offset
+        .off.0 =  %tokens.offset
         .slot.0 =  lr.Mul.try
         lr.Mul.try =  lr.step.Mul(.slot.0, %state, %tokens)
-    %reset(%tokens, %off)
+    %reset(%tokens, .off.0)
     .slot.0
 def parse.Factor(%state, %tokens)
     .tmp.0.flag =  False
-    %off =  %tokens.offset
-    .tmp.0.result =
+    .off.0 =  %tokens.offset
+    .tmp.0.result = 
         if %peekable(%tokens, 0)
         then switch %peek(%tokens, 0).idint
              case %tk_id("number") :
-               %off =  %tokens.offset
+               .off.0 =  %tokens.offset
                .slot.0 =  %match_tk(%tokens, %tk_id("number"))
                if %==(.slot.0, %null)
                then %null
@@ -261,7 +261,7 @@ def parse.Factor(%state, %tokens)
                     .slot.-2 =  %mk_ast("Factor", tuple(.slot.-1))
                     .slot.-2
              case %tk_id("-") :
-               %off =  %tokens.offset
+               .off.0 =  %tokens.offset
                .slot.0 =  %match_tk(%tokens, %tk_id("-"))
                if %==(.slot.0, %null)
                then %null
@@ -278,17 +278,17 @@ def parse.Factor(%state, %tokens)
         else %null
     if %==(%null, .tmp.0.result) or .tmp.0.flag
     then .tmp.0.result
-    else %reset(%tokens, %off)
+    else %reset(%tokens, .off.0)
          %null
 def parse.Mul(%state, %tokens)
     if always_true(%state)
     then .tmp.0.flag =  False
-         %off =  %tokens.offset
-         .tmp.0.result =
+         .off.0 =  %tokens.offset
+         .tmp.0.result = 
              if %peekable(%tokens, 1)
              then switch %peek(%tokens, 1).idint
                   case %tk_id("number") :
-                    %off =  %tokens.offset
+                    .off.0 =  %tokens.offset
                     .slot.0 =  %match_tk(%tokens, %tk_id("-"))
                     if %==(.slot.0, %null)
                     then %null
@@ -302,7 +302,7 @@ def parse.Mul(%state, %tokens)
                               .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
                               lr.loop.Mul(.slot.-3, %state, %tokens)
                   case %tk_id("-") :
-                    %off =  %tokens.offset
+                    .off.0 =  %tokens.offset
                     .slot.0 =  %match_tk(%tokens, %tk_id("-"))
                     if %==(.slot.0, %null)
                     then %null
@@ -316,7 +316,7 @@ def parse.Mul(%state, %tokens)
                               .slot.-3 =  %mk_ast("Mul", tuple(.slot.-2))
                               lr.loop.Mul(.slot.-3, %state, %tokens)
                   case %tk_id("*") :
-                    %off =  %tokens.offset
+                    .off.0 =  %tokens.offset
                     .slot.0 =  %match_tk(%tokens, %tk_id("number"))
                     if %==(.slot.0, %null)
                     then %null
@@ -329,11 +329,11 @@ def parse.Mul(%state, %tokens)
              else %null
          if %==(%null, .tmp.0.result) or .tmp.0.flag
          then .tmp.0.result
-         else %reset(%tokens, %off)
+         else %reset(%tokens, .off.0)
               %null
     else %null
 def parse.Number(%state, %tokens)
-    %off =  %tokens.offset
+    .off.0 =  %tokens.offset
     .slot.0 =  %match_tk(%tokens, %tk_id("number"))
     if %==(.slot.0, %null)
     then %null
@@ -346,14 +346,14 @@ def parse.Number(%state, %tokens)
 ```
 rec lr.step.Mul : (State,Tokens) -> ast () =
     (.slot.0, %state, %tokens) ->
-        var %off :int =  [int]%tokens.offset
+        var .off.0 :int =  [int]%tokens.offset
         var .slot.1 :(bool,any) =  [(bool,any)]
                                    %match_tk(%tokens, [int] %tk_id("*"))
         [ast ()]if [bool]
                    %==(.slot.1, %null)
         then %null
         else var .tmp.0.flag :bool =  False
-             %off :int =  [int]%tokens.offset
+             .off.0 :int =  [int]%tokens.offset
              var .tmp.0.result :ast () =
                  [ast ()]if [bool]
                             %peekable(%tokens, 1)
@@ -361,7 +361,7 @@ rec lr.step.Mul : (State,Tokens) -> ast () =
                                   %peek(%tokens, 1).idint
                       case [int]
                            %tk_id("number") :
-                        %off :int =  [int]%tokens.offset
+                        .off.0 :int =  [int]%tokens.offset
                         var .slot.2 :(bool,any) =  [(bool,any)]
                                                    %match_tk(%tokens,
                                                    [int]
@@ -391,7 +391,7 @@ rec lr.step.Mul : (State,Tokens) -> ast () =
                                   .slot.-4
                       case [int]
                            %tk_id("-") :
-                        %off :int =  [int]%tokens.offset
+                        .off.0 :int =  [int]%tokens.offset
                         var .slot.2 :(bool,any) =  [(bool,any)]
                                                    %match_tk(%tokens,
                                                    [int]
@@ -445,26 +445,26 @@ rec lr.step.Mul : (State,Tokens) -> ast () =
                         %==(%null, .tmp.0.result) or .tmp.0.flag
              then .tmp.0.result
              else [()]
-                  %reset(%tokens, %off)
+                  %reset(%tokens, .off.0)
                   %null
 rec lr.loop.Mul : (State,Tokens) -> ast () =
     (.slot.0, %state, %tokens) ->
-        var %off :int =  [int]%tokens.offset
+        var .off.0 :int =  [int]%tokens.offset
         var lr.Mul.try :ast () =  [ast ()]
                                   lr.step.Mul(.slot.0, %state, %tokens)
         [()]while [bool]
                   %!=(lr.Mul.try, %null)
-            %off :int =  [int]%tokens.offset
+            .off.0 :int =  [int]%tokens.offset
             .slot.0 :ast () =  lr.Mul.try
             lr.Mul.try :ast () =  [ast ()]
                                   lr.step.Mul(.slot.0, %state, %tokens)
         [()]
-        %reset(%tokens, %off)
+        %reset(%tokens, .off.0)
         .slot.0
 rec parse.Factor : (State,Tokens) -> ast () =
     (%state, %tokens) ->
         var .tmp.0.flag :bool =  False
-        var %off :int =  [int]%tokens.offset
+        var .off.0 :int =  [int]%tokens.offset
         var .tmp.0.result :ast () =
             [ast ()]if [bool]
                        %peekable(%tokens, 0)
@@ -472,7 +472,7 @@ rec parse.Factor : (State,Tokens) -> ast () =
                              %peek(%tokens, 0).idint
                  case [int]
                       %tk_id("number") :
-                   %off :int =  [int]%tokens.offset
+                   .off.0 :int =  [int]%tokens.offset
                    var .slot.0 :(bool,any) =  [(bool,any)]
                                               %match_tk(%tokens,
                                               [int]
@@ -489,7 +489,7 @@ rec parse.Factor : (State,Tokens) -> ast () =
                         .slot.-2
                  case [int]
                       %tk_id("-") :
-                   %off :int =  [int]%tokens.offset
+                   .off.0 :int =  [int]%tokens.offset
                    var .slot.0 :(bool,any) =  [(bool,any)]
                                               %match_tk(%tokens,
                                               [int]
@@ -518,14 +518,14 @@ rec parse.Factor : (State,Tokens) -> ast () =
                    %==(%null, .tmp.0.result) or .tmp.0.flag
         then .tmp.0.result
         else [()]
-             %reset(%tokens, %off)
+             %reset(%tokens, .off.0)
              %null
 rec parse.Mul : (State,Tokens) -> ast () =
     (%state, %tokens) ->
         [ast ()]if [bool]
                    always_true(%state)
         then var .tmp.0.flag :bool =  False
-             var %off :int =  [int]%tokens.offset
+             var .off.0 :int =  [int]%tokens.offset
              var .tmp.0.result :ast () =
                  [ast ()]if [bool]
                             %peekable(%tokens, 1)
@@ -533,7 +533,7 @@ rec parse.Mul : (State,Tokens) -> ast () =
                                   %peek(%tokens, 1).idint
                       case [int]
                            %tk_id("number") :
-                        %off :int =  [int]%tokens.offset
+                        .off.0 :int =  [int]%tokens.offset
                         var .slot.0 :(bool,any) =  [(bool,any)]
                                                    %match_tk(%tokens,
                                                    [int]
@@ -561,7 +561,7 @@ rec parse.Mul : (State,Tokens) -> ast () =
                                   lr.loop.Mul(.slot.-3, %state, %tokens)
                       case [int]
                            %tk_id("-") :
-                        %off :int =  [int]%tokens.offset
+                        .off.0 :int =  [int]%tokens.offset
                         var .slot.0 :(bool,any) =  [(bool,any)]
                                                    %match_tk(%tokens,
                                                    [int]
@@ -589,7 +589,7 @@ rec parse.Mul : (State,Tokens) -> ast () =
                                   lr.loop.Mul(.slot.-3, %state, %tokens)
                       case [int]
                            %tk_id("*") :
-                        %off :int =  [int]%tokens.offset
+                        .off.0 :int =  [int]%tokens.offset
                         var .slot.0 :(bool,any) =  [(bool,any)]
                                                    %match_tk(%tokens,
                                                    [int]
@@ -615,12 +615,12 @@ rec parse.Mul : (State,Tokens) -> ast () =
                         %==(%null, .tmp.0.result) or .tmp.0.flag
              then .tmp.0.result
              else [()]
-                  %reset(%tokens, %off)
+                  %reset(%tokens, .off.0)
                   %null
         else %null
 rec parse.Number : (State,Tokens) -> ast () =
     (%state, %tokens) ->
-        var %off :int =  [int]%tokens.offset
+        var .off.0 :int =  [int]%tokens.offset
         var .slot.0 :(bool,any) =  [(bool,any)]
                                    %match_tk(%tokens, [int] %tk_id("number"))
         [ast ()]if [bool]

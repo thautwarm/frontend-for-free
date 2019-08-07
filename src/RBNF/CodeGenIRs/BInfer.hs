@@ -40,7 +40,21 @@ data BTPrim
     | BTString
     | BTAny
     | BTBool
-    deriving (Eq, Ord, Show)
+    -- blackboxed builtins
+    | BTState
+    | BTTokens
+    deriving (Eq, Ord)
+
+instance Show BTPrim where
+    show = \case
+        BTInt -> "int"
+        BTFloat -> "float"
+        BTUnit -> "()"
+        BTString -> "str"
+        BTAny -> "any"
+        BTBool -> "bool"
+        BTState -> "State"
+        BTTokens -> "Tokens"
 
 -- instance Show BTPrim wh
 data BT
@@ -71,6 +85,7 @@ instance Show BT where
                 BTFunc _ _    -> True
                 BTGeneric _ _    -> True
                 BTTuple _   -> True
+                _           -> False
 -- | Each module will hold a 'TInfo'
 data TInfo
     = TInfo {
@@ -78,13 +93,14 @@ data TInfo
           -- | a map that maps a field name to
           -- candicate lists of (structTypec, fieldType)
         , _fields     :: Map String [(S.Set String, T, T)]
-        , _sigs       :: Set BT
         , _constr     :: [WFF Unif] -- _constraints
         , maxTupleDim :: Int
         -- context sensitive
         , _types  :: Map AName T
         , _kinds  :: Map AName T
        }
+
+emptyTInfo = TInfo [] M.empty [] 6 M.empty M.empty
 
 makeLenses ''TInfo
 
@@ -127,14 +143,14 @@ addTypeApp :: AName -> T -> TInfo -> TInfo
 addTypeApp tname t = over kinds (M.insert tname t)
 
 addSig :: Int -> String -> TInfo -> TInfo
-addSig i tname = over sigs (S.insert (BTSig tname i))
+addSig i tname = over prims (insert (BTSig tname i) i)
 
 nTupleST :: T -> [T] -> T
-nTupleST unitT []     =  unitT
-nTupleST unitT (x:xs) =  foldr (:*) x xs
+nTupleST unitT [] = unitT
+nTupleST unitT (x:xs) =  foldl (:*) x xs
 
-declareStruct :: [String] -> [(String, T)] ->  MS (TCEnv TInfo) Int
-declareStruct typeParams fields = do
+declareStruct :: String -> [String] -> [(String, T)] ->  MS (TCEnv TInfo) T
+declareStruct structName typeParams fields = do
     let freshvars = S.fromList typeParams
     structTId  <- newTNom
     let tsig = TNom structTId
@@ -142,7 +158,10 @@ declareStruct typeParams fields = do
     let struct = TApp tsig $ nTupleST unitT [TFresh p | p <- typeParams]
     forM_ fields $ \(fieldName, fieldType) ->
         modifyMS $ over ext (addField fieldName freshvars struct fieldType)
-    return structTId
+
+    modifyMS $ over ext $ addTypeApp (AName structName) tsig
+    modifyMS $ over ext $ addSig structTId structName
+    return tsig
 
 fixState :: Monad m => StateT s m a -> ReaderT s m a
 fixState a = fst <$> (ReaderT $ runStateT a)
@@ -155,8 +174,11 @@ mutReader a =
             return (a, s)
     in StateT fn
 
-basicTCEnv :: MS (TCEnv TInfo) ()
-basicTCEnv = do
+tforall :: [String] -> T -> T
+tforall = TForall . S.fromList
+
+basicTCEnv :: Bool -> MS (TCEnv TInfo) ()
+basicTCEnv withTrace = do
     -- primitive
     unit  <- newTNom
     int   <- newTNom
@@ -164,32 +186,91 @@ basicTCEnv = do
     str   <- newTNom
     bool  <- newTNom
     sup   <- newTNom
-    let modify'  f = modifyMS $ over ext f
-    modify' $
+    state <- newTNom
+    tokens <- newTNom
+    modifyMS $ over ext $
         addPrim BTInt int .
         addPrim BTFloat float .
         addPrim BTUnit unit .
         addPrim BTString str .
         addPrim BTAny sup .
-        addPrim BTBool bool
-    tsig <- declareStruct [] [
+        addPrim BTBool bool .
+        addPrim BTState state .
+        addPrim BTTokens tokens
+
+    tokenTy' <- declareStruct "token" [] [
             (tokenId,   TNom int),
             (tokenCol,  TNom int),
             (tokenLine, TNom int),
             (tokenVal,  TNom str),
             (tokenName, TNom str)
         ]
-    modify' $ addTypeApp (AName "token") $ TNom tsig
-    modify' $ addSig tsig "token"
 
-    -- TODO: add intrinsics.
+    astTy' <- declareStruct "ast" [] []
+    listT  <- declareStruct "linkedlist" ["a"] []
+
+    let tokenTy  = TApp tokenTy' $ TNom unit
+        tokensTy = TNom tokens
+        astTy    = TApp astTy'  $ TNom unit
+        errTy    = TNom int :* TNom str
+        -- | forall a. (a, a) -> bool
+        cmpTy = tforall ["a"] $
+            (TFresh "a" :* TFresh "a") :-> TNom bool
+
+    -- make a attribute 'offset' for 'tokens' that 'tokens.offset : int'
+    modifyMS $ over ext $ addField tokenOff S.empty tokensTy (TNom int)
+
+    enterType dsl_eq_n cmpTy
+    enterType dsl_neq_n cmpTy
+
+    -- null  : forall a. a
+    enterType dsl_null_n $ tforall ["a"] $ TFresh "a"
+    -- | peekable : (token_array_view, int) -> bool
+    enterType dsl_peekable_n $
+        (tokensTy :* TNom int) :-> TNom bool
+
+    -- | peek: (token_array_view, int) -> token
+    enterType dsl_peek_n $
+        (tokensTy :* TNom int) :-> tokenTy
+    -- | match_tk : (token_array, view, int) ->
+    --      (bool, any) iff withTrace
+    --      ast_type
+    let dsl_match_tk_ret_ty
+            | withTrace = TNom bool :* TNom sup
+            | otherwise = astTy
+    enterType dsl_match_tk_n $
+        (tokensTy :* TNom int) :-> dsl_match_tk_ret_ty
+    -- tk_id : constant (string -> int)
+    enterType dsl_s_to_i_n $
+        TNom str :-> TNom int
+    -- (unsafe) reset : (token_array_view, int) -> unit
+    enterType dsl_reset_n $
+        (tokensTy :* TNom int) :-> TNom unit
+    -- cons : forall a. (a, a list) -> a list
+    enterType dsl_cons_n $
+        let listA = TApp listT (TFresh "a")
+        in  tforall ["a"] $
+                (TFresh "a" :* listA) :-> listA
+    -- nil : forall a. a list
+    enterType dsl_cons_n $ TApp listT (TFresh "a")
+    -- to_errs : any -> err list
+    enterType dsl_to_errs_n $
+        TNom sup :-> TApp listT errTy
+    -- to_res: any -> ast
+    enterType dsl_to_res_n $
+        TNom sup :-> astTy
+    -- to_any: forall a. a -> any
+    enterType dsl_to_any_n $
+        tforall ["a"] $ TFresh "a" :-> TNom sup
+    -- mk_ast: forall a. (str, a) -> ast
+    enterType dsl_mkast_n $
+        tforall ["a"] $ (TNom str :* TFresh "a") :-> astTy
+    -- always_true : state -> bool
+    enterType (AName "always_true") $
+        TNom state :-> TNom bool
+
     return ()
 
--- assignTVar :: BIR a -> ReaderT TInfo (MS (TCEnv ctx)) (BIR T)
--- assignTVar bIR@InT {outT=base} = do
---     base <- traverse assignTVar base
---     i    <- lift newTVar
---     return $ InT {tag = TVar i, outT = base}
 
 commit = do
     s <- getsMS $ view ext
@@ -201,7 +282,12 @@ reset (kinds', types') =
 
 enterType n t = modifyMS $ over ext (addType n t)
 
-typeOf n = getsMS $ (M.! n) . view (ext . types)
+typeOf n = do
+    a <- getsMS $ (M.lookup n) . view (ext . types)
+    case a of
+        Just a -> return a
+        _      -> error $ "local variable " ++ show n ++ " not found"
+
 
 assert_ :: WFF Unif -> MS (TCEnv TInfo) ()
 assert_ cond = modifyMS $ over (ext . constr) (cond:)
@@ -250,9 +336,10 @@ tc bIR@InT {outT=base} = case base of
 
         fCls <- tc c
         reset ext'
-
-        assert_ $ tag fCls |==| tag tCls
-        return $ InT {tag=tag tCls, outT=BIf cond tCls fCls}
+        t <- TVar <$> newTVar
+        assert_ $ tag fCls |==| t
+        assert_ $ tag tCls |==| t
+        return $ InT {tag=t, outT=BIf cond tCls fCls}
     BCall f args -> do
         f    <- tc f
         args <- mapM tc args
@@ -291,7 +378,10 @@ tc bIR@InT {outT=base} = case base of
         let ms = flip map [0 .. mtd - dim - 1] $ \i -> do
                    tailTp' <- replicateM i (TVar <$> newTVar)
                    let tailTp = nTupleST unitT tailTp'
-                   return $ foldr (:*) (elty :* tailTp) initTp
+                       rStart
+                         | tailTp == unitT = elty
+                         | otherwise = elty :* tailTp
+                   return $ foldr (:*) rStart initTp
             alts =  case ms of
                 [] -> error $
                     "max tuple dim " ++ show mtd ++
@@ -325,12 +415,16 @@ tc bIR@InT {outT=base} = case base of
              reset ext''
              return (case', body)
         defau <- tc c
-        forM_ cases $ assert_ . (tag defau |==|) . tag . snd
+        t     <- TVar <$> newTVar
+        forM_ (tag defau:map (tag . snd) cases) $ assert_ . (t |==|)
         reset ext'
         return InT {tag = tag defau, outT = BSwitch test cases defau}
     BDef fnName argNames b -> do
         ext'   <- commit
-        tpArgs <- forM argNames $ const (TVar <$> newTVar)
+        tpArgs <- forM argNames $ \case
+                ABuiltin "tokens" -> getPrim BTTokens
+                ABuiltin "state"  -> getPrim BTState
+                _                 -> (TVar <$> newTVar)
         unitT  <- getPrim BTUnit
         let argType = nTupleST unitT tpArgs
         retType <- TVar <$> newTVar
@@ -349,6 +443,14 @@ tc bIR@InT {outT=base} = case base of
                 [] -> unitT
                 xs -> tag $ last suite
         return InT {tag=t, outT=BBlock suite}
+    BVar n@(ABuiltin "tokens") -> do
+        tokensTy  <- getPrim BTTokens
+        return InT {tag = tokensTy, outT = BVar n}
+
+    BVar n@(ABuiltin "state") -> do
+        state  <- getPrim BTState
+        return InT {tag = state, outT = BVar n}
+
     BVar n -> do
         t <- typeOf n
         return InT {tag=t, outT=BVar n}
@@ -358,6 +460,9 @@ tc bIR@InT {outT=base} = case base of
     BStr s -> do
         str  <- getPrim BTString
         return InT {tag=str, outT=BStr s}
+    BBool b -> do
+        bool  <- getPrim BTBool
+        return InT {tag=bool, outT= BBool b}
     BTuple xs -> do
         xs <- mapM tc xs
         unit  <- getPrim BTUnit
@@ -389,31 +494,37 @@ pruneTypedBIR InT {tag = t, outT = a} = do
 typedBIRToDoc :: BIR BT -> Doc ann
 typedBIRToDoc = frec
     where
-        frec InT {tag=t, outT=base} = align $ pretty ("[" ++ show t ++ "]") <+> case base of
+        frec InT {tag=t, outT=base} =
+            let ts = show t in align $ case base of
             BDecl n InT {outT = BBlock codes} ->
-                nest 4 $ sep $ pretty ("var " ++ show n ++ " ="): map frec codes
-            BDecl n code -> pretty ("var " ++ show n ++ " = ") <+> frec code
+                nest 4 $ sep $ pretty ("var " ++ show n ++ " :" ++ ts ++ " ="): map frec codes
+            BDecl n code -> pretty ("var " ++ show n ++ " :" ++ ts ++ " = ") <+> frec code
             BAssign n InT {outT = BBlock codes} ->
-                nest 4 $ sep $ pretty (show n ++ " ="): map frec codes
-            BAssign n code -> pretty (show n ++ " = ") <+> frec code
-            BCall   f args -> frec f <> (parens . sep . punctuate comma $ map frec args)
-            BAttr val attr -> frec val <> pretty ("." ++ attr)
-            BPrj val dim   -> frec val <> brackets (viaShow dim)
+                nest 4 $ sep $ pretty (show n ++ " :" ++ ts ++ " ="): map frec codes
+            BAssign n code -> pretty (show n ++ " :" ++ ts ++ " = ") <+> frec code
+            BCall   f args -> vsep [
+                    pretty ("[" ++ ts ++ "]"),
+                    frec f <> (parens . sep . punctuate comma $ map frec args)
+                ]
+            BAttr val attr -> pretty ("[" ++ ts ++ "]") <>
+                frec val <> pretty ("." ++ attr)
+            BPrj val dim   -> pretty ("[" ++ ts ++ "]") <>
+                frec val <> brackets (viaShow dim)
             BIf cond br1 br2 ->
                 vsep [
-                    pretty "if"   <+> nest 4 (frec cond)
+                  pretty ("[" ++ ts ++ "]") <>  pretty "if"   <+> nest 4 (frec cond)
                 , pretty "then" <+> nest 4 (frec br1)
                 , pretty "else" <+> nest 4 (frec br2)
                 ]
             BWhile cond br ->
                 nest 4 $
                 vsep [
-                    pretty "while" <+> frec cond
+                  pretty ("[" ++ ts ++ "]") <> pretty "while" <+> frec cond
                 , frec br
                 ]
             BSwitch expr cases default' ->
                 vsep [
-                    pretty "switch" <+> frec expr
+                  pretty ("[" ++ ts ++ "]") <> pretty "switch" <+> frec expr
                 , nest 4 $ align $ vsep [
                     pretty "case" <+> frec i <+>
                     pretty ":" <+>
@@ -428,14 +539,18 @@ typedBIRToDoc = frec
 
                 in  nest 4 $
                     vsep [
-                        pretty "def" <+> fnName <> parens argDef
-                    , align $ nest 4 $ frec body
+                        align $ vsep [
+                            pretty ("[" ++ ts ++ "]")
+                          , pretty "def" <+> fnName <> parens argDef
+                        ]
+                      , align $ nest 4 $ frec body
                     ]
             BBlock suite ->
                 vsep $ map frec suite
             BVar n -> viaShow n
             BInt i -> viaShow i
             BStr s -> viaShow s
-            BTuple elts -> pretty "tuple" <> tupled (map frec elts)
+            BTuple elts ->
+                pretty ("[" ++ ts ++ "]") <> pretty "tuple" <> tupled (map frec elts)
             BAnd a b -> frec a <+> pretty "and" <+> frec b
-            BOr a b -> frec a <+> pretty "or" <+> frec b
+            BOr a b  -> frec a <+> pretty "or" <+> frec b

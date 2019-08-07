@@ -37,6 +37,7 @@ data BBase a
     | BVar AName
     | BInt Integer
     | BStr String
+    | BBool Bool
     | BTuple [a]
     | BAnd a a
     | BOr  a a
@@ -86,6 +87,7 @@ aToB = (InT <$> inc <*>) . f
         AVar  n      -> return $ BVar n
         AInt  i      -> return $ BInt i
         AStr  s      -> return $ BStr s
+        ABool b      -> return $ BBool b
         ATuple elts  -> BTuple <$> mapM aToB elts
         AAnd a b     -> BAnd <$> aToB a <*> aToB b
         AOr a b      -> BOr <$> aToB a <*> aToB b
@@ -184,9 +186,10 @@ bIRToDoc InT {outT=base} = align $
             ]
     BBlock suite ->
         vsep $ map bIRToDoc suite
-    BVar n -> viaShow n
-    BInt i -> viaShow i
-    BStr s -> viaShow s
+    BVar n  -> viaShow n
+    BInt i  -> viaShow i
+    BStr s  -> viaShow s
+    BBool b -> viaShow b
     BTuple elts -> pretty "tuple" <> tupled (map bIRToDoc elts)
     BAnd a b -> bIRToDoc a <+> pretty "and" <+> bIRToDoc b
     BOr a b -> bIRToDoc a <+> pretty "or" <+> bIRToDoc b

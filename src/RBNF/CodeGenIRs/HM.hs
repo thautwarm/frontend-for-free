@@ -25,7 +25,8 @@ import qualified Data.Set  as S
 
 type Fix a = a -> a
 
-infixl 6 :->, :*
+infixl 6 :->
+infixr 6 :*
 
 data T
     = TVar Int
@@ -157,6 +158,15 @@ addNEq t = modifyMS $ over neqs (S.insert t)
 unify :: Fix (Unif -> MS (TCEnv ext) ())
 unify self Unif {lhs, rhs, neq=True} = addNEq (lhs, rhs)
 
+unify self Unif {lhs=TForall freevars poly, rhs} = do
+    pairs <- mapM freepair $ S.toList freevars
+    let freemap = M.fromList pairs
+    let l = free freemap poly
+    self Unif {lhs=l, rhs=rhs, neq=False}
+
+unify self a@Unif {lhs, rhs=rhs@(TForall _ _)} =
+    self a {lhs=rhs, rhs=lhs}
+
 unify self Unif {lhs=TNom a, rhs=TNom b}
     | a == b      = return ()
     | otherwise   = empty
@@ -185,15 +195,8 @@ unify self Unif {lhs=TApp l1 l2, rhs= TApp r1 r2} =
     self Unif {lhs=l1, rhs=r1, neq=False} >>
     self Unif {lhs=l2, rhs=r2, neq=False}
 
-
-unify self Unif {lhs=TForall freevars poly, rhs} = do
-    pairs <- mapM freepair $ S.toList freevars
-    let freemap = M.fromList pairs
-    let l = free freemap poly
-    self Unif {lhs=l, rhs=rhs, neq=False}
-
-unify self a@Unif {lhs, rhs=rhs@(TForall _ _)} =
-    self a {lhs=rhs, rhs=lhs}
+unify self Unif {lhs, rhs} =
+    error $ show lhs ++ " ? " ++ show rhs
 
 instance CtxSolver (TCEnv ext) Unif where
     solve =

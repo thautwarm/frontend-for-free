@@ -12,8 +12,13 @@ import RBNF.CodeGen
 import RBNF (parserGen)
 import RBNF.Serialization
 import RBNF.CodeGenIRs.B
+import RBNF.CodeGenIRs.HM
 import RBNF.CodeGenIRs.BInfer
 import RBNF.CodeGenIRs.ABuiltins
+
+import RSolve.Solver
+import RSolve.PropLogic
+import RSolve.MultiState
 
 import Prelude hiding (writeFile)
 import Data.Foldable
@@ -23,6 +28,7 @@ import Data.Aeson
 import Data.Text
 import Control.Lens
 import Control.Monad.State
+import Control.Applicative ((<|>))
 
 
 import qualified Data.Set as S
@@ -48,17 +54,16 @@ multiply = "*"
 a |= b = CBind a b
 
 a --> b = (a, b, Nothing)
-case' a = CTerm a
 parsers = CGrammar [
-    "Number"   --> case' number
+    "Number"   --> CTerm number
     -- , "Factor" --> CAlt [
     --         CNonTerm "Number",
     --         CSeq [case' negation, "a" |= CNonTerm "Factor" ]
     --     ]
-    , "Mul"    --> CAlt [
-            CSeq [ CPred (MTerm "somePred"), CNonTerm "Number" ],
-            CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Number"]
-        ]
+    -- , "Mul"    --> CAlt [
+    --         CSeq [ CPred (MTerm "always_true"), CNonTerm "Number" ],
+    --         CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Number"]
+    --     ]
     ]
 
 test1 = do
@@ -128,16 +133,52 @@ test3 = do
         i' = view ends graph M.! s'
     printAIR 80 $ runToCode cfg $ codeGen c {isLeftRec = True} i'
 
+-- def parse.Number(%state, %tokens)
+-- var %off =  %tokens.offset
+-- var .slot.0 =  %match_tk(%tokens, %tk_id("number"))
+-- if %==(.slot.0, %null)
+-- then %null
+-- else var .slot.-1 =  %mk_ast("Number", tuple(.slot.0))
+--      .slot.-1
+
 test4 = do
     putStrLn ""
-    let a = flip evalState 0 $ aToB $ parserGen 1 False parsers
+    let a = parserGen 1 False parsers
+    -- let a =
+    --       ADef (AName "parse.Number") [ABuiltin "state", ABuiltin "tokens"] $
+    --           ABlock [
+    --                 AAssign (ABuiltin "off") (AAttr (AVar $ ABuiltin "tokens") "offset")
+    --             --   , ACall (AVar $ ABuiltin "tk_id") [AStr "number"]
+    --             --   , ACall (AVar $ ABuiltin "match_tk") [AVar $ ABuiltin "tokens", AInt 0]
+    --             --   , ACall (AVar $ ABuiltin "match_tk") [AVar $ ABuiltin "tokens", ACall (AVar $ ABuiltin "tk_id") [AStr "number"]]
+    --                 -- AAssign (AName ".slot.0")
+    --             --   , AVar (ABuiltin "off")
+    --           ]
+    let b = flip evalState 0 $ aToB $ a
     -- mapM_ print a
     -- putStrLn ""
-    printBIR 80 $ a
-    let b = flip evalState S.empty (resolveDecl a)
+    -- printBIR 80 $ b
+    let bWithDecl = flip evalState S.empty (resolveDecl b)
     putStrLn ""
-    printBIR 80 $ b
-    
+    printBIR 80 $ bWithDecl
+    let env = emptyTCEnv emptyTInfo
+    let res = flip runMS env $ do
+            basicTCEnv True
+            bWithAnnotated <- tc bWithDecl
+            constrs <- getsMS $ view (ext . constr)
+            let dnfs = unionEquations $ forM_ constrs assert
+                ms =  flip L.map dnfs $ \dnf ->
+                            forM dnf solve
+                alts = case ms of
+                        [] -> error "emm"
+                        x:xs -> L.foldl (<|>) x xs
+            alts
+            bTyped <- pruneTypedBIR bWithAnnotated
+            return $ typedBIRToDoc bTyped
+    putStrLn ""
+    -- print $ L.length res
+    forM_ res $ \(doc, _) ->
+        print doc
 
 test5  = T.writeFile "a.txt" $ dumpCG parsers
 main = test4

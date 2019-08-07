@@ -32,6 +32,7 @@ data AIR
     | AVar AName
     | AInt Integer
     | AStr String
+    | ABool Bool
     | ATuple [AIR]
     | AAnd AIR AIR
     | AOr  AIR AIR
@@ -82,6 +83,7 @@ aIRToDoc = align . \case
     AVar n -> viaShow n
     AInt i -> viaShow i
     AStr s -> viaShow s
+    ABool b -> viaShow b
     ATuple elts -> pretty "tuple" <> tupled (map aIRToDoc elts)
     AAnd a b -> aIRToDoc a <+> pretty "and" <+> aIRToDoc b
     AOr a b -> aIRToDoc a <+> pretty "or" <+> aIRToDoc b

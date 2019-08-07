@@ -116,6 +116,7 @@ mkSwitch c@CompilationInfo {
     hs_tmp_i <- lift incTmp
     let dsl_tmp_flag_n = AName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
         dsl_tmp_res_n  = AName $ ".tmp." ++ show hs_tmp_i ++ ".result"
+        dsl_off_n = AName $ ".off." ++ show hs_tmp_i
         failed = if withTrace
                  then ATuple [dsl_false, ACall dsl_to_any [dsl_nil]]
                  else dsl_null
@@ -146,6 +147,7 @@ mkSwitch c@CompilationInfo {
       -- initialize the flag to test whether the default branch has got tried.
 
     build $ AAssign dsl_tmp_flag_n dsl_false
+    build $ AAssign dsl_off_n (AAttr (AVar dsl_tokens_n) tokenOff)
     build $ AAssign dsl_tmp_res_n expr
 
     -- check if any cases success or default branch has got tried.
@@ -155,8 +157,11 @@ mkSwitch c@CompilationInfo {
                         else ACall dsl_eq [dsl_null, AVar dsl_tmp_res_n]
                 cond2 = AVar dsl_tmp_flag_n
             in  AIf (AOr cond1 cond2)
-                    (AVar dsl_tmp_res_n)
-                    default'
+                    (AVar dsl_tmp_res_n) $
+                    ABlock [
+                        ACall dsl_reset $ [AVar dsl_tokens_n, AVar dsl_off_n]
+                      , default'
+                    ]
 
 
 codeGen :: CompilationInfo -> Int -> StateT [AIR] (State CFG) ()
@@ -179,6 +184,8 @@ codeGen c@CompilationInfo {
           hs_slot        = slot cfg
           dsl_sloti_n    = AName $ slotToStr hs_slot
       cfg <- lift $ modified (\a -> a {slot = slot a + 1})
+      hs_tmp_i <- lift incTmp
+      let dsl_off_n = AName $ ".off." ++ show hs_tmp_i
       build $ AAssign dsl_off_n (AAttr dsl_tokens tokenOff)
       let tokenId = ACall dsl_s_to_i [AStr t]
       build $ AAssign dsl_sloti_n  (ACall dsl_match_tk [dsl_tokens, tokenId])
@@ -277,6 +284,8 @@ codeGen c@CompilationInfo {
         let CFG {ret} = cfg
         build ret
       else do
+        hs_tmp_i <- lift incTmp
+        let dsl_off_n = AName $ ".off." ++ show hs_tmp_i
         let name = L.head $ scopes cfg
             cfg'   = cfg {
                   slot = 1
@@ -304,11 +313,14 @@ codeGen c@CompilationInfo {
             step    = ADef rec2 args3 cont
             loop    = ADef rec1 args3 $
                       ABlock [
-                          AAssign try $ ACall (AVar rec2) params3
+                          AAssign dsl_off_n (AAttr (AVar dsl_tokens_n) tokenOff)
+                        , AAssign try $ ACall (AVar rec2) params3
                         , AWhile cond $ ABlock [
-                              AAssign arg0 fold
+                              AAssign dsl_off_n (AAttr (AVar dsl_tokens_n) tokenOff)
+                            , AAssign arg0 fold
                             , AAssign try $ ACall (AVar rec2) params3
                           ]
+                        , ACall dsl_reset $ [AVar dsl_tokens_n, AVar dsl_off_n]
                         , AVar arg0
                       ]
         build step

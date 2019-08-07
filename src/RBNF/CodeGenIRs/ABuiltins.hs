@@ -53,4 +53,3 @@ dsl_false = ABool False
 
 dsl_tokens_n     = ABuiltin "tokens"
 dsl_globST_n     = ABuiltin "state"
-dsl_off_n        = ABuiltin "off"

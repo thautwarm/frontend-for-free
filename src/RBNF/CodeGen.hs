@@ -92,8 +92,8 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
   ID3Leaf xs  -> error
     "Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
   ID3Split k xs -> do
-    cfg      <- lift get
     hs_tmp_i <- lift incTmp
+    cfg      <- lift get
     let dsl_tmp_flag_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
         dsl_tmp_res_n  = MName $ ".tmp." ++ show hs_tmp_i ++ ".result"
         dsl_off_n      = MName $ ".off." ++ show hs_tmp_i
@@ -138,7 +138,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
     build
       $ let cond1 = if withTrace
               then MKCall dsl_eq [dsl_false, MKPrj (MKVar dsl_tmp_res_n) 0]
-              else MKCall dsl_eq [dsl_null, MKVar dsl_tmp_res_n]
+              else MKCall dsl_is_null [MKVar dsl_tmp_res_n]
             cond2 = MKVar dsl_tmp_flag_n
         in  MKIf (MKOr cond1 cond2) (MKVar dsl_tmp_res_n)
               $ MKBlock
@@ -162,8 +162,8 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
         let dsl_tokens  = MKVar dsl_tokens_n
             hs_slot     = slot cfg
             dsl_sloti_n = MName $ slotToStr hs_slot
-        cfg      <- lift $ modified (\a -> a { slot = slot a + 1 })
         hs_tmp_i <- lift incTmp
+        cfg      <- lift $ modified (\a -> a { slot = slot a + 1 })
         let dsl_off_n = MName $ ".off." ++ show hs_tmp_i
         build $ MKAssign dsl_off_n (MKAttr dsl_tokens tokenOff)
         let tokenId = MKCall dsl_s_to_i [MKStr t]
@@ -173,7 +173,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
             errs   = MKCall dsl_to_any [MKCall dsl_cons [err_hd, dsl_nil]]
             ifErr | withTrace = MKTuple [dsl_false, errs]
                   | otherwise = dsl_null
-        build $ MKIf (MKCall dsl_eq [MKVar dsl_sloti_n, dsl_null]) ifErr cont
+        build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_n]) ifErr cont
 
       NEntity (ENonTerm n) -> do
         cfg <- lift get
@@ -199,7 +199,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
               (MKCall dsl_eq [MKPrj (MKVar dsl_sloti_chk) 0, dsl_false])
               ifErr
               ifNotErr
-          else build $ MKIf (MKCall dsl_eq [MKVar dsl_sloti_chk, dsl_null])
+          else build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_chk])
                             dsl_null
                             ifNotErr
       NEntity (EPredicate ir) -> do
@@ -264,6 +264,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
             build ret
           else do
             hs_tmp_i <- lift incTmp
+            cfg <- lift get
             let dsl_off_n = MName $ ".off." ++ show hs_tmp_i
             let name = L.head $ scopes cfg
                 cfg' = cfg { slot   = 1
@@ -281,7 +282,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
               try  = MName $ "lr." ++ name ++ ".try"
               cond = if withTrace
                 then MKCall dsl_neq [MKPrj (MKVar try) 0, dsl_false]
-                else MKCall dsl_neq [MKVar try, dsl_null]
+                else MKCall dsl_is_null [MKVar try]
               -- fold left recursion:
               -- arg0 <- arg0 a b c ...
               fold = if withTrace

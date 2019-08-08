@@ -9,6 +9,7 @@ where
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   ( Generic )
 import           RBNF.Name
+import           RBNF.Utils
 import           RBNF.HMTypeInfer               ( HMT )
 import           RBNF.TypeSystem                ( RT )
 
@@ -41,13 +42,9 @@ deriving instance Functor ReimuBase
 deriving instance Foldable ReimuBase
 deriving instance Traversable ReimuBase
 
-data TaggedFixT f t = InT {tag :: t, outT :: f (TaggedFixT f t)}
-
 deriving instance Eq b => Eq (TaggedFixT ReimuBase b)
 deriving instance Ord b => Ord (TaggedFixT ReimuBase b)
-deriving instance Functor f => Functor (TaggedFixT f)
-deriving instance Foldable f => Foldable (TaggedFixT f)
-deriving instance Traversable f => Traversable (TaggedFixT f)
+
 
 type Reimu a = TaggedFixT ReimuBase a
 

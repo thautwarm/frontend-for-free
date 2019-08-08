@@ -3,14 +3,8 @@
 -- Author: Taine Zhao(thautwarm)
 -- Date: 2019-08-04
 -- License: MIT
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-
-module RBNF.CodeGenIRs.HM
+module RBNF.HMTypeInfer
 where
 import RSolve.Logic
 import RSolve.Solver
@@ -18,7 +12,7 @@ import RSolve.MultiState
 import Control.Lens (Lens', view, over, makeLenses)
 import Control.Applicative
 import Control.Monad
-
+import GHC.Generics (Generic)
 -- import Debug.Trace
 
 import qualified Data.List as L
@@ -29,6 +23,7 @@ type Fix a = a -> a
 
 infixl 6 :->
 infixr 6 :*
+infixr 5 :#
 
 -- | Hindley-milner type
 data HMT nom
@@ -36,16 +31,16 @@ data HMT nom
     | TFresh String
     | HMT nom :-> HMT nom
     | HMT nom :*  HMT nom -- tuple
+    | HMT nom :# HMT nom -- type application
     | TForall (S.Set String) (HMT nom)
-    | TApp (HMT nom) (HMT nom) -- type application
     | TNom nom -- nominal type index
-    deriving (Eq, Ord)
+    deriving (Eq, Ord, Generic)
 
 deConsTOp :: HMT nom -> Maybe (HMT nom -> HMT nom -> HMT nom, HMT nom, HMT nom)
 deConsTOp = \case
     a :-> b  -> Just ((:->), a, b)
     a :*  b  -> Just ((:*),  a, b)
-    TApp a b -> Just (TApp,  a, b)
+    a :#  b  -> Just ((:#),  a, b)
     _ -> Nothing
 
 instance Show nom => Show (HMT nom) where
@@ -54,19 +49,17 @@ instance Show nom => Show (HMT nom) where
         TFresh s    -> s
         a :-> b     -> showNest a ++ " -> " ++ show b
         a :*  b     -> showNest a ++ " * " ++ show b
+        a :#  b     -> show a ++ " " ++ showNest b
         TForall l t -> "forall " ++ (unwords $ S.toList l) ++ ". " ++ show t
-        TApp t1 t2  -> show t1 ++ " " ++ showNest t2
         TNom i      -> show i
         where
             showNest s
                 | isNest s  = "(" ++ show s ++ ")"
                 | otherwise = show s
             isNest s = case s of
-                TApp _ _    -> True
-                TForall _ s -> isNest s
-                _ :-> _     -> True
-                _ :* _      -> True
-                _           -> False
+                (deConsTOp -> Just _) -> True
+                TForall _ s           -> isNest s
+                _                     -> False
 
 data HMUnif nom
     = Unif {
@@ -188,8 +181,8 @@ unify self Unif {lhs=l1 :* l2, rhs= r1 :* r2} =
     self Unif {lhs=l1, rhs=r1, neq=False} >>
     self Unif {lhs=l2, rhs=r2, neq=False}
 
--- TODO: type aliases?
-unify self Unif {lhs=TApp l1 l2, rhs= TApp r1 r2} =
+-- TODO: how to support type aliases?
+unify self Unif {lhs=l1 :# l2, rhs= r1 :# r2} =
     self Unif {lhs=l1, rhs=r1, neq=False} >>
     self Unif {lhs=l2, rhs=r2, neq=False}
 

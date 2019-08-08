@@ -2,11 +2,6 @@
 -- Author: Taine Zhao(thautwarm)
 -- Date: 2019-07-18
 -- License: BSD-3-clause
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE RankNTypes #-}
 module RBNF.LookAHead where
 
@@ -20,7 +15,6 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Trans.Maybe
 import Control.Arrow
-import Control.Lens (over, view, Lens', makeLenses)
 
 import qualified Data.List as L
 import qualified Data.Map as M

@@ -4,12 +4,13 @@ module Main where
 
 import RBNF (parserGen)
 import RBNF.Serialization
-import RBNF.CodeGenIRs.A
+import RBNF.IRs.Marisa
 import System.IO
 import System.Environment
 import System.Exit
 import Control.Lens
 
+import Data.Text.Prettyprint.Doc.Util
 import qualified Data.Text.Lazy.IO as T
 import qualified Data.Map as M
 
@@ -66,7 +67,7 @@ wain xs =
             m5 in' = case M.lookup "dump" m of
                     Just _ -> do
                         text <- T.readFile in'
-                        mio (printAIR 80) text
+                        mio (putDocW  80 . seeMarisa) text
                     _ -> help
             mio f text = case readCG text of
                 Just cg ->

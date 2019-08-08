@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ef3f2ccbd9a0ed7f41987fba76913a2c3ffc95c70e6c9414680e66c7c9eb045b
+-- hash: de0deb0769b6c9a1c6e75ab566b981b6de4079dc834f8d78ffaa3c43f5d500e4
 
 name:           RBNF
 version:        0.1.0.0
@@ -29,16 +29,18 @@ library
   exposed-modules:
       RBNF
       RBNF.CodeGen
-      RBNF.CodeGenIRs.A
-      RBNF.CodeGenIRs.ABuiltins
-      RBNF.CodeGenIRs.B
-      RBNF.CodeGenIRs.BInfer
-      RBNF.CodeGenIRs.HM
-      RBNF.Dump
       RBNF.Grammar
       RBNF.Graph
+      RBNF.HMTypeInfer
+      RBNF.IRs.Cirno
+      RBNF.IRs.Flandre
+      RBNF.IRs.Marisa
+      RBNF.IRs.MarisaLibrary
+      RBNF.IRs.Reimu
+      RBNF.IRs.ReimuTyping
       RBNF.LeftRecur
       RBNF.LookAHead
+      RBNF.Name
       RBNF.Semantics
       RBNF.Serialization
       RBNF.Symbols
@@ -47,6 +49,7 @@ library
       Paths_RBNF
   hs-source-dirs:
       src
+  default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
   build-depends:
       RSolve
     , aeson
@@ -66,6 +69,7 @@ executable RBNF-exe
       Paths_RBNF
   hs-source-dirs:
       app
+  default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
@@ -88,6 +92,7 @@ test-suite RBNF-test
       Paths_RBNF
   hs-source-dirs:
       test
+  default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF

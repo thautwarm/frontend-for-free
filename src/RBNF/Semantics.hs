@@ -1,10 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE NamedFieldPuns #-}
-
 module RBNF.Semantics
 (
 SlotIdx, VName(..), IR(..), ParsingRoute, pGToSG,
@@ -21,7 +14,6 @@ import RBNF.Utils
 
 import Control.Monad.State
 import Control.Monad.Reader
-import Control.Lens (over, view, Lens', makeLenses)
 
 
 

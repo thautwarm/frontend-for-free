@@ -1,8 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module RBNF.Grammar where
 
 import RBNF.Symbols
@@ -13,7 +8,6 @@ import qualified Data.Set   as S
 import qualified Data.List  as L
 import Control.Monad.State
 import Control.Arrow
-import Control.Lens (over, view, Lens', makeLenses)
 
 type PGrammarBuilder = [PProd]
 

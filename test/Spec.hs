@@ -5,16 +5,16 @@ import RBNF.Symbols
 import RBNF.LeftRecur
 import RBNF.Semantics
 import RBNF.Graph
-import RBNF.Dump
 import RBNF.LookAHead
-import RBNF.CodeGenIRs.A
 import RBNF.CodeGen
 import RBNF (parserGen)
 import RBNF.Serialization
-import RBNF.CodeGenIRs.B
-import RBNF.CodeGenIRs.HM
-import RBNF.CodeGenIRs.BInfer
-import RBNF.CodeGenIRs.ABuiltins
+
+import RBNF.IRs.Marisa
+import RBNF.IRs.MarisaLibrary
+import RBNF.IRs.Reimu
+import RBNF.IRs.ReimuTyping
+import RBNF.IRs.IRTrans
 
 import RSolve.Solver
 import RSolve.PropLogic
@@ -104,8 +104,8 @@ test1 = do
     -- (forM_ parsers $ putStrLn . show)
 test2 = do
     putStrLn ""
-    let a = AIf (dsl_int 1) (dsl_int 2) (dsl_int 3)
-    printAIR 80 a
+    let a = MKIf (dsl_int 1) (dsl_int 2) (dsl_int 3)
+    print . seeMarisa $ a
 test3 = do
     putStrLn ""
     let gbuilder = mkGrammar $ parsers
@@ -126,12 +126,12 @@ test3 = do
     let cfg = emptyCFG s
 
 
-    printAIR 80 $ runToCode cfg $ codeGen c i
+    print . seeMarisa $ runToCode cfg $ codeGen c i
 
     putStrLn ""
     let s' = "Mul"
         i' = view ends graph M.! s'
-    printAIR 80 $ runToCode cfg $ codeGen c {isLeftRec = True} i'
+    print . seeMarisa $ runToCode cfg $ codeGen c {isLeftRec = True} i'
 
 -- def parse.Number(%state, %tokens)
 -- var %off =  %tokens.offset
@@ -144,7 +144,7 @@ test3 = do
 test4 = do
     putStrLn ""
     let a = parserGen 1 False parsers
-    printAIR 80 $ a
+    print $ seeMarisa a
     -- let a =
     --       ADef (AName "parse.Number") [ABuiltin "state", ABuiltin "tokens"] $
     --           ABlock [
@@ -155,11 +155,7 @@ test4 = do
     --                 -- AAssign (AName ".slot.0")
     --             --   , AVar (ABuiltin "off")
     --           ]
-    let b = flip evalState 0 $ aToB $ a
-    -- mapM_ print a
-    putStrLn "\nb IR:"
-    -- printBIR 80 $ b
-    let bWithDecl = flip evalState S.empty (resolveDecl b)
+    let b = irTransform a
     -- putStrLn "\n BIR with declarations:"
     -- printBIR 80 $ bWithDecl
     let env = emptyTCEnv emptyTInfo

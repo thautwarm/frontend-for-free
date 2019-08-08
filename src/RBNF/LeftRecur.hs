@@ -2,9 +2,6 @@
 -- Author: Taine Zhao(thautwarm)
 -- Date: 2019-07-13
 -- License: BSD-3-clause
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module RBNF.LeftRecur where
 
 import RBNF.Utils

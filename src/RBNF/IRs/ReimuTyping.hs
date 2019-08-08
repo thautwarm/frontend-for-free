@@ -1,23 +1,20 @@
--- | Type inference for BIR
+-- | Type inference for Reimu IR
 -- Author: Taine Zhao(thautwarm)
 -- Date: 2019-08-06
 -- License: BSD-3-clause
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE ViewPatterns #-}
+module RBNF.IRs.ReimuTyping where
 
+import RBNF.IRs.Reimu
+import RBNF.IRs.Marisa (Marisa(..))
+import RBNF.IRs.MarisaLibrary
+import RBNF.HMTypeInfer
 
-module RBNF.CodeGenIRs.BInfer where
-
-
-import RBNF.CodeGenIRs.ABuiltins
-import RBNF.CodeGenIRs.B
-import RBNF.CodeGenIRs.A (AName(..))
-import RBNF.CodeGenIRs.HM
 import RSolve.MapLike
 import RSolve.PropLogic
 import RSolve.MultiState
 import RBNF.Utils
+import RBNF.Name
+import RBNF.TypeSystem
 
 import Control.Monad.State
 import Control.Monad.Trans.Reader
@@ -27,82 +24,29 @@ import Data.Text.Prettyprint.Doc
 import Data.Text.Prettyprint.Doc.Util (putDocW)
 import Data.Maybe (fromJust)
 
-import qualified Data.Map as M
-import qualified Data.Set as S
+import qualified Data.Map  as M
+import qualified Data.Set  as S
 import qualified Data.List as L
 
-import Debug.Trace
+-- import Debug.Trace
 
-type DNF = S.Set Unif
--- All here are reference types!
+type T = HMT RT
+type TCEnv = HMTCEnv RT
+type Unif = HMUnif RT
 
-data BTPrim
-    = BTInt
-    | BTFloat
-    | BTUnit
-    | BTString
-    | BTAny
-    | BTBool
-    -- blackboxed builtins
-    | BTState
-    | BTTokens
-    deriving (Eq, Ord)
 
-instance Show BTPrim where
-    show = \case
-        BTInt -> "int"
-        BTFloat -> "float"
-        BTUnit -> "()"
-        BTString -> "str"
-        BTAny -> "any"
-        BTBool -> "bool"
-        BTState -> "State"
-        BTTokens -> "Tokens"
-
--- instance Show BTPrim wh
-data BT
-    = BTPrim BTPrim
-    | BTTuple [BT]
-    | BTFunc BT BT
-    | BTApp BT BT
-    | BTSig String
-    | BTVar String
-    | BTGeneric [String] BT
-    deriving (Eq, Ord)
-
-type T = HMT BT
-type TCEnv = HMTCEnv BT
-type Unif = HMUnif BT
-
-instance Show BT where
-    show = \case
-        BTVar s -> s
-        BTPrim s    -> show s
-        BTFunc a b  -> showNest a ++ " -> " ++ show b
-        BTTuple xs  -> "(" ++ L.intercalate "," (map show xs) ++ ")"
-        BTGeneric xs t -> "forall " ++ (unwords xs) ++ ". " ++ show t
-        BTApp t1 t2    -> show t1 ++ " " ++ showNest t2
-        BTSig s        -> s
-        where
-            showNest s
-                | isNest s  = "(" ++ show s ++ ")"
-                | otherwise = show s
-            isNest s = case s of
-                BTFunc _ _    -> True
-                BTGeneric _ _ -> True
-                _             -> False
 -- | Each module will hold a 'TInfo'
 data TInfo
     = TInfo {
-          _prims      :: [(BT, Int)]
+          _prims      :: [(RT, Int)]
           -- | a map that maps a field name to
           -- candicate lists of (structTypec, fieldType)
         , _fields     :: Map String [(S.Set String, T, T)]
         , _constr     :: [WFF Unif] -- _constraints
         , maxTupleDim :: Int
         -- context sensitive
-        , _types  :: Map AName T
-        , _kinds  :: Map AName T
+        , _types  :: Map MName T
+        , _kinds  :: Map MName T
        }
 
 emptyTInfo = TInfo [] M.empty [] 6 M.empty M.empty
@@ -110,54 +54,53 @@ emptyTInfo = TInfo [] M.empty [] 6 M.empty M.empty
 makeLenses ''TInfo
 
 
-toBT :: T -> MS (TCEnv TInfo) BT
-toBT = \case
-    TApp a b -> BTApp <$> toBT a <*> toBT b
+toRT :: T -> MS (TCEnv TInfo) RT
+toRT = \case
+    a :# b   -> RTApp <$> toRT a <*> toRT b
+    a :-> b -> RTFunc <$> toRT a <*> toRT b
+    TForall xs t -> RTGeneric (S.toList xs) <$> toRT t
+    TFresh a -> return $ RTVar a
+    TVar i   -> return $ RTVar ("@" ++ show i)
+    TNom i   -> return i
     a :* b   -> do
-        hd <- toBT a
+        hd <- toRT a
         let packTl = \case
                 b1 :* b2 -> do
-                    b1 <- toBT b1
+                    b1 <- toRT b1
                     (b1:) <$> packTl b2
                 a -> do
-                    a <- toBT a
+                    a <- toRT a
                     case a of
-                        BTPrim BTUnit -> return []
+                        RTPrim RTUnit -> return []
                         a -> return [a]
         tl <-  packTl b
-        return $ BTTuple $ hd:tl
-    a :-> b -> BTFunc <$> toBT a <*> toBT b
-    TForall xs t -> BTGeneric (S.toList xs) <$> toBT t
-    TFresh a -> return $ BTVar a
-    TVar i   -> return $ BTVar ("@" ++ show i)
-    TNom i   -> return i
+        return $ RTTuple $ hd:tl
 
-addPrim :: BTPrim -> Int -> TInfo -> TInfo
-addPrim t i = over prims (insert (BTPrim t) i)
+addPrim :: RTPrim -> Int -> TInfo -> TInfo
+addPrim t i = over prims (insert (RTPrim t) i)
 
 addField :: String -> S.Set String -> T -> T -> TInfo -> TInfo
 addField fieldName freshvars tapp fieldType =
         over fields (M.insertWith (++) fieldName [(freshvars, tapp, fieldType)])
 
-addType :: AName -> T -> TInfo -> TInfo
+addType :: MName -> T -> TInfo -> TInfo
 addType tname t = over types (M.insert tname t)
 
-addTypeApp :: AName -> T -> TInfo -> TInfo
+addTypeApp :: MName -> T -> TInfo -> TInfo
 addTypeApp tname t = over kinds (M.insert tname t)
 
 nTupleST :: [T] -> T
-nTupleST [] = getPrim BTUnit
+nTupleST [] = getPrim RTUnit
 nTupleST (x:xs) =  foldl (:*) x xs
 
-declareStruct :: String -> [String] -> [(String, T)] ->  MS (TCEnv TInfo) T
+declareStruct :: MName -> [String] -> [(String, T)] ->  MS (TCEnv TInfo) T
 declareStruct structName typeParams fields = do
     let freshvars = S.fromList typeParams
-        struct  = TNom $ BTSig structName
-        tapp = TApp struct $ nTupleST [TFresh p | p <- typeParams]
+        struct  = TNom $ TSig structName
+        tapp = struct :# nTupleST [TFresh p | p <- typeParams]
     forM_ fields $ \(fieldName, fieldType) ->
         modifyMS $ over ext (addField fieldName freshvars tapp fieldType)
-
-    modifyMS $ over ext $ addTypeApp (AName structName) struct
+    modifyMS $ over ext $ addTypeApp structName struct
     return struct
 
 fixState :: Monad m => StateT s m a -> ReaderT s m a
@@ -177,14 +120,14 @@ tforall = TForall . S.fromList
 basicTCEnv :: Bool -> MS (TCEnv TInfo) ()
 basicTCEnv withTrace = do
     -- primitive
-    let unit   = TNom $ BTPrim BTUnit
-    let int    = TNom $ BTPrim BTInt
-    let float  = TNom $ BTPrim BTFloat
-    let str    = TNom $ BTPrim BTString
-    let bool   = TNom $ BTPrim BTBool
-    let sup    = TNom $ BTPrim BTAny
-    let state  = TNom $ BTPrim BTState
-    let tokens = TNom $ BTPrim BTTokens
+    let unit   = TNom $ RTPrim RTUnit
+    let int    = TNom $ RTPrim RTInt
+    let float  = TNom $ RTPrim RTFloat
+    let str    = TNom $ RTPrim RTString
+    let bool   = TNom $ RTPrim RTBool
+    let sup    = TNom $ RTPrim RTAny
+    let state  = TNom $ RTPrim RTState
+    let tokens = TNom $ RTPrim RTTokens
 
     tokenTy' <- declareStruct "token" [] [
             (tokenId,   int),
@@ -197,9 +140,9 @@ basicTCEnv withTrace = do
     astTy' <- declareStruct "ast" [] []
     listT  <- declareStruct "linkedlist" ["a"] []
 
-    let tokenTy  = TApp tokenTy' $ unit
+    let tokenTy  = tokenTy' :# unit
         tokensTy = tokens
-        astTy    = TApp astTy'  $ unit
+        astTy    = astTy'  :# unit
         errTy    = int :* str
         -- | forall a. (a, a) -> bool
         cmpTy = tforall ["a"] $
@@ -235,13 +178,13 @@ basicTCEnv withTrace = do
         (tokensTy :* int) :-> unit
     -- cons : forall a. (a, a list) -> a list
     enterType dsl_cons_n $
-        let listA = TApp listT (TFresh "a")
+        let listA = listT :# (TFresh "a")
         in  tforall ["a"] $
                 (TFresh "a" :* listA) :-> listA
     -- nil : forall a. a list
-    enterType dsl_cons_n $ TApp listT (TFresh "a")
+    enterType dsl_cons_n $ listT :# (TFresh "a")
     -- to_errs : any -> err list
-    enterType dsl_to_errs_n $ sup :-> TApp listT errTy
+    enterType dsl_to_errs_n $ sup :-> listT :# errTy
     -- to_res: any -> ast
     enterType dsl_to_res_n $ sup :-> astTy
     -- to_any: forall a. a -> any
@@ -251,7 +194,7 @@ basicTCEnv withTrace = do
     enterType dsl_mkast_n $
         tforall ["a"] $ (str :* TFresh "a") :-> astTy
     -- always_true : state -> bool
-    enterType (AName "always_true") $ state :-> bool
+    enterType (MName "always_true") $ state :-> bool
     return ()
 
 
@@ -281,17 +224,25 @@ a |==| b = Atom $ Unif {lhs=a, rhs=b, neq=False}
 infixl 2 |/=|
 a |/=| b = Atom $ Unif {lhs=a, rhs=b, neq=True}
 
-getPrim :: BTPrim -> T
-getPrim t = TNom $ BTPrim t
+getPrim :: RTPrim -> T
+getPrim t = TNom $ RTPrim t
 
-tc :: BIR a -> MS (TCEnv TInfo) (BIR T)
+tc :: Reimu a -> MS (TCEnv TInfo) (Reimu T)
 tc bIR@InT {outT=base} = case base of
-    BAssign n a -> do
+    RExtern n (Left t) m -> do
+        enterType n t
+        m <- tc m
+        return InT {tag = t, outT=RExtern n t m}
+    RExtern n (Right (freevars, xs)) m -> do
+        t <- declareStruct n freevars xs
+        m <- tc m
+        return InT {tag = t, outT=RExtern n t m}
+    RAssign n a -> do
         t <- typeOf n
         a <- tc a
         assert_ $ tag a |==| t
-        return $ InT {tag = t, outT=BAssign n a}
-    BDecl n a -> do
+        return InT {tag = t, outT=RAssign n a}
+    RDecl n a -> do
       t <- TVar <$> newTVar
       -- auto recursive
       enterType n t
@@ -302,14 +253,14 @@ tc bIR@InT {outT=base} = case base of
       reset ext'
       -- assert:  typeof n == typeof a
       assert_ $ t |==| tag a
-      return $ InT {tag=t, outT=BDecl n a}
-    BIf a b c -> do
+      return $ InT {tag=t, outT=RDecl n a}
+    RIf a b c -> do
         -- for resume
         ext' <- commit
 
         -- if a, typeof a == bool
         cond <- tc a
-        let bool = getPrim BTBool
+        let bool = getPrim RTBool
         assert_ $ tag cond |==| bool
 
         ext'' <- commit
@@ -322,18 +273,18 @@ tc bIR@InT {outT=base} = case base of
         t <- TVar <$> newTVar
         assert_ $ tag fCls |==| t
         assert_ $ tag tCls |==| t
-        return $ InT {tag=t, outT=BIf cond tCls fCls}
-    BCall f args -> do
+        return $ InT {tag=t, outT=RIf cond tCls fCls}
+    RCall f args -> do
         f    <- tc f
         args <- mapM tc args
-        let unitT = getPrim BTUnit
+        let unitT = getPrim RTUnit
         let argType = nTupleST $ map tag args
         paramType <- TVar <$> newTVar
         retType   <- TVar <$> newTVar
         assert_ $ tag f |==| paramType :-> retType
         assert_ $ argType |==| paramType
-        return $ InT {tag=retType, outT=BCall f args}
-    BAttr a attr -> do
+        return $ InT {tag=retType, outT=RCall f args}
+    RAttr a attr -> do
         a <- tc a
         xs <- getsMS $ M.lookup attr . view (ext . fields)
         let ms =
@@ -351,10 +302,10 @@ tc bIR@InT {outT=base} = case base of
                 []   -> error $ "impossible, attr list sized 0(" ++ attr ++ ")"
                 x:xs -> foldl (<|>) x xs
         tfield <- alts
-        return InT {tag = tfield, outT=BAttr a attr}
-    BPrj a dim -> do
+        return InT {tag = tfield, outT=RAttr a attr}
+    RPrj a dim -> do
         a <- tc a
-        let unitT = getPrim BTUnit
+        let unitT = getPrim RTUnit
         mtd    <- getsMS $ maxTupleDim . view ext
         elty   <- TVar <$> newTVar
         initTp <- replicateM (dim-1) $ TVar <$> newTVar
@@ -372,22 +323,22 @@ tc bIR@InT {outT=base} = case base of
                 x:xs -> foldl (<|>) x xs
         tp <- alts
         assert_ $ tag a |==| tp
-        return InT {tag=elty, outT=BPrj a dim}
-    BWhile a b -> do
-        let unitT = getPrim BTUnit
+        return InT {tag=elty, outT=RPrj a dim}
+    RWhile a b -> do
+        let unitT = getPrim RTUnit
         ext' <- commit
         cond <- tc a
-        let bool = getPrim BTBool
+        let bool = getPrim RTBool
         assert_ $ tag cond |==| bool
         body <- tc b
         reset ext'
-        return InT {tag = unitT, outT = BWhile cond body}
-    BSwitch a bs c -> do
+        return InT {tag = unitT, outT = RWhile cond body}
+    RSwitch a bs c -> do
         ext' <- commit
         test <- tc a
         ext'' <- commit
         -- can only switch on integer
-        let int = getPrim BTInt
+        let int = getPrim RTInt
         assert_ $ int |==| tag test
 
         cases <- forM bs $ \(a, b) -> do
@@ -401,14 +352,14 @@ tc bIR@InT {outT=base} = case base of
         t     <- TVar <$> newTVar
         forM_ (tag defau:map (tag . snd) cases) $ assert_ . (t |==|)
         reset ext'
-        return InT {tag = t, outT = BSwitch test cases defau}
-    BDef argNames b -> do
+        return InT {tag = t, outT = RSwitch test cases defau}
+    RDef argNames b -> do
         ext'   <- commit
         tpArgs <- forM argNames $ \case
-                ABuiltin "tokens" -> return $ getPrim BTTokens
-                ABuiltin "state"  -> return $ getPrim BTState
+                MBuiltin "tokens" -> return $ getPrim RTTokens
+                MBuiltin "state"  -> return $ getPrim RTState
                 _                 -> (TVar <$> newTVar)
-        let unitT = getPrim BTUnit
+        let unitT = getPrim RTUnit
         let argType = nTupleST tpArgs
         retType <- TVar <$> newTVar
         let fType = argType :-> retType
@@ -417,12 +368,12 @@ tc bIR@InT {outT=base} = case base of
         body <- tc b
         assert_ $ tag body |==| retType
         reset ext'
-        return InT {tag=fType, outT=BDef argNames body}
+        return InT {tag=fType, outT=RDef argNames body}
 
-    BMutual names suite -> do
+    RMutual names suite -> do
         xs <- forM names $ const (TVar <$> newTVar)
         forM (zip names xs) $ uncurry enterType
-        let unitT = getPrim BTUnit
+        let unitT = getPrim RTUnit
         suite <- mapM tc suite
         forM (zip xs suite) $ \(x, expr) ->
             assert_ $ x |==| tag expr
@@ -430,135 +381,65 @@ tc bIR@InT {outT=base} = case base of
         let t = case suite of
                     [] -> unitT
                     xs -> tag $ last suite
-        return InT {tag=t, outT=BMutual names suite}
+        return InT {tag=t, outT=RMutual names suite}
 
-    BVar n@(ABuiltin "tokens") -> do
-        let tokensTy = getPrim BTTokens
-        return InT {tag = tokensTy, outT = BVar n}
+    RVar n@(MBuiltin "tokens") -> do
+        let tokensTy = getPrim RTTokens
+        return InT {tag = tokensTy, outT = RVar n}
 
-    BVar n@(ABuiltin "state") -> do
-        let state = getPrim BTState
-        return InT {tag = state, outT = BVar n}
+    RVar n@(MBuiltin "state") -> do
+        let state = getPrim RTState
+        return InT {tag = state, outT = RVar n}
 
-    BVar n -> do
+    RVar n -> do
         t <- typeOf n
-        return InT {tag=t, outT=BVar n}
-    BInt i -> do
-        let int  = getPrim BTInt
-        return InT {tag=int, outT=BInt i}
-    BStr s -> do
-        let str  = getPrim BTString
-        return InT {tag=str, outT=BStr s}
-    BBool b -> do
-        let bool = getPrim BTBool
-        return InT {tag=bool, outT= BBool b}
-    BTuple xs -> do
+        return InT {tag=t, outT=RVar n}
+    RInt i -> do
+        let int  = getPrim RTInt
+        return InT {tag=int, outT=RInt i}
+    RStr s -> do
+        let str  = getPrim RTString
+        return InT {tag=str, outT=RStr s}
+    RBool b -> do
+        let bool = getPrim RTBool
+        return InT {tag=bool, outT= RBool b}
+    RTuple xs -> do
         xs <- mapM tc xs
-        let unit = getPrim BTUnit
+        let unit = getPrim RTUnit
         let tp = nTupleST (map tag xs)
-        return InT {tag=tp, outT=BTuple xs}
-    BAnd a b -> do
-        let bool = getPrim BTBool
+        return InT {tag=tp, outT=RTuple xs}
+    RAnd a b -> do
+        let bool = getPrim RTBool
         a <- tc a
         assert_ $ tag a |==| bool
         b <- tc b
         assert_ $ tag b |==| bool
-        return  InT {tag = bool, outT = BAnd a b}
-    BOr a b -> do
-        let bool = getPrim BTBool
+        return  InT {tag = bool, outT = RAnd a b}
+    ROr a b -> do
+        let bool = getPrim RTBool
         a <- tc a
         assert_ $ tag a |==| bool
         b <- tc b
         assert_ $ tag b |==| bool
-        return  InT {tag = bool, outT = BOr a b}
+        return  InT {tag = bool, outT = ROr a b}
 
 
-pruneTypedBIR :: BIR T -> MS (TCEnv TInfo) (BIR BT)
-pruneTypedBIR InT {tag = t, outT = a} = do
+pruneTypedRIR :: Reimu T -> MS (TCEnv TInfo) (Reimu RT)
+pruneTypedRIR InT {tag = t, outT = a} = do
     t <- prune t
-    t <- toBT t
-    a <- traverse pruneTypedBIR a
+    t <- toRT t
+    a <- traverse pruneTypedRIR a
     return InT {tag = t, outT = a}
 
 isSimpleExpr = \case
-    BInt _ -> True
-    BStr _ -> True
-    BBool _ -> True
-    BVar _ -> True
-    BAttr _ _ -> True
-    BCall _ _ -> True
-    BPrj _ _ -> True
-    BMutual ns xs -> L.length ns > 1 || all isSimpleExpr (map outT xs)
-    BTuple xs -> all isSimpleExpr (map outT xs)
-    BIf x y z -> all isSimpleExpr $ map outT [x, y, z]
+    RInt _ -> True
+    RStr _ -> True
+    RBool _ -> True
+    RVar _ -> True
+    RAttr _ _ -> True
+    RCall _ _ -> True
+    RPrj _ _ -> True
+    RMutual ns xs -> L.length ns > 1 || all isSimpleExpr (map outT xs)
+    RTuple xs -> all isSimpleExpr (map outT xs)
+    RIf x y z -> all isSimpleExpr $ map outT [x, y, z]
     _ -> False
-
-typedBIRToDoc :: BIR BT -> Doc ann
-typedBIRToDoc = frec
-    where
-        frec InT {tag=t, outT=base} =
-            let ts = show t in align $ case base of
-
-            BDecl n v@InT {outT = isSimpleExpr -> False} ->
-                nest 4 $ vsep [ pretty ("var " ++ show n ++ " :" ++ ts ++ " ="), frec v]
-            BDecl n code -> pretty ("var " ++ show n ++ " :" ++ ts ++ " = ") <+> frec code
-
-            BAssign n v@InT {outT = isSimpleExpr -> False} ->
-                nest 4 $ vsep [ pretty (show n ++ " :" ++ ts ++ " ="), frec v]
-            BAssign n code -> pretty (show n ++ " :" ++ ts ++ " = ") <+> frec code
-
-            BCall   f args -> vsep [
-                    pretty ("[" ++ ts ++ "]"),
-                    frec f <> (parens . sep . punctuate comma $ map frec args)
-                ]
-            BAttr val attr -> pretty ("[" ++ ts ++ "]") <>
-                frec val <> pretty ("." ++ attr)
-            BPrj val dim   -> pretty ("[" ++ ts ++ "]") <>
-                frec val <> brackets (viaShow dim)
-            BIf cond br1 br2 ->
-                vsep [
-                  pretty ("[" ++ ts ++ "]") <>  pretty "if"   <+> nest 4 (frec cond)
-                , pretty "then" <+> nest 4 (frec br1)
-                , pretty "else" <+> nest 4 (frec br2)
-                ]
-            BWhile cond br ->
-                nest 4 $
-                vsep [
-                  pretty ("[" ++ ts ++ "]") <> pretty "while" <+> frec cond
-                , frec br
-                ]
-            BSwitch expr cases default' ->
-                vsep [
-                    pretty "switch" <+> frec expr
-                , nest 2 $ align $ vsep [
-                    nest 2 $ vsep [
-                            pretty "case" <+> (frec i) <+> pretty ":"
-                            , frec case'
-                    ] | (i, case') <- cases
-                    ]
-                , pretty "default :" <+> nest 4 (frec default')
-                ]
-            BDef args body ->
-                let argDef =  sep $ punctuate comma $ map viaShow args
-
-                in  nest 4 $
-                    vsep [
-                        parens argDef <+> pretty "->"
-                      , align $ nest 4 $ frec body
-                    ]
-            BVar n -> viaShow n
-            BInt i -> viaShow i
-            BStr s -> viaShow s
-            BBool b -> viaShow b
-            BTuple elts ->
-                pretty ("[" ++ ts ++ "]") <> pretty "tuple" <> tupled (map frec elts)
-
-            BMutual names suite ->
-                let n         = length names
-                    (l1, l2)  = L.splitAt n suite
-                    recursive = zipWith (\name v -> nest 4 $
-                                            vsep [ pretty ("rec " ++ show name ++ " : " ++ ts ++ " ="), frec v])
-                                        names l1
-                in vsep $ recursive ++ map frec l2
-            BAnd a b -> frec a <+> pretty "and" <+> frec b
-            BOr a b  -> frec a <+> pretty "or" <+> frec b

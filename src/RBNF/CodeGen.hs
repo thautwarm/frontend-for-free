@@ -142,7 +142,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
             cond2 = MKVar dsl_tmp_flag_n
         in  MKIf (MKOr cond1 cond2) (MKVar dsl_tmp_res_n)
               $ MKBlock
-                  [ MKCall dsl_reset $ [MKVar dsl_tokens_n, MKVar dsl_off_n]
+                  [ MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
                   , default'
                   ]
 
@@ -264,7 +264,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
             build ret
           else do
             hs_tmp_i <- lift incTmp
-            cfg <- lift get
+            cfg      <- lift get
             let dsl_off_n = MName $ ".off." ++ show hs_tmp_i
             let name = L.head $ scopes cfg
                 cfg' = cfg { slot   = 1
@@ -275,12 +275,13 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
                            , isLR   = True
                            }
             let
-              cont = getCont i cfg'
-              arg0 = MName $ slotToStr 0
-              rec1 = MName $ "lr.loop." ++ name
-              rec2 = MName $ "lr.step." ++ name
-              try  = MName $ "lr." ++ name ++ ".try"
-              cond = if withTrace
+              cont    = getCont i cfg'
+              arg0    = MName $ slotToStr 0
+              rec1    = MName $ "lr.loop." ++ name
+              rec2    = MName $ "lr.step." ++ name
+              try     = MName $ "lr." ++ name ++ ".try"
+              reduced = MName $ "lr." ++ name ++ ".reduce"
+              cond    = if withTrace
                 then MKCall dsl_neq [MKPrj (MKVar try) 0, dsl_false]
                 else MKCall dsl_is_null [MKVar try]
               -- fold left recursion:
@@ -289,18 +290,20 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
                 then MKCall dsl_to_res [MKPrj (MKVar try) 1]
                 else MKVar try
               args3   = [arg0, dsl_globST_n, dsl_tokens_n]
-              params3 = map MKVar args3
+              params3 = map MKVar [reduced, dsl_globST_n, dsl_tokens_n]
               step    = MKDef rec2 args3 cont
               loop    = MKDef rec1 args3 $ MKBlock
-                [ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
+                [ MKAssign reduced (MKVar arg0)
+                , MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
                 , MKAssign try $ MKCall (MKVar rec2) params3
                 , MKWhile cond $ MKBlock
-                  [ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
-                  , MKAssign arg0      fold
+                  [
+                    MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
+                  , MKAssign reduced      fold
                   , MKAssign try $ MKCall (MKVar rec2) params3
                   ]
-                , MKCall dsl_reset $ [MKVar dsl_tokens_n, MKVar dsl_off_n]
-                , MKVar arg0
+                , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
+                , MKVar reduced
                 ]
             build step
             build loop

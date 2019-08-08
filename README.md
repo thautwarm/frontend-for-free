@@ -14,7 +14,391 @@ RBNF -in <input json filename>
      [-trace]
 ```
 
-## Note: Front End
+```OCaml
+
+let (* * *)token_id_of_42 : int Hashtbl.find LexerInfo.prim_token_names "*"
+let (* - *)token_id_of_45 : int Hashtbl.find LexerInfo.prim_token_names "-"
+let (* number *)token_id_of_110_117_109_98_101_114 : int Hashtbl.find LexerInfo.prim_token_names "number"
+let rec lr_step_Mul : ((ast * state) * tokens) -> ast =
+fun (_slot_0, prim__state, prim__tokens) ->
+  begin
+    let _off_0 : int =
+        ref !prim__tokens .offset
+    in
+    let _slot_1 : ast =
+        ref !prim__match__tk (!prim__tokens !prim__tk__id (*))
+    in
+    if !prim__is__null (!_slot_1)
+    then !prim__null
+    else begin
+      let _tmp_1_flag : bool =
+          ref false
+      in
+      let _off_1 : int =
+          ref !prim__tokens .offset
+      in
+      let _tmp_1_result : ast =
+          ref (if !prim__peekable (!prim__tokens 1)
+               then begin
+                    match !prim__peek (!prim__tokens 1) .idint with
+                    | (* number *)token_id_of_110_117_109_98_101_114 -> begin
+                        let _off_2 : int =
+                            ref !prim__tokens .offset
+                        in
+                        let _slot_2 : ast =
+                            ref !prim__match__tk (!prim__tokens
+                            !prim__tk__id (-))
+                        in
+                        if !prim__is__null (!_slot_2)
+                        then !prim__null
+                        else begin
+                          let _slot_3_check : ast =
+                              ref !parse_Factor (!prim__state !prim__tokens)
+                          in
+                          if !prim__is__null (!_slot_3_check)
+                          then !prim__null
+                          else begin
+                            let _slot_3 : ast =
+                                ref !_slot_3_check
+                            in
+                            let Mul_Factor_a_3 : ast =
+                                ref !_slot_3
+                            in
+                            let _slot_-1 : (ast * ast) =
+                                ref (!_slot_2, !_slot_3)
+                            in
+                            let _slot_-2 : ast =
+                                ref !prim__mk__ast (Factor (!_slot_-1))
+                            in
+                            let _slot_-3 : ((ast * ast) * ast) =
+                                ref (!_slot_0, !_slot_1, !_slot_-2)
+                            in
+                            let _slot_-4 : ast =
+                                ref !prim__mk__ast (Mul (!_slot_-3))
+                            in
+                            !_slot_-4 ;
+                            end ;
+                          end ;
+                        end
+                    | (* - *)token_id_of_45 -> begin
+                        let _off_2 : int =
+                            ref !prim__tokens .offset
+                        in
+                        let _slot_2 : ast =
+                            ref !prim__match__tk (!prim__tokens
+                            !prim__tk__id (-))
+                        in
+                        if !prim__is__null (!_slot_2)
+                        then !prim__null
+                        else begin
+                          let _slot_3_check : ast =
+                              ref !parse_Factor (!prim__state !prim__tokens)
+                          in
+                          if !prim__is__null (!_slot_3_check)
+                          then !prim__null
+                          else begin
+                            let _slot_3 : ast =
+                                ref !_slot_3_check
+                            in
+                            let Mul_Factor_a_3 : ast =
+                                ref !_slot_3
+                            in
+                            let _slot_-1 : (ast * ast) =
+                                ref (!_slot_2, !_slot_3)
+                            in
+                            let _slot_-2 : ast =
+                                ref !prim__mk__ast (Factor (!_slot_-1))
+                            in
+                            let _slot_-3 : ((ast * ast) * ast) =
+                                ref (!_slot_0, !_slot_1, !_slot_-2)
+                            in
+                            let _slot_-4 : ast =
+                                ref !prim__mk__ast (Mul (!_slot_-3))
+                            in
+                            !_slot_-4 ;
+                            end ;
+                          end ;
+                        end
+                    | (* * *)token_id_of_42 -> begin
+                        let _slot_2_check : ast =
+                            ref !parse_Number (!prim__state !prim__tokens)
+                        in
+                        if !prim__is__null (!_slot_2_check)
+                        then !prim__null
+                        else begin
+                          let _slot_2 : ast =
+                              ref !_slot_2_check
+                          in
+                          let _slot_-1 : ast =
+                              ref !prim__mk__ast (Factor (!_slot_2))
+                          in
+                          let _slot_-2 : ((ast * ast) * ast) =
+                              ref (!_slot_0, !_slot_1, !_slot_-1)
+                          in
+                          let _slot_-3 : ast =
+                              ref !prim__mk__ast (Mul (!_slot_-2))
+                          in
+                          !_slot_-3 ;
+                          end ;
+                        end
+                    | _ ->  begin
+                      _tmp_1_flag  :=  true ;
+                      !prim__null ;
+                      end
+                    end
+               else !prim__null)
+      in
+      if !prim__is__null (!_tmp_1_result) || !_tmp_1_flag
+      then !_tmp_1_result
+      else begin
+        !prim__reset (!prim__tokens !_off_1) ;
+        !prim__null ;
+        end ;
+      end ;
+    end
+and lr_loop_Mul : ((ast * state) * tokens) -> ast =
+fun (_slot_0, prim__state, prim__tokens) ->
+  begin
+    let _off_0 : int =
+        ref !prim__tokens .offset
+    in
+    let lr_Mul_try : ast =
+        ref !lr_step_Mul (!_slot_0 !prim__state !prim__tokens)
+    in
+    while !prim__is__null (!lr_Mul_try)
+      begin
+        _off_0  :=  !prim__tokens .offset ;
+        _slot_0  :=  !lr_Mul_try ;
+        lr_Mul_try  :=  !lr_step_Mul (!_slot_0 !prim__state !prim__tokens) ;
+        end
+    done ;
+    !prim__reset (!prim__tokens !_off_0) ;
+    !_slot_0 ;
+    end
+and parse_Factor : (state * tokens) -> ast =
+fun (prim__state, prim__tokens) ->
+  begin
+    let _tmp_0_flag : bool =
+        ref false
+    in
+    let _off_0 : int =
+        ref !prim__tokens .offset
+    in
+    let _tmp_0_result : ast =
+        ref (if !prim__peekable (!prim__tokens 0)
+             then begin
+                  match !prim__peek (!prim__tokens 0) .idint with
+                  | (* number *)token_id_of_110_117_109_98_101_114 -> begin
+                      let _off_1 : int =
+                          ref !prim__tokens .offset
+                      in
+                      let _slot_0 : ast =
+                          ref !prim__match__tk (!prim__tokens
+                          !prim__tk__id (number))
+                      in
+                      if !prim__is__null (!_slot_0)
+                      then !prim__null
+                      else begin
+                        let _slot_-1 : ast =
+                            ref !prim__mk__ast (Number (!_slot_0))
+                        in
+                        let _slot_-2 : ast =
+                            ref !prim__mk__ast (Factor (!_slot_-1))
+                        in
+                        !_slot_-2 ;
+                        end ;
+                      end
+                  | (* - *)token_id_of_45 -> begin
+                      let _off_1 : int =
+                          ref !prim__tokens .offset
+                      in
+                      let _slot_0 : ast =
+                          ref !prim__match__tk (!prim__tokens !prim__tk__id (-))
+                      in
+                      if !prim__is__null (!_slot_0)
+                      then !prim__null
+                      else begin
+                        let _slot_1_check : ast =
+                            ref !parse_Factor (!prim__state !prim__tokens)
+                        in
+                        if !prim__is__null (!_slot_1_check)
+                        then !prim__null
+                        else begin
+                          let _slot_1 : ast =
+                              ref !_slot_1_check
+                          in
+                          let Factor_a_2 : ast =
+                              ref !_slot_1
+                          in
+                          let _slot_-1 : (ast * ast) =
+                              ref (!_slot_0, !_slot_1)
+                          in
+                          let _slot_-2 : ast =
+                              ref !prim__mk__ast (Factor (!_slot_-1))
+                          in
+                          !_slot_-2 ;
+                          end ;
+                        end ;
+                      end
+                  | _ ->  begin
+                    _tmp_0_flag  :=  true ;
+                    !prim__null ;
+                    end
+                  end
+             else !prim__null)
+    in
+    if !prim__is__null (!_tmp_0_result) || !_tmp_0_flag
+    then !_tmp_0_result
+    else begin
+      !prim__reset (!prim__tokens !_off_0) ;
+      !prim__null ;
+      end ;
+    end
+and parse_Mul : (state * tokens) -> ast =
+fun (prim__state, prim__tokens) ->
+  if !always__true (!prim__state)
+  then begin
+    let _tmp_0_flag : bool =
+        ref false
+    in
+    let _off_0 : int =
+        ref !prim__tokens .offset
+    in
+    let _tmp_0_result : ast =
+        ref (if !prim__peekable (!prim__tokens 1)
+             then begin
+                  match !prim__peek (!prim__tokens 1) .idint with
+                  | (* number *)token_id_of_110_117_109_98_101_114 -> begin
+                      let _off_1 : int =
+                          ref !prim__tokens .offset
+                      in
+                      let _slot_0 : ast =
+                          ref !prim__match__tk (!prim__tokens !prim__tk__id (-))
+                      in
+                      if !prim__is__null (!_slot_0)
+                      then !prim__null
+                      else begin
+                        let _slot_1_check : ast =
+                            ref !parse_Factor (!prim__state !prim__tokens)
+                        in
+                        if !prim__is__null (!_slot_1_check)
+                        then !prim__null
+                        else begin
+                          let _slot_1 : ast =
+                              ref !_slot_1_check
+                          in
+                          let Mul_Factor_a_2 : ast =
+                              ref !_slot_1
+                          in
+                          let _slot_-1 : (ast * ast) =
+                              ref (!_slot_0, !_slot_1)
+                          in
+                          let _slot_-2 : ast =
+                              ref !prim__mk__ast (Factor (!_slot_-1))
+                          in
+                          let _slot_-3 : ast =
+                              ref !prim__mk__ast (Mul (!_slot_-2))
+                          in
+                          !lr_loop_Mul (!_slot_-3 !prim__state !prim__tokens) ;
+                          end ;
+                        end ;
+                      end
+                  | (* - *)token_id_of_45 -> begin
+                      let _off_1 : int =
+                          ref !prim__tokens .offset
+                      in
+                      let _slot_0 : ast =
+                          ref !prim__match__tk (!prim__tokens !prim__tk__id (-))
+                      in
+                      if !prim__is__null (!_slot_0)
+                      then !prim__null
+                      else begin
+                        let _slot_1_check : ast =
+                            ref !parse_Factor (!prim__state !prim__tokens)
+                        in
+                        if !prim__is__null (!_slot_1_check)
+                        then !prim__null
+                        else begin
+                          let _slot_1 : ast =
+                              ref !_slot_1_check
+                          in
+                          let Mul_Factor_a_2 : ast =
+                              ref !_slot_1
+                          in
+                          let _slot_-1 : (ast * ast) =
+                              ref (!_slot_0, !_slot_1)
+                          in
+                          let _slot_-2 : ast =
+                              ref !prim__mk__ast (Factor (!_slot_-1))
+                          in
+                          let _slot_-3 : ast =
+                              ref !prim__mk__ast (Mul (!_slot_-2))
+                          in
+                          !lr_loop_Mul (!_slot_-3 !prim__state !prim__tokens) ;
+                          end ;
+                        end ;
+                      end
+                  | (* * *)token_id_of_42 -> begin
+                      let _off_1 : int =
+                          ref !prim__tokens .offset
+                      in
+                      let _slot_0 : ast =
+                          ref !prim__match__tk (!prim__tokens
+                          !prim__tk__id (number))
+                      in
+                      if !prim__is__null (!_slot_0)
+                      then !prim__null
+                      else begin
+                        let _slot_-1 : ast =
+                            ref !prim__mk__ast (Number (!_slot_0))
+                        in
+                        let _slot_-2 : ast =
+                            ref !prim__mk__ast (Factor (!_slot_-1))
+                        in
+                        let _slot_-3 : ast =
+                            ref !prim__mk__ast (Mul (!_slot_-2))
+                        in
+                        !lr_loop_Mul (!_slot_-3 !prim__state !prim__tokens) ;
+                        end ;
+                      end
+                  | _ ->  begin
+                    _tmp_0_flag  :=  true ;
+                    !prim__null ;
+                    end
+                  end
+             else !prim__null)
+    in
+    if !prim__is__null (!_tmp_0_result) || !_tmp_0_flag
+    then !_tmp_0_result
+    else begin
+      !prim__reset (!prim__tokens !_off_0) ;
+      !prim__null ;
+      end ;
+    end
+  else !prim__null
+and parse_Number : (state * tokens) -> ast =
+fun (prim__state, prim__tokens) ->
+  begin
+    let _off_0 : int =
+        ref !prim__tokens .offset
+    in
+    let _slot_0 : ast =
+        ref !prim__match__tk (!prim__tokens !prim__tk__id (number))
+    in
+    if !prim__is__null (!_slot_0)
+    then !prim__null
+    else begin
+      let _slot_-1 : ast =
+          ref !prim__mk__ast (Number (!_slot_0))
+      in
+      !_slot_-1 ;
+      end ;
+    end
+
+```
+
+
+<!-- ## Note: Front End
 ```haskell
 infix 5 -->
 infix 6 |=
@@ -183,7 +567,7 @@ def lr.step.Mul(.slot.0, %state, %tokens)
     then %null
     else .tmp.0.flag =  False
          .off.0 =  %tokens.offset
-         .tmp.0.result = 
+         .tmp.0.result =
              if %peekable(%tokens, 1)
              then switch %peek(%tokens, 1).idint
                   case %tk_id("number") :
@@ -244,7 +628,7 @@ def lr.loop.Mul(.slot.0, %state, %tokens)
 def parse.Factor(%state, %tokens)
     .tmp.0.flag =  False
     .off.0 =  %tokens.offset
-    .tmp.0.result = 
+    .tmp.0.result =
         if %peekable(%tokens, 0)
         then switch %peek(%tokens, 0).idint
              case %tk_id("number") :
@@ -279,7 +663,7 @@ def parse.Mul(%state, %tokens)
     if always_true(%state)
     then .tmp.0.flag =  False
          .off.0 =  %tokens.offset
-         .tmp.0.result = 
+         .tmp.0.result =
              if %peekable(%tokens, 1)
              then switch %peek(%tokens, 1).idint
                   case %tk_id("number") :
@@ -625,4 +1009,4 @@ rec parse.Number : (State,Tokens) -> ast () =
                                      %mk_ast("Number",
                                      [(bool,any)]tuple(.slot.0))
              .slot.-1
-```
+``` -->

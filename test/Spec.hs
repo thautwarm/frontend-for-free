@@ -16,6 +16,7 @@ import RBNF.IRs.Reimu
 import RBNF.IRs.ReimuTyping
 import RBNF.IRs.IRTrans
 import RBNF.TypeSystem (RT)
+import RBNF.BackEnds.TargetGen (emit, OCamlBackEnd)
 
 import RSolve.Solver
 import RSolve.PropLogic
@@ -159,7 +160,9 @@ test4 = do
     --           ]
     let bs = irTransform a :: [Reimu RT]
     -- ($ bs) (print . pretty)
-    forM_ bs $ print . pretty
+        ocaml :: Reimu RT -> Doc OCamlBackEnd
+        ocaml = emit
+    forM_ bs $ print . ocaml
     -- putStrLn "\n BIR with declarations:"
     -- printBIR 80 $ bWithDecl
     -- let env = emptyTCEnv emptyTInfo

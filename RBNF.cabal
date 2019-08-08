@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ccf0c6d706453c7fa86b6936d38baf91137269e3f18974ff8576dbfe4c0a17cd
+-- hash: 1f3230ff40aa68bd1699ffd4e0df60a3abd1c6c48fb23fe7e98235f436e0ccf2
 
 name:           RBNF
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       RBNF
       RBNF.BackEnds.Merlin
+      RBNF.BackEnds.TargetGen
       RBNF.CodeGen
       RBNF.Grammar
       RBNF.Graph
@@ -55,6 +56,7 @@ library
   hs-source-dirs:
       src
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
+  ghc-options: -fno-warn-partial-type-signatures
   build-depends:
       RSolve
     , aeson
@@ -65,6 +67,7 @@ library
     , prettyprinter
     , text
     , transformers
+    , utf8-string
     , vector
   default-language: Haskell2010
 
@@ -75,7 +78,7 @@ executable RBNF-exe
   hs-source-dirs:
       app
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
     , RSolve
@@ -87,6 +90,7 @@ executable RBNF-exe
     , prettyprinter
     , text
     , transformers
+    , utf8-string
     , vector
   default-language: Haskell2010
 
@@ -98,7 +102,7 @@ test-suite RBNF-test
   hs-source-dirs:
       test
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
     , RSolve
@@ -110,5 +114,6 @@ test-suite RBNF-test
     , prettyprinter
     , text
     , transformers
+    , utf8-string
     , vector
   default-language: Haskell2010

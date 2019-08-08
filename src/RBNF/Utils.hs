@@ -26,4 +26,4 @@ deriving instance Traversable f => Traversable (TaggedFixT f)
 
 
 mangling :: Text -> Text -> Text -> Text
-mangling a b = replace a b . replace a (append a a)
+mangling a b = replace a b . replace b (append b b)

@@ -10,13 +10,14 @@ import RBNF.LookAHead
 import RBNF.Graph
 import RBNF.CodeGen
 import RBNF.IRs.Marisa
+import RBNF.IRs.MarisaHeader
 
 import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
 
 parserGen :: Int -> Bool -> CGrammar -> Marisa
-parserGen k withTrace cg = MKBlock $ lrCodes ++ nonLRCodes
+parserGen k withTrace cg = addHeader withTrace . MKBlock $ lrCodes ++ nonLRCodes
     where
         graph      = parsingGraph cg
         decisions  = M.map decideId3FromLATree $ makeLATables k graph

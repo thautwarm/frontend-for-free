@@ -15,6 +15,7 @@ import RBNF.IRs.MarisaLibrary
 import RBNF.IRs.Reimu
 import RBNF.IRs.ReimuTyping
 import RBNF.IRs.IRTrans
+import RBNF.TypeSystem (RT)
 
 import RSolve.Solver
 import RSolve.PropLogic
@@ -36,6 +37,7 @@ import qualified Data.Map as M
 import qualified Data.List as L
 
 import qualified Data.Text.Lazy.IO as T
+import           Data.Text.Prettyprint.Doc
 
 import Control.Arrow
 
@@ -144,7 +146,7 @@ test3 = do
 test4 = do
     putStrLn ""
     let a = parserGen 1 False parsers
-    print $ seeMarisa a
+    -- print $ seeMarisa a
     -- let a =
     --       ADef (AName "parse.Number") [ABuiltin "state", ABuiltin "tokens"] $
     --           ABlock [
@@ -155,28 +157,30 @@ test4 = do
     --                 -- AAssign (AName ".slot.0")
     --             --   , AVar (ABuiltin "off")
     --           ]
-    let b = irTransform a
+    let bs = irTransform a :: [Reimu RT]
+    -- ($ bs) (print . pretty)
+    forM_ bs $ print . pretty
     -- putStrLn "\n BIR with declarations:"
     -- printBIR 80 $ bWithDecl
-    let env = emptyTCEnv emptyTInfo
-    let res = flip runMS env $ do
-            basicTCEnv True
-            bWithAnnotated <- tc bWithDecl
-            constrs <- getsMS $ view (ext . constr)
-            let dnfs = unionEquations $ forM_ constrs assert
-                ms =  flip L.map dnfs $ \dnf ->
-                            forM dnf solve
-                alts = case ms of
-                        [] -> error "emm"
-                        x:xs -> L.foldl (<|>) x xs
-            alts
-            bTyped <- pruneTypedBIR bWithAnnotated
-            return $ typedBIRToDoc bTyped
-    putStrLn "\npossible typed BIR:"
+    -- let env = emptyTCEnv emptyTInfo
+    -- let res = flip runMS env $ do
+    --         basicTCEnv True
+    --         bWithAnnotated <- tc bWithDecl
+    --         constrs <- getsMS $ view (ext . constr)
+    --         let dnfs = unionEquations $ forM_ constrs assert
+    --             ms =  flip L.map dnfs $ \dnf ->
+    --                         forM dnf solve
+    --             alts = case ms of
+    --                     [] -> error "emm"
+    --                     x:xs -> L.foldl (<|>) x xs
+    --         alts
+    --         bTyped <- pruneTypedBIR bWithAnnotated
+    --         return $ typedBIRToDoc bTyped
+    -- putStrLn "\npossible typed BIR:"
 
-    -- -- print $ L.length res
-    forM_ res $ \(doc, _) ->
-        print doc
+    -- -- -- print $ L.length res
+    -- forM_ res $ \(doc, _) ->
+    --     print doc
 
 test5  = T.writeFile "a.txt" $ dumpCG parsers
 main = test4

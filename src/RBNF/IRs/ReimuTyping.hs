@@ -12,6 +12,8 @@ import RBNF.HMTypeInfer
 import RSolve.MapLike
 import RSolve.PropLogic
 import RSolve.MultiState
+import RSolve.Solver
+
 import RBNF.Utils
 import RBNF.Name
 import RBNF.TypeSystem
@@ -28,7 +30,7 @@ import qualified Data.Map  as M
 import qualified Data.Set  as S
 import qualified Data.List as L
 
--- import Debug.Trace
+import Debug.Trace
 
 type T = HMT RT
 type TCEnv = HMTCEnv RT
@@ -45,8 +47,8 @@ data TInfo
         , _constr     :: [WFF Unif] -- _constraints
         , maxTupleDim :: Int
         -- context sensitive
-        , _types  :: Map MName T
-        , _kinds  :: Map MName T
+        , _types      :: Map MName T
+        , _kinds      :: Map MName T
        }
 
 emptyTInfo = TInfo [] M.empty [] 6 M.empty M.empty
@@ -96,107 +98,15 @@ nTupleST (x:xs) =  foldl (:*) x xs
 declareStruct :: MName -> [String] -> [(String, T)] ->  MS (TCEnv TInfo) T
 declareStruct structName typeParams fields = do
     let freshvars = S.fromList typeParams
-        struct  = TNom $ TSig structName
-        tapp = struct :# nTupleST [TFresh p | p <- typeParams]
+        struct    = TNom $ RTSig structName
+        tParams   = [TFresh p | p <- typeParams]
+        tapp      = case tParams of
+            [] -> struct
+            _  -> struct :# nTupleST tParams
     forM_ fields $ \(fieldName, fieldType) ->
         modifyMS $ over ext (addField fieldName freshvars tapp fieldType)
     modifyMS $ over ext $ addTypeApp structName struct
     return struct
-
-fixState :: Monad m => StateT s m a -> ReaderT s m a
-fixState a = fst <$> (ReaderT $ runStateT a)
-
-mutReader :: Monad m => ReaderT s m a -> StateT s m a
-mutReader a =
-    let read = runReaderT a
-        fn s = do
-            a <- read s
-            return (a, s)
-    in StateT fn
-
-tforall :: [String] -> T -> T
-tforall = TForall . S.fromList
-
-basicTCEnv :: Bool -> MS (TCEnv TInfo) ()
-basicTCEnv withTrace = do
-    -- primitive
-    let unit   = TNom $ RTPrim RTUnit
-    let int    = TNom $ RTPrim RTInt
-    let float  = TNom $ RTPrim RTFloat
-    let str    = TNom $ RTPrim RTString
-    let bool   = TNom $ RTPrim RTBool
-    let sup    = TNom $ RTPrim RTAny
-    let state  = TNom $ RTPrim RTState
-    let tokens = TNom $ RTPrim RTTokens
-
-    tokenTy' <- declareStruct "token" [] [
-            (tokenId,   int),
-            (tokenCol,  int),
-            (tokenLine, int),
-            (tokenVal,  str),
-            (tokenName, str)
-        ]
-
-    astTy' <- declareStruct "ast" [] []
-    listT  <- declareStruct "linkedlist" ["a"] []
-
-    let tokenTy  = tokenTy' :# unit
-        tokensTy = tokens
-        astTy    = astTy'  :# unit
-        errTy    = int :* str
-        -- | forall a. (a, a) -> bool
-        cmpTy = tforall ["a"] $
-            (TFresh "a" :* TFresh "a") :-> bool
-
-    -- make a attribute 'offset' for 'tokens' that 'tokens.offset : int'
-    modifyMS $ over ext $ addField tokenOff S.empty tokensTy int
-
-    enterType dsl_eq_n cmpTy
-    enterType dsl_neq_n cmpTy
-
-    -- null  : forall a. a
-    enterType dsl_null_n $ tforall ["a"] $ TFresh "a"
-    -- | peekable : (token_array_view, int) -> bool
-    enterType dsl_peekable_n $
-        (tokensTy :* int) :-> bool
-
-    -- | peek: (token_array_view, int) -> token
-    enterType dsl_peek_n $
-        (tokensTy :* int) :-> tokenTy
-    -- | match_tk : (token_array, view, int) ->
-    --      (bool, any) iff withTrace
-    --      ast_type
-    let dsl_match_tk_ret_ty
-            | withTrace = bool :* sup
-            | otherwise = astTy
-    enterType dsl_match_tk_n $
-        (tokensTy :* int) :-> dsl_match_tk_ret_ty
-    -- tk_id : constant (string -> int)
-    enterType dsl_s_to_i_n $ str :-> int
-    -- (unsafe) reset : (token_array_view, int) -> unit
-    enterType dsl_reset_n $
-        (tokensTy :* int) :-> unit
-    -- cons : forall a. (a, a list) -> a list
-    enterType dsl_cons_n $
-        let listA = listT :# (TFresh "a")
-        in  tforall ["a"] $
-                (TFresh "a" :* listA) :-> listA
-    -- nil : forall a. a list
-    enterType dsl_cons_n $ listT :# (TFresh "a")
-    -- to_errs : any -> err list
-    enterType dsl_to_errs_n $ sup :-> listT :# errTy
-    -- to_res: any -> ast
-    enterType dsl_to_res_n $ sup :-> astTy
-    -- to_any: forall a. a -> any
-    enterType dsl_to_any_n $
-        tforall ["a"] $ TFresh "a" :-> sup
-    -- mk_ast: forall a. (str, a) -> ast
-    enterType dsl_mkast_n $
-        tforall ["a"] $ (str :* TFresh "a") :-> astTy
-    -- always_true : state -> bool
-    enterType (MName "always_true") $ state :-> bool
-    return ()
-
 
 commit = do
     s <- getsMS $ view ext
@@ -229,14 +139,18 @@ getPrim t = TNom $ RTPrim t
 
 tc :: Reimu a -> MS (TCEnv TInfo) (Reimu T)
 tc bIR@InT {outT=base} = case base of
-    RExtern n (Left t) m -> do
+    RExtern n e@(Left t) m -> do
         enterType n t
         m <- tc m
-        return InT {tag = t, outT=RExtern n t m}
-    RExtern n (Right (freevars, xs)) m -> do
+        return InT {tag = t, outT=RExtern n e m}
+    RExtern n e@(Right (freevars, xs)) m -> do
         t <- declareStruct n freevars xs
+
+        -- a <- getsMS $ view (ext . fields)
+        -- trace (show a) $ return ()
+
         m <- tc m
-        return InT {tag = t, outT=RExtern n t m}
+        return InT {tag = t, outT=RExtern n e m}
     RAssign n a -> do
         t <- typeOf n
         a <- tc a
@@ -260,7 +174,6 @@ tc bIR@InT {outT=base} = case base of
 
         -- if a, typeof a == bool
         cond <- tc a
-        let bool = getPrim RTBool
         assert_ $ tag cond |==| bool
 
         ext'' <- commit
@@ -277,7 +190,6 @@ tc bIR@InT {outT=base} = case base of
     RCall f args -> do
         f    <- tc f
         args <- mapM tc args
-        let unitT = getPrim RTUnit
         let argType = nTupleST $ map tag args
         paramType <- TVar <$> newTVar
         retType   <- TVar <$> newTVar
@@ -305,7 +217,6 @@ tc bIR@InT {outT=base} = case base of
         return InT {tag = tfield, outT=RAttr a attr}
     RPrj a dim -> do
         a <- tc a
-        let unitT = getPrim RTUnit
         mtd    <- getsMS $ maxTupleDim . view ext
         elty   <- TVar <$> newTVar
         initTp <- replicateM (dim-1) $ TVar <$> newTVar
@@ -325,10 +236,8 @@ tc bIR@InT {outT=base} = case base of
         assert_ $ tag a |==| tp
         return InT {tag=elty, outT=RPrj a dim}
     RWhile a b -> do
-        let unitT = getPrim RTUnit
         ext' <- commit
         cond <- tc a
-        let bool = getPrim RTBool
         assert_ $ tag cond |==| bool
         body <- tc b
         reset ext'
@@ -338,7 +247,6 @@ tc bIR@InT {outT=base} = case base of
         test <- tc a
         ext'' <- commit
         -- can only switch on integer
-        let int = getPrim RTInt
         assert_ $ int |==| tag test
 
         cases <- forM bs $ \(a, b) -> do
@@ -356,10 +264,9 @@ tc bIR@InT {outT=base} = case base of
     RDef argNames b -> do
         ext'   <- commit
         tpArgs <- forM argNames $ \case
-                MBuiltin "tokens" -> return $ getPrim RTTokens
+                MBuiltin "tokens" -> return $ tokensT
                 MBuiltin "state"  -> return $ getPrim RTState
                 _                 -> (TVar <$> newTVar)
-        let unitT = getPrim RTUnit
         let argType = nTupleST tpArgs
         retType <- TVar <$> newTVar
         let fType = argType :-> retType
@@ -372,10 +279,9 @@ tc bIR@InT {outT=base} = case base of
 
     RMutual names suite -> do
         xs <- forM names $ const (TVar <$> newTVar)
-        forM (zip names xs) $ uncurry enterType
-        let unitT = getPrim RTUnit
+        forM_ (zip names xs) $ uncurry enterType
         suite <- mapM tc suite
-        forM (zip xs suite) $ \(x, expr) ->
+        forM_ (zip xs suite) $ \(x, expr) ->
             assert_ $ x |==| tag expr
 
         let t = case suite of
@@ -383,9 +289,7 @@ tc bIR@InT {outT=base} = case base of
                     xs -> tag $ last suite
         return InT {tag=t, outT=RMutual names suite}
 
-    RVar n@(MBuiltin "tokens") -> do
-        let tokensTy = getPrim RTTokens
-        return InT {tag = tokensTy, outT = RVar n}
+    RVar n@(MBuiltin "tokens") -> return InT {tag = tokensT, outT = RVar n}
 
     RVar n@(MBuiltin "state") -> do
         let state = getPrim RTState
@@ -394,34 +298,30 @@ tc bIR@InT {outT=base} = case base of
     RVar n -> do
         t <- typeOf n
         return InT {tag=t, outT=RVar n}
-    RInt i -> do
-        let int  = getPrim RTInt
-        return InT {tag=int, outT=RInt i}
-    RStr s -> do
-        let str  = getPrim RTString
-        return InT {tag=str, outT=RStr s}
-    RBool b -> do
-        let bool = getPrim RTBool
-        return InT {tag=bool, outT= RBool b}
+    RInt i -> return InT {tag=int, outT=RInt i}
+    RStr s -> return InT {tag=str, outT=RStr s}
+    RBool b -> return InT {tag=bool, outT= RBool b}
     RTuple xs -> do
         xs <- mapM tc xs
-        let unit = getPrim RTUnit
         let tp = nTupleST (map tag xs)
         return InT {tag=tp, outT=RTuple xs}
     RAnd a b -> do
-        let bool = getPrim RTBool
         a <- tc a
         assert_ $ tag a |==| bool
         b <- tc b
         assert_ $ tag b |==| bool
         return  InT {tag = bool, outT = RAnd a b}
     ROr a b -> do
-        let bool = getPrim RTBool
         a <- tc a
         assert_ $ tag a |==| bool
         b <- tc b
         assert_ $ tag b |==| bool
         return  InT {tag = bool, outT = ROr a b}
+    where bool  = getPrim RTBool
+          unitT = getPrim RTUnit
+          str   = getPrim RTString
+          int   = getPrim RTInt
+          tokensT = TNom . RTSig . MName $ "tokens"
 
 
 pruneTypedRIR :: Reimu T -> MS (TCEnv TInfo) (Reimu RT)
@@ -443,3 +343,18 @@ isSimpleExpr = \case
     RTuple xs -> all isSimpleExpr (map outT xs)
     RIf x y z -> all isSimpleExpr $ map outT [x, y, z]
     _ -> False
+
+
+solveReimu :: Reimu a -> [Reimu RT]
+solveReimu a = L.map fst . flip runMS env $ do
+        annotated <- tc a
+        constrs   <- getsMS $ view (ext . constr)
+        let dnfs = unionEquations $ forM_ constrs assert
+            ms   = flip L.map dnfs $ \dnf -> forM_ dnf solve
+            alts = case ms of
+                [] -> error "impossible"
+                x:xs -> L.foldl (<|>) x xs
+        alts
+        pruneTypedRIR annotated
+    where
+        env = emptyTCEnv emptyTInfo

@@ -6,9 +6,8 @@ module RBNF.IRs.Marisa where
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   ( Generic )
 import           RBNF.Name
-import           RBNF.HMTypeInfer               ( HMT(..) )
-import           RBNF.TypeSystem                ( RT(..), RTPrim(..) )
-import           RBNF.MarisaLibrary
+import           RBNF.HMTypeInfer               ( HMT )
+import           RBNF.TypeSystem                ( RT )
 
 -- | MK for Marisa Kirisame
 -- There's a punning case as the abbreviation of "make"
@@ -109,4 +108,5 @@ seeMarisa = align . \case
         , seeMarisa m
         ]
 
-
+instance Pretty Marisa where
+    pretty = seeMarisa

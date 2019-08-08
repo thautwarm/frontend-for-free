@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: de0deb0769b6c9a1c6e75ab566b981b6de4079dc834f8d78ffaa3c43f5d500e4
+-- hash: 92b04c921c81a1821212d1681e8fdcd6d37ff22c504f3450ce04280efd1ac656
 
 name:           RBNF
 version:        0.1.0.0
@@ -34,16 +34,20 @@ library
       RBNF.HMTypeInfer
       RBNF.IRs.Cirno
       RBNF.IRs.Flandre
+      RBNF.IRs.IRTrans
       RBNF.IRs.Marisa
+      RBNF.IRs.MarisaHeader
       RBNF.IRs.MarisaLibrary
       RBNF.IRs.Reimu
       RBNF.IRs.ReimuTyping
+      RBNF.IRs.TransMarisaToReimu
       RBNF.LeftRecur
       RBNF.LookAHead
       RBNF.Name
       RBNF.Semantics
       RBNF.Serialization
       RBNF.Symbols
+      RBNF.TypeSystem
       RBNF.Utils
   other-modules:
       Paths_RBNF

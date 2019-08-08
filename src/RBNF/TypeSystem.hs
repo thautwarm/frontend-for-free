@@ -1,5 +1,6 @@
 module RBNF.TypeSystem where
 import RBNF.Utils
+import RBNF.Name
 
 import GHC.Generics (Generic)
 data RTPrim
@@ -11,7 +12,6 @@ data RTPrim
     | RTBool
     -- blackboxed builtins
     | RTState
-    | RTTokens
     deriving (Eq, Ord, Generic)
 
 instance Show RTPrim where
@@ -23,7 +23,6 @@ instance Show RTPrim where
         RTAny -> "any"
         RTBool -> "bool"
         RTState -> "State"
-        RTTokens -> "Tokens"
 
 -- RT for Reimu type, not for runtime
 data RT
@@ -33,7 +32,7 @@ data RT
     | RTApp RT RT
     -- we just compare structures by its names(and type parameters).
     -- our repo is for parsing instead of a general programming language...
-    | RTSig String
+    | RTSig MName
     | RTVar String
     | RTGeneric [String] RT
     deriving (Eq, Ord, Generic)
@@ -46,7 +45,7 @@ instance Show RT where
         RTTuple xs  -> "(" ++ intercalate "," (map show xs) ++ ")"
         RTGeneric xs t -> "forall " ++ (unwords xs) ++ ". " ++ show t
         RTApp t1 t2    -> show t1 ++ " " ++ showNest t2
-        RTSig s        -> s
+        RTSig s        -> show s
         where
             showNest s
                 | isNest s  = "(" ++ show s ++ ")"

@@ -31,7 +31,7 @@ data ReimuBase a
     | RTuple [a]
     | RAnd a a
     | ROr  a a
-    | RExtern MName (Either (HMT RT) ([String], [(String, HMT RT)]) a
+    | RExtern MName (Either (HMT RT) ([String], [(String, HMT RT)])) a
 
 
 deriving instance Eq a => Eq (ReimuBase a)
@@ -171,3 +171,6 @@ seeReimu = frec
                 [ sep [pretty "external", viaShow n, pretty (":" ++ show t)]
                 , frec m
                 ]
+
+instance Show a => Pretty (Reimu a) where
+    pretty = seeReimu

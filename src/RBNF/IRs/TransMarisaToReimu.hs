@@ -66,7 +66,7 @@ resolveDecl :: Reimu a -> State (Set MName) (Reimu a)
 
 resolveDecl bIR@InT {outT=base} =
   case base of
-    RExtern n _ m -> modify (S.insert n) >> resolveDecl m
+    RExtern n e m -> resumeTag . RExtern n e  <$> (modify (S.insert n) >> resolveDecl m)
     RAssign n a ->
       gets (n `S.member`) >>= \case
         False -> do

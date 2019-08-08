@@ -1,8 +1,10 @@
 module RBNF.IRs.IRTrans where
 import RBNF.IRs.Marisa
 import RBNF.IRs.Reimu
-import RBNF.IRs.TransMarisaToReimu
+import RBNF.IRs.ReimuTyping (solveReimu)
 
+import RBNF.IRs.TransMarisaToReimu
+import RBNF.TypeSystem (RT)
 
 import qualified RBNF.IRs.ReimuTyping as RTyping
 import RSolve.MultiState
@@ -12,32 +14,18 @@ import Control.Monad.State
 
 import qualified Data.Set as S
 
-class IRTransform a b c where
+class IRTransform a b where
     irTransform :: a -> b
-    irTransformWith :: c -> a -> b
-    irTransformWith = error "not implemented"
 
 
-instance IRTransform Marisa (Reimu ()) c where
+instance IRTransform Marisa (Reimu ()) where
     irTransform mk = flip evalState S.empty $ resolveDecl $
         evalState (marisaToReimu (return ()) mk) ()
 
-instance IRTransform Marisa (Reimu RTyping.RT)  where
-    irTransform =
-        let env = emptyTCEnv emptyTInfo
-        let res = flip runMS env $ do
-            basicTCEnv True
-            bWithAnnotated <- tc bWithDecl
-            constrs <- getsMS $ view (ext . constr)
-            let dnfs = unionEquations $ forM_ constrs assert
-                ms =  flip L.map dnfs $ \dnf ->
-                            forM dnf solve
-                alts = case ms of
-                        [] -> error "emm"
-                        x:xs -> L.foldl (<|>) x xs
-            alts
-            bTyped <- pruneTypedBIR bWithAnnotated
-            return $ typedBIRToDoc bTyped
-    
-    irTransform mk = flip evalState S.empty $ resolveDecl $
-        evalState (marisaToReimu (return ()) mk) ()
+instance IRTransform (Reimu ()) [Reimu RT]  where
+    irTransform  = solveReimu
+
+instance IRTransform Marisa [Reimu RT]  where
+    irTransform  = solveReimu . middleTrans
+        where middleTrans :: Marisa -> Reimu ()
+              middleTrans = irTransform

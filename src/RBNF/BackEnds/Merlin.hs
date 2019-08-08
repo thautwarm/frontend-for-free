@@ -26,7 +26,9 @@ showVar  :: MName -> Text
 showVar = mangleOC . pack . show
 
 mangleOC :: Text -> Text
-mangleOC = mangling "." "_" . mangling "%" "prim_"
+mangleOC = mangling "." "_" .
+           mangling "%" "prim_" .
+           mangling "-" "local_"
 
 genericVar :: String -> Text
 genericVar s = pack $ '\'':s

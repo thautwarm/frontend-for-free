@@ -32,7 +32,7 @@ Repo structure:
         Typed by an extended HM type inferencer, resolved to have declarations(`let` bindings).
 
 - RBNF.BackEnds
-    - Merlin: code generator targeting OCaml back end, internally making extending `Reimu` IRs to
+    - Merlin: code generator targeting OCaml back end, internally     extending `Reimu` IRs to
               resolve a lot of information useful for generating OCaml codes.
 
 - to be continue

@@ -162,7 +162,7 @@ test4 = do
     -- ($ bs) (print . pretty)
         ocaml :: Reimu RT -> Doc OCamlBackEnd
         ocaml = emit
-    forM_ bs $ print . ocaml
+    forM_ bs $ print . seeReimu
     -- putStrLn "\n BIR with declarations:"
     -- printBIR 80 $ bWithDecl
     -- let env = emptyTCEnv emptyTInfo

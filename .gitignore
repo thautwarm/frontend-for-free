@@ -21,6 +21,7 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 test*.json
+stack.yaml.lock
 
 # python generated
 Digraph.gv

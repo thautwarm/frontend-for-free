@@ -62,7 +62,7 @@ py_indent :: State CFG ()
 py_indent = modify $ over lyt (+1)
 
 py_dedent :: State CFG ()
-py_dedent = modify $ over lyt (-1)
+py_dedent = modify $ over lyt (\x -> x - 1)
 
 py_assign lhs rhs = py_build $ T.concat (lhs : " = " : rhs)
 

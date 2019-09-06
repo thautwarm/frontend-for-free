@@ -8,6 +8,7 @@ import           GHC.Generics                   ( Generic )
 import           RBNF.Name
 import           RBNF.HMTypeInfer               ( HMT )
 import           RBNF.TypeSystem                ( RT )
+import           RBNF.Utils
 
 -- | MK for Marisa Kirisame
 -- There's a punning case as the abbreviation of "make"
@@ -39,6 +40,11 @@ deriving instance Eq Marisa
 deriving instance Ord Marisa
 deriving instance Generic Marisa
 
+showSig :: Either (HMT RT) ([String], [(String, HMT RT)]) -> String
+showSig = \case
+    Left ht -> "::" ++ show ht
+    Right (as, xs) -> "=" ++ unwords as ++ ". " ++ "{" ++ fields ++ "}"
+        where fields = intercalate ", " [field ++ ":" ++ show t | (field, t) <- xs]
 
 isSimpleMarisa = \case
     MKInt  _   -> True

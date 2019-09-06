@@ -3,6 +3,7 @@ module RBNF.BackEnds.TargetGen where
 import RBNF.BackEnds.Merlin
 import RBNF.BackEnds.Pyrrha
 import RBNF.IRs.Reimu
+import RBNF.IRs.IRTrans
 import RBNF.IRs.Marisa
 import RBNF.TypeSystem
 import Data.Text.Prettyprint.Doc
@@ -23,3 +24,12 @@ instance TargetGen (Reimu RT) OCamlBackEnd where
 
 instance TargetGen Marisa PythonBackEnd where
     emit = pretty . pyGen
+
+instance TargetGen Marisa OCamlBackEnd where
+    emit a =
+        let bs = irTransform a :: [Reimu RT]
+            ocaml :: Reimu RT -> Doc OCamlBackEnd
+            ocaml = emit
+        in case bs of
+            [reimu] -> emit reimu
+            _       -> error "type checker failed." -- TODO: better msg

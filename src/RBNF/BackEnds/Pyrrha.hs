@@ -143,15 +143,15 @@ cgPy = \case
     MKSwitch test (hd:tl) defaultCase -> do
         lhs <- py_alloc
         test <- cgPy test
-        let genif token (c, e) = do
-                c <- cgPy c
-                py_build $ T.concat [token, test, " = ", c, ":"]
+        let genif token ((MKCall (MKVar dsl_s_to_i) [MKStr t]), e) = do
+                let c = T.concat [showVar dsl_s_to_i, "(", T.pack t, ")"]
+                py_build $ T.concat [token, test, " == ", c, ":"]
                 within_py_indent $ do
                     e <- cgPy e
                     py_release e
                     py_assign lhs [e]
         genif "if " hd
-        forM_ tl $ genif "elseif "
+        forM_ tl $ genif "elif "
         py_build $ "else:"
         within_py_indent $ do
             defaultCase <- cgPy defaultCase

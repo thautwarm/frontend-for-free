@@ -2,21 +2,25 @@
 
 This README is going to get updated by Aug 15.
 
-<!-- ## Usage
+## Usage
 
 ```
-RBNF -in <input json filename>
-     [-aeson <output json filename>]
+Usage:
+[-v] [-h] [-in filename] [-out filename]
+[-be python|ocaml|marisa(default)][-k lookahead number]
+[--trace : codegen with tracebacks.]
 
-     # pretty print generated ir:
-     [-dump]
-     # look ahead k
-     -k int
-     # to specify if traceback supported(with a little performance cost)
-     [-trace]
-``` -->
 
-Repo structure:
+# gen python
+RBNF -in <infile>.rbnf -k <lookahead number> -out <outfile> -be python [--codegen-with-trace]
+
+# gen ocaml
+RBNF -in <infile>.rbnf -k <lookahead number> -out <outfile> -be ocaml [--codegen-with-trace]
+
+```
+
+## Repo Structure
+
 - RBNF.IRs: a bunch of IRs useful for generating codes for various backend
     - Cirno: not for codegen, used before generating parsing graphs, to analyse parsing semantics.
 

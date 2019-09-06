@@ -198,8 +198,8 @@ miniP = bound $ do
             return $ MApp f args
     app <|> fmap (const $ MTerm f) eps
 
-parseDoc :: Parser a -> String -> Either String (a, String)
-parseDoc p s = case runParser p (s, Loc 0 0) of
+parseDoc :: String -> Either String (CGrammar, String)
+parseDoc s = case runParser modP (s, Loc 0 0) of
     Left  (a, _)    -> Left a
     Right (a, s, _) -> Right (a, s)
 

@@ -9,10 +9,10 @@ tokenLine = "lineno"
 tokenVal = "val"
 tokenName = "name" -- identical to Id
 
-dsl_eq_n = MBuiltin "=="
+dsl_eq_n = MBuiltin "eq"
 dsl_eq = MKVar dsl_eq_n
 
-dsl_neq_n = MBuiltin "!="
+dsl_neq_n = MBuiltin "not_eq"
 dsl_neq = MKVar dsl_neq_n
 
 dsl_mv_forward_n = MBuiltin "mv_forward"

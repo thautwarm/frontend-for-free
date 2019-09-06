@@ -283,7 +283,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
               reduced = MName $ "lr." ++ name ++ ".reduce"
               cond    = if withTrace
                 then MKCall dsl_neq [MKPrj (MKVar try) 0, dsl_false]
-                else MKCall dsl_is_null [MKVar try]
+                else MKCall dsl_is_not_null [MKVar try]
               -- fold left recursion:
               -- arg0 <- arg0 a b c ...
               fold = if withTrace

@@ -47,6 +47,10 @@ dsl_mkast = MKVar dsl_mkast_n
 dsl_is_null_n = MBuiltin "is_null"
 dsl_is_null = MKVar dsl_is_null_n
 
+dsl_is_not_null_n = MBuiltin "is_not_null"
+dsl_is_not_null = MKVar dsl_is_not_null_n
+
+
 dsl_int :: Int -> Marisa
 dsl_int = MKInt . fromIntegral
 

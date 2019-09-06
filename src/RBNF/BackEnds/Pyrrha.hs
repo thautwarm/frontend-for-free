@@ -144,7 +144,7 @@ cgPy = \case
         lhs <- py_alloc
         test <- cgPy test
         let genif token ((MKCall (MKVar dsl_s_to_i) [MKStr t]), e) = do
-                let c = T.concat [showVar dsl_s_to_i, "(", T.pack t, ")"]
+                let c = T.concat [showVar dsl_s_to_i, "(", T.pack $ show t, ")"]
                 py_build $ T.concat [token, test, " == ", c, ":"]
                 within_py_indent $ do
                     e <- cgPy e

@@ -27,7 +27,7 @@ def parse_B(prim__state, prim__tokens):
     if lcl_0:
         lcl_2 = prim__peek(prim__tokens, 0)
         lcl_2 = lcl_2.idint
-        if lcl_2 == prim__tk__id(b):
+        if lcl_2 == prim__tk__id("b"):
             lcl_2 = prim__tokens.offset
             _off_1 = lcl_2
             lcl_2 = prim__tk__id("b")
@@ -54,7 +54,7 @@ def parse_B(prim__state, prim__tokens):
                     lcl_3 = _slot_local__2
                 lcl_2 = lcl_3
             lcl_1 = lcl_2
-        elif lcl_2 == prim__tk__id(A):
+        elif lcl_2 == prim__tk__id("A"):
             lcl_2 = prim__tokens.offset
             _off_1 = lcl_2
             lcl_3 = prim__tk__id("A")

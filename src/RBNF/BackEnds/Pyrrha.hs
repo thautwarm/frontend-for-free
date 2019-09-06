@@ -170,7 +170,7 @@ cgPy = \case
     MKBlock [] -> return "None"
     MKBlock suite -> do
         let hd: tl' = reverse suite
-            tl      = reverse suite
+            tl      = reverse tl'
         forM_ tl $ \x ->
             py_release <$> cgPy x
         cgPy hd

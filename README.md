@@ -221,34 +221,33 @@ Check `RBNF.BackEnds.Merlin (resolve*)`.
 
 ```python
 def lr_loop_Mul(_slot_0, prim__state, prim__tokens):
-    lcl_0 = prim__reset(prim__tokens, _off_0)
-    lcl_1 = prim__is__null(lr_Mul_try)
-    while lcl_1:
-        lcl_1 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
-        lr_Mul_try = lcl_1
-        lr_Mul_reduce = lr_Mul_try
-        lcl_1 = prim__tokens.offset
-        _off_0 = lcl_1
-        lcl_1 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
-        lr_Mul_try = lcl_1
-    lcl_1 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
-    lr_Mul_try = lcl_1
-    lcl_1 = prim__tokens.offset
-    _off_0 = lcl_1
     lr_Mul_reduce = _slot_0
+    lcl_0 = prim__tokens.offset
+    _off_0 = lcl_0
+    lcl_0 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
+    lr_Mul_try = lcl_0
+    lcl_0 = prim__is__null(lr_Mul_try)
+    while lcl_0:
+        lcl_0 = prim__tokens.offset
+        _off_0 = lcl_0
+        lr_Mul_reduce = lr_Mul_try
+        lcl_0 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
+        lr_Mul_try = lcl_0
+    lcl_0 = prim__reset(prim__tokens, _off_0)
     return lr_Mul_reduce
 def lr_step_Mul(_slot_0, prim__state, prim__tokens):
+    lcl_0 = prim__tokens.offset
+    _off_0 = lcl_0
+    lcl_0 = prim__tk__id("*")
+    lcl_0 = prim__match__tk(prim__tokens, lcl_0)
+    _slot_1 = lcl_0
     lcl_0 = prim__is__null(_slot_1)
     if lcl_0:
         lcl_0 = prim__null
     else:
-        lcl_0 = prim__is__null(_tmp_1_result)
-        lcl_0 = lcl_0 or _tmp_1_flag
-        if lcl_0:
-            lcl_0 = _tmp_1_result
-        else:
-            lcl_1 = prim__reset(prim__tokens, _off_1)
-            lcl_0 = prim__null
+        _tmp_1_flag = False
+        lcl_1 = prim__tokens.offset
+        _off_1 = lcl_1
     ...
 ```
 

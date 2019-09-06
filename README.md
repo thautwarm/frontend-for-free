@@ -57,6 +57,29 @@ support for error reporting.
 
 ## Note: Front End
 
+### .rbnf
+
+- `<a>`: non-terminal rule `a`
+- `a/"a"`: terminal rule `a/quote a`
+- `a | b`: `a` or `b`
+- `a b c`: a sequence of parsing symbols
+- `name=rule`: context-xsensitive feature, locally bind what produced by `rule` to `name`.
+- `?f(x)/?f/?(f(g(x))`: use locally-binded variables to do some predictions.
+
+- `a ::= b;`: classic production definition
+- `a ::= b -> f;`: specify custom reduction rule
+
+```
+exp ::= "if" cond=exp "then"
+            t=exp
+        "else" f=exp
+        -> If(cond, t, f);
+exp ::= ...
+```
+
+P.S: comments not supported yet.
+
+### eDSL in Haskell
 
 ```haskell
 infix 5

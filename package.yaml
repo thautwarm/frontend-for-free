@@ -44,6 +44,7 @@ dependencies:
 - transformers
 - prettyprinter
 - utf8-string
+- parsec
 - RSolve
 library:
   source-dirs:

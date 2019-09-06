@@ -160,57 +160,6 @@ case elts[1]
 
 The type inference is based on HM unification and propositioinal logics(logic formulas in disjunctive normal form).
 
-RBNF currentlt provides 2 sorts of IRs named after alphabet table:
-
-- A IR: Untyped, no declarations
-
-    ```haskell
-    data AIR
-        = AAssign AName AIR
-        | ACall AIR [AIR]
-        | AAttr AIR String
-        | APrj  AIR Int
-        | AIf AIR AIR AIR
-        | AWhile AIR AIR
-        | ASwitch AIR [(AIR, AIR)] AIR
-        | ADef AName [AName] AIR
-        | ABlock [AIR]
-        -- literal
-        | AVar AName
-        | AInt Integer
-        | AStr String
-        | ABool Bool
-        | ATuple [AIR]
-        | AAnd AIR AIR
-        | AOr  AIR AIR
-    ```
-- B IR: typed, with correct declarations and scoping resolutions.
-
-    ```haskell
-    data BBase a
-    = BAssign AName a
-    | BDecl AName a
-    | BCall a [a]
-    | BAttr a String
-    | BPrj  a Int
-    | BIf a a a
-    | BWhile a a
-    | BSwitch a [(a, a)] a
-    | BDef [AName] a
-    | BMutual [AName] [a]
-    -- literal
-    | BVar AName
-    | BInt Integer
-    | BStr String
-    | BBool Bool
-    | BTuple [a]
-    | BAnd a a
-    | BOr  a a
-
-    data FixT f t = InT {tag :: t, outT :: f (FixT f t)}
-    type BIR a = FixT BBase a
-    ```
-
 ## Note: Mutable Variable Resolutions
 
 Check `RBNF.BackEnds.Merlin (resolve*)`.

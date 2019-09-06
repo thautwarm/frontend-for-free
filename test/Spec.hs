@@ -16,7 +16,7 @@ import RBNF.IRs.Reimu
 import RBNF.IRs.ReimuTyping
 import RBNF.IRs.IRTrans
 import RBNF.TypeSystem (RT)
-import RBNF.BackEnds.TargetGen (emit, OCamlBackEnd)
+import RBNF.BackEnds.TargetGen (emit, OCamlBackEnd, PythonBackEnd)
 
 import RSolve.Solver
 import RSolve.PropLogic
@@ -186,4 +186,12 @@ test4 = do
     --     print doc
 
 test5  = T.writeFile "a.txt" $ dumpCG parsers
-main = test4
+
+test6 = do
+    putStrLn ""
+    let a = parserGen 1 False parsers
+        py :: Marisa -> Doc PythonBackEnd
+        py = emit
+    print $ py a
+
+main = test6

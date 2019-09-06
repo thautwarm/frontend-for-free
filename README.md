@@ -34,6 +34,7 @@ Repo structure:
 - RBNF.BackEnds
     - Merlin: code generator targeting OCaml back end, internally     extending `Reimu` IRs to
               resolve a lot of information useful for generating OCaml codes.
+    - Pyrrha: code generator targeting Python back end
 
 - to be continue
 
@@ -50,52 +51,7 @@ You can configure the generator to specify whether to generate
 codes with error reports. The following code has no
 support for error reporting.
 
-
-```OCaml
-module GeneratedParser (
-    LexerInfo: sig val prim_token_names : (string, int) Hashtbl.t end
-) = struct
-let (* * *)token_id_of_42 : int Hashtbl.find LexerInfo.prim_token_names "*"
-let (* - *)token_id_of_45 : int Hashtbl.find LexerInfo.prim_token_names "-"
-let (* number *)token_id_of_110_117_109_98_101_114 : int Hashtbl.find LexerInfo.prim_token_names "number"
-let rec lr_step_Mul : ((ast * state) * tokens) -> ast =
-fun (_slot_0, prim__state, prim__tokens) ->
-  ...
-and lr_loop_Mul : ((ast * state) * tokens) -> ast =
-fun (_slot_0, prim__state, prim__tokens) ->
-  begin
-    let lr_Mul_reduce : (ast) ref =
-        ref _slot_0
-    in
-    let _off_0 : (int) ref =
-        ref prim__tokens .offset
-    in
-    let lr_Mul_try : (ast) ref =
-        ref (lr_step_Mul (!lr_Mul_reduce prim__state prim__tokens))
-    in
-    while prim__is__null (!lr_Mul_try)
-      begin
-        _off_0  :=  prim__tokens .offset ;
-        lr_Mul_reduce  :=  !lr_Mul_try ;
-        lr_Mul_try  :=  lr_step_Mul (!lr_Mul_reduce prim__state prim__tokens) ;
-        end
-    done ;
-    prim__reset (prim__tokens !_off_0) ;
-    !lr_Mul_reduce ;
-    end
-and parse_Factor : (state * tokens) -> ast =
-fun (prim__state, prim__tokens) ->
-    ...
-and parse_Mul : (state * tokens) -> ast =
-fun (prim__state, prim__tokens) ->
-    ...
-and parse_Number : (state * tokens) -> ast =
-fun (prim__state, prim__tokens) ->
-  ...
-end
-```
-
- ## Note: Front End
+## Note: Front End
 
 
 ```haskell
@@ -258,3 +214,86 @@ RBNF currentlt provides 2 sorts of IRs named after alphabet table:
 ## Note: Mutable Variable Resolutions
 
 Check `RBNF.BackEnds.Merlin (resolve*)`.
+
+## Back Ends
+
+### Python Example:
+
+```python
+def lr_loop_Mul(_slot_0, prim__state, prim__tokens):
+    lcl_0 = prim__reset(prim__tokens, _off_0)
+    lcl_1 = prim__is__null(lr_Mul_try)
+    while lcl_1:
+        lcl_1 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
+        lr_Mul_try = lcl_1
+        lr_Mul_reduce = lr_Mul_try
+        lcl_1 = prim__tokens.offset
+        _off_0 = lcl_1
+        lcl_1 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
+        lr_Mul_try = lcl_1
+    lcl_1 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
+    lr_Mul_try = lcl_1
+    lcl_1 = prim__tokens.offset
+    _off_0 = lcl_1
+    lr_Mul_reduce = _slot_0
+    return lr_Mul_reduce
+def lr_step_Mul(_slot_0, prim__state, prim__tokens):
+    lcl_0 = prim__is__null(_slot_1)
+    if lcl_0:
+        lcl_0 = prim__null
+    else:
+        lcl_0 = prim__is__null(_tmp_1_result)
+        lcl_0 = lcl_0 or _tmp_1_flag
+        if lcl_0:
+            lcl_0 = _tmp_1_result
+        else:
+            lcl_1 = prim__reset(prim__tokens, _off_1)
+            lcl_0 = prim__null
+    ...
+```
+
+### OCaml Example:
+
+```ocaml
+module GeneratedParser (
+    LexerInfo: sig val prim_token_names : (string, int) Hashtbl.t end
+) = struct
+let (* * *)token_id_of_42 : int Hashtbl.find LexerInfo.prim_token_names "*"
+let (* - *)token_id_of_45 : int Hashtbl.find LexerInfo.prim_token_names "-"
+let (* number *)token_id_of_110_117_109_98_101_114 : int Hashtbl.find LexerInfo.prim_token_names "number"
+let rec lr_step_Mul : ((ast * state) * tokens) -> ast =
+fun (_slot_0, prim__state, prim__tokens) ->
+  ...
+and lr_loop_Mul : ((ast * state) * tokens) -> ast =
+fun (_slot_0, prim__state, prim__tokens) ->
+  begin
+    let lr_Mul_reduce : (ast) ref =
+        ref _slot_0
+    in
+    let _off_0 : (int) ref =
+        ref prim__tokens .offset
+    in
+    let lr_Mul_try : (ast) ref =
+        ref (lr_step_Mul (!lr_Mul_reduce prim__state prim__tokens))
+    in
+    while prim__is__null (!lr_Mul_try)
+      begin
+        _off_0  :=  prim__tokens .offset ;
+        lr_Mul_reduce  :=  !lr_Mul_try ;
+        lr_Mul_try  :=  lr_step_Mul (!lr_Mul_reduce prim__state prim__tokens) ;
+        end
+    done ;
+    prim__reset (prim__tokens !_off_0) ;
+    !lr_Mul_reduce ;
+    end
+and parse_Factor : (state * tokens) -> ast =
+fun (prim__state, prim__tokens) ->
+    ...
+and parse_Mul : (state * tokens) -> ast =
+fun (prim__state, prim__tokens) ->
+    ...
+and parse_Number : (state * tokens) -> ast =
+fun (prim__state, prim__tokens) ->
+  ...
+end
+```

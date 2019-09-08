@@ -68,6 +68,7 @@ data C
     | CNonTerm String
     | CSeq     [C]
     | CAlt     [C]
+    | COpt     C
     -- advanced:
     | CBind    String C
     | CPred    MiniLang
@@ -89,6 +90,7 @@ instance Show C where
         CSeq cs     -> "(" ++ unwords (map show cs) ++ ")"
         CAlt [c]    -> show c
         CAlt cs     -> "(" ++ L.intercalate "|" (map show cs) ++ ")"
+        COpt c      -> "[" ++  show c ++ "]"
         --
         CBind name c -> name ++ "=" ++ show c
         CPred apply  -> "?" ++ show apply

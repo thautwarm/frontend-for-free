@@ -59,7 +59,7 @@ token (info, f) = Parser $ \case
     ([], loc@Loc { col, line }) ->
         let msg =
                     "got EOF, expect "
-                        ++ show info
+                        ++ info
                         ++ " at line "
                         ++ show line
                         ++ ", column "
@@ -72,7 +72,7 @@ token (info, f) = Parser $ \case
     (c' : _, loc@Loc { col, line }) ->
         let msg =
                     "expect "
-                        ++ show info
+                        ++ info
                         ++ ", got "
                         ++ show c'
                         ++ ", at line "
@@ -148,12 +148,13 @@ laString s = la (strip s (whiteSpace *> string s))
 
 termP = bound $ CTerm <$> (identifier <|> quotedStr)
 nonTermP = bound $ CNonTerm <$> (char '<' *> identifier <* char '>')
-predP = bound $ CPred <$> (char '?' *> miniP)
-nestedP = bound $ char '(' *> bound cP <* char ')'
+predP = CPred <$> (char '?' *> bound miniP)
+nestedP = bound (char '(') *> bound cP <* bound (char ')')
+optP  = COpt <$> (bound (char '[') *> cP <* bound (char ']'))
 bindP =
     bound $ uncurry CBind <$> (char '!' *> identifier <* char '=' <***> atomP)
 
-atomP = bound (nonTermP <|> bindP <|> predP <|> nestedP <|> termP)
+atomP = bound (nonTermP <|> bindP <|> predP <|> nestedP <|> optP <|> termP)
 
 cPSeq :: Parser [C]
 cPSeq = sepBy whiteSpace atomP
@@ -197,6 +198,11 @@ miniP = bound $ do
             bound $ char ')'
             return $ MApp f args
     app <|> fmap (const $ MTerm f) eps
+
+parseRule :: String -> Parser a -> Either String (a, String)
+parseRule s p = case runParser p (s, Loc 0 0) of
+    Left  (a, _)    -> Left a
+    Right (a, s, _) -> Right (a, s)
 
 parseDoc :: String -> Either String (CGrammar, String)
 parseDoc s = case runParser modP (s, Loc 0 0) of

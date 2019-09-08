@@ -62,7 +62,7 @@ standardizeRule = \case
         cs <- mapM standardizeRule cs -- :: [[PRule]]
         return $ map (packStack . concat)
                $ sequence cs
-
+    COpt c -> ([]:) <$> standardizeRule c -- :: [PRule]
     CAlt cs -> do
         cs <- mapM standardizeRule cs
         return $ concat cs

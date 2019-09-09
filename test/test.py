@@ -2,6 +2,7 @@ import sys
 
 import operator
 from dataclasses import dataclass
+from collections import OrderedDict
 from typing import Generic, TypeVar
 T = TypeVar('T')
 
@@ -114,7 +115,7 @@ def prim__match__tk(tokens, idint):
     return tk
 
 
-class Count(dict):
+class Count(OrderedDict):
     def __missing__(self, k):
         v = self[k] = len(self)
         return v

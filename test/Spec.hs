@@ -6,6 +6,7 @@ import RBNF.LeftRecur
 import RBNF.Semantics
 import RBNF.Graph
 import RBNF.LookAHead
+import RBNF.Inline
 import RBNF.CodeGen
 import RBNF (parserGen)
 import RBNF.Serialization
@@ -74,7 +75,7 @@ test1 = do
     -- for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
     --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
     let gbuilder = mkGrammar $ parsers
-    let g = markedLeftRecur gbuilder
+    let g = inline $ markedLeftRecur gbuilder
     let ks = pGToSG  g
     let ps = view prods g
     -- let leftR' = M.toList $ view leftR ks
@@ -116,7 +117,7 @@ test2 = do
 test3 = do
     putStrLn ""
     let gbuilder = mkGrammar $ parsers
-    let g = markedLeftRecur gbuilder
+    let g = inline $ markedLeftRecur gbuilder
     let ks = pGToSG  g
 
     let graph = buildGraph ks
@@ -150,7 +151,7 @@ test3 = do
 
 test4 = do
     putStrLn ""
-    let a = parserGen 1 False parsers
+    let a = parserGen True 1 False parsers
     -- print $ seeMarisa a
     -- let a =
     --       ADef (AName "parse.Number") [ABuiltin "state", ABuiltin "tokens"] $
@@ -193,7 +194,7 @@ test5  = T.writeFile "a.txt" $ dumpCG parsers
 
 test6 = do
     putStrLn ""
-    let a = parserGen 1 False parsers
+    let a = parserGen True 1 False parsers
         py :: Marisa -> Doc PythonBackEnd
         py = emit
     print $ py a

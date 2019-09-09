@@ -39,6 +39,7 @@ parseOptsKey m = \case
     "-in"     : xs -> parseOptVal "in" m xs
     "-k"      : xs -> parseOptVal "k" m xs
     "--trace" : xs -> parseOptsKey (M.insert "trace" "" m) xs
+    "--noinline":xs -> parseOptsKey (M.insert "noinline" "" m) xs
     k         : xs -> Left k
     []             -> Right m
 
@@ -70,13 +71,15 @@ wain xs = case parseOptsKey M.empty xs of
         ast   <- case parseDoc inStr of
             Left  err    -> putStrLn err >> exitFailure
             Right (a, s) -> return a
-        let marisa = parserGen k trace ast
+        let marisa = parserGen doInline k trace ast
         text <- backendGen marisa $ case M.lookup "be" m of
             Just a  -> a
             Nothing -> "marisa"
         outf <- outf
         if outf == "stdout" then T.putStrLn text else T.writeFile outf text
       where
+        doInline | "noinline" `M.member` m = False
+                 | otherwise = True
         help = usage >> exit
         may_print_help :: IO ()
         may_print_help | "h" `M.member` m = help >> exitSuccess

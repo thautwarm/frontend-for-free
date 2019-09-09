@@ -36,8 +36,6 @@ Nil()
 
 
 class Cons:
-    """Class cons, the non empty list: (head, list)"""
-
     def __init__(self, _head, _tail):
         self.head = _head
         self.tail = _tail
@@ -87,7 +85,7 @@ class Cons:
 
 @dataclass
 class Token:
-    tid: int
+    idint: int
 
 
 prim__eq = operator.eq
@@ -103,19 +101,25 @@ def prim__peek(tokens, i):
     return tokens.array[tokens.offset + i]
 
 
-def prim__match__tk(tokens, tid):
+def prim__match__tk(tokens, idint):
     # print(tokens.offset)
     try:
         tk = tokens.array[tokens.offset]
     except IndexError:
         return None
-    if tk.tid is tid:
+    if tk.idint is idint:
         tokens.offset += 1
     return tk
 
 
+class Count(dict):
+    def __missing__(self, k):
+        v = self[k] = len(self)
+        return v
+token_cnt = Count()
+
 def prim__tk__id(s):
-    return 0
+    return token_cnt[s]
 
 
 def prim__reset(tokens, i):
@@ -155,17 +159,12 @@ class Tokens:
         self.array = array
         self.offset = 0
 
-
-with open("./test/gen.py") as f:
+with open("./gen.py") as f:
     exec(f.read(), globals())
 
 
-tokens = Tokens([
-    Token(0),
-    Token(0),
-    Token(0),
-    Token(0)
-])
+bT = Token(token_cnt["b"])
+tokens = Tokens([bT] * 4)
 
 assert parse_B(None, tokens) == AST(
     tag='B',
@@ -176,7 +175,32 @@ assert parse_B(None, tokens) == AST(
                 (AST(tag='B',
                      content=((
                          AST(tag='B',
-                             content=(Token(tid=0),)),
-                         Token(tid=0)),)),
-                 Token(tid=0)),)),
-         Token(tid=0)),))
+                             content=(Token(idint=0),)),
+                         Token(idint=0)),)),
+                 Token(idint=0)),)),
+         Token(idint=0)),))
+
+
+with open("./gen2.py") as f:
+    exec(f.read(), globals())
+
+number = Token(token_cnt["number"])
+lp = Token(token_cnt["quote ("])
+rp = Token(token_cnt["quote )"])
+
+mult = Token(token_cnt["quote *"])
+div = Token(token_cnt["quote /"])
+
+tokens = Tokens([
+    number
+    # lp, number, rp, mult,
+    # number, mult,
+    # lp,
+    #     number, div,
+    #     lp,
+    #         number, mult, number, mult, number,
+    #     rp,
+    # rp
+])
+
+print(parse_Atom(None, tokens))

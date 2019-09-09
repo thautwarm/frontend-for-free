@@ -5,6 +5,7 @@ import RBNF.Utils
 import RBNF.Symbols
 import RBNF.Grammar
 import RBNF.LeftRecur
+import RBNF.Inline
 import RBNF.Semantics
 import RBNF.LookAHead
 import RBNF.Graph
@@ -16,10 +17,10 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
 
-parserGen :: Int -> Bool -> CGrammar -> Marisa
-parserGen k withTrace cg = addHeader withTrace . MKBlock $ lrCodes ++ nonLRCodes
+parserGen :: Bool -> Int -> Bool -> CGrammar -> Marisa
+parserGen doInline k withTrace cg = addHeader withTrace . MKBlock $ lrCodes ++ nonLRCodes
     where
-        graph      = parsingGraph cg
+        graph      = parsingGraph doInline cg
         decisions  = M.map decideId3FromLATree $ makeLATables k graph
         c = CompilationInfo {
             graph     = graph
@@ -40,9 +41,10 @@ parserGen k withTrace cg = addHeader withTrace . MKBlock $ lrCodes ++ nonLRCodes
                         in  runToCodeSuite cfg $ codeGen c {isLeftRec = True} i
                     _ -> []
 
-parsingGraph :: CGrammar -> Graph
-parsingGraph =
+parsingGraph :: Bool -> CGrammar -> Graph
+parsingGraph doInline =
     buildGraph .
     pGToSG .
+    (if doInline then inline else id) .
     markedLeftRecur .
     mkGrammar

@@ -195,6 +195,10 @@ class Mul:
     op: object
     rhs: object
 
+one = 1
+zero = 0
+add = operator.add
+
 
 with open("./gen2.py") as f:
     exec(f.read(), globals())
@@ -209,26 +213,21 @@ div = Token(token_cnt["quote /"])
 tokens = Tokens([
     # number, mult, number, mult,
     # number, mult,
-    lp,
-    number, div,
-    lp,
-    number, mult, number, div, number,
-    rp,
-    rp
+    number
 ])
 
+print(token_cnt)
+print(parse_Mul(None, tokens))
+#     True,
 
-assert parse_Mul(None, tokens) == (
-    True,
-
-    Mul(lhs=Token(idint=1),
-        op=Token(idint=5),
-        rhs=Mul(
-        lhs=Mul(
-            lhs=Token(idint=1),
-            op=Token(
-                idint=4),
-            rhs=Token(idint=1)),
-        op=Token(idint=5),
-        rhs=Token(idint=1)))
-)
+#     Mul(lhs=Token(idint=1),
+#         op=Token(idint=5),
+#         rhs=Mul(
+#         lhs=Mul(
+#             lhs=Token(idint=1),
+#             op=Token(
+#                 idint=4),
+#             rhs=Token(idint=1)),
+#         op=Token(idint=5),
+#         rhs=Token(idint=1)))
+# )

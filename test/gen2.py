@@ -22,100 +22,36 @@
 #always__true::State -> bool
 def lr_step_Mul(_slot_0, prim__state, prim__tokens):
     Mul_lhs_0 = _slot_0
-    _tmp_0_flag = False
     lcl_0 = prim__tokens.offset
     _off_0 = lcl_0
-    lcl_0 = prim__peekable(prim__tokens, 0)
+    lcl_0 = prim__tk__id("quote *")
+    lcl_0 = prim__match__tk(prim__tokens, lcl_0)
+    _slot_1 = lcl_0
+    lcl_0 = prim__is__null(_slot_1)
     if lcl_0:
-        lcl_2 = prim__peek(prim__tokens, 0)
-        lcl_2 = lcl_2.idint
-        if lcl_2 == prim__tk__id("quote /"):
-            lcl_2 = prim__tokens.offset
-            _off_1 = lcl_2
-            lcl_2 = prim__tk__id("quote /")
-            lcl_2 = prim__match__tk(prim__tokens, lcl_2)
-            _slot_1 = lcl_2
-            lcl_2 = prim__is__null(_slot_1)
-            if lcl_2:
-                lcl_3 = (_off_1, "quote /")
-                lcl_3 = prim__cons(lcl_3, prim__nil)
-                lcl_3 = prim__to__any(lcl_3)
-                lcl_3 = (False, lcl_3)
-                lcl_2 = lcl_3
-            else:
-                Mul_op_2 = _slot_1
-                lcl_3 = parse_Atom(prim__state, prim__tokens)
-                _slot_2_check = lcl_3
-                lcl_3 = _slot_2_check[0]
-                lcl_3 = prim__eq(lcl_3, False)
-                if lcl_3:
-                    lcl_3 = _slot_2_check
-                else:
-                    lcl_3 = _slot_2_check[1]
-                    lcl_3 = prim__to__result(lcl_3)
-                    _slot_2 = lcl_3
-                    Mul_rhs_2 = _slot_2
-                    lcl_3 = (_slot_0, _slot_1, _slot_2)
-                    _slot_local__1 = lcl_3
-                    lcl_3 = Mul(Mul_lhs_0, Mul_op_2, Mul_rhs_2)
-                    _slot_local__2 = lcl_3
-                    lcl_3 = (True, _slot_local__2)
-                lcl_2 = lcl_3
-            lcl_1 = lcl_2
-        elif lcl_2 == prim__tk__id("quote *"):
-            lcl_2 = prim__tokens.offset
-            _off_1 = lcl_2
-            lcl_3 = prim__tk__id("quote *")
-            lcl_2 = prim__match__tk(prim__tokens, lcl_3)
-            _slot_1 = lcl_2
-            lcl_2 = prim__is__null(_slot_1)
-            if lcl_2:
-                lcl_3 = (_off_1, "quote *")
-                lcl_3 = prim__cons(lcl_3, prim__nil)
-                lcl_3 = prim__to__any(lcl_3)
-                lcl_3 = (False, lcl_3)
-                lcl_2 = lcl_3
-            else:
-                Mul_op_2 = _slot_1
-                lcl_3 = parse_Atom(prim__state, prim__tokens)
-                _slot_2_check = lcl_3
-                lcl_3 = _slot_2_check[0]
-                lcl_3 = prim__eq(lcl_3, False)
-                if lcl_3:
-                    lcl_3 = _slot_2_check
-                else:
-                    lcl_3 = _slot_2_check[1]
-                    lcl_3 = prim__to__result(lcl_3)
-                    _slot_2 = lcl_3
-                    Mul_rhs_2 = _slot_2
-                    lcl_3 = (_slot_0, _slot_1, _slot_2)
-                    _slot_local__1 = lcl_3
-                    lcl_3 = Mul(Mul_lhs_0, Mul_op_2, Mul_rhs_2)
-                    _slot_local__2 = lcl_3
-                    lcl_3 = (True, _slot_local__2)
-                lcl_2 = lcl_3
-            lcl_1 = lcl_2
+        lcl_1 = (_off_0, "quote *")
+        lcl_1 = prim__cons(lcl_1, prim__nil)
+        lcl_1 = prim__to__any(lcl_1)
+        lcl_1 = (False, lcl_1)
+        lcl_0 = lcl_1
+    else:
+        lcl_1 = parse_Atom(prim__state, prim__tokens)
+        _slot_2_check = lcl_1
+        lcl_1 = _slot_2_check[0]
+        lcl_1 = prim__eq(lcl_1, False)
+        if lcl_1:
+            lcl_1 = _slot_2_check
         else:
-            _tmp_0_flag = True
-            lcl_2 = prim__to__any(prim__nil)
-            lcl_3 = (False, lcl_2)
-            lcl_1 = lcl_3
+            lcl_1 = _slot_2_check[1]
+            lcl_1 = prim__to__result(lcl_1)
+            _slot_2 = lcl_1
+            Mul_rhs_1 = _slot_2
+            lcl_1 = (_slot_0, _slot_1, _slot_2)
+            _slot_local__1 = lcl_1
+            lcl_1 = add(Mul_lhs_0, Mul_rhs_1)
+            _slot_local__2 = lcl_1
+            lcl_1 = (True, _slot_local__2)
         lcl_0 = lcl_1
-    else:
-        lcl_1 = prim__to__any(prim__nil)
-        lcl_1 = (False, lcl_1)
-        lcl_0 = lcl_1
-    _tmp_0_result = lcl_0
-    lcl_0 = _tmp_0_result[0]
-    lcl_1 = prim__eq(False, lcl_0)
-    lcl_0 = lcl_1 or _tmp_0_flag
-    if lcl_0:
-        lcl_0 = prim__reset(prim__tokens, _off_0)
-        lcl_1 = prim__to__any(prim__nil)
-        lcl_1 = (False, lcl_1)
-        lcl_0 = lcl_1
-    else:
-        lcl_0 = _tmp_0_result
     return lcl_0
 def lr_loop_Mul(_slot_0, prim__state, prim__tokens):
     lr_Mul_reduce = _slot_0
@@ -144,6 +80,7 @@ def parse_Atom(prim__state, prim__tokens):
     _off_0 = lcl_0
     lcl_0 = prim__peekable(prim__tokens, 0)
     if lcl_0:
+        # switch
         lcl_2 = prim__peek(prim__tokens, 0)
         lcl_2 = lcl_2.idint
         if lcl_2 == prim__tk__id("quote ("):
@@ -205,8 +142,7 @@ def parse_Atom(prim__state, prim__tokens):
                 lcl_3 = (False, lcl_3)
                 lcl_2 = lcl_3
             else:
-                Atom_a_2 = _slot_0
-                _slot_local__1 = Atom_a_2
+                _slot_local__1 = zero
                 lcl_3 = (True, _slot_local__1)
                 lcl_2 = lcl_3
             lcl_1 = lcl_2
@@ -238,9 +174,10 @@ def parse_Mul(prim__state, prim__tokens):
     _off_0 = lcl_0
     lcl_0 = prim__peekable(prim__tokens, 1)
     if lcl_0:
+        # switch
         lcl_2 = prim__peek(prim__tokens, 1)
         lcl_2 = lcl_2.idint
-        if lcl_2 == prim__tk__id("quote /"):
+        if lcl_2 == prim__tk__id("quote *"):
             lcl_2 = prim__tokens.offset
             _off_1 = lcl_2
             lcl_2 = prim__tk__id("number")
@@ -254,39 +191,62 @@ def parse_Mul(prim__state, prim__tokens):
                 lcl_3 = (False, lcl_3)
                 lcl_2 = lcl_3
             else:
-                Mul_a_2 = _slot_0
-                _slot_local__1 = Mul_a_2
-                Mul_a_2 = _slot_local__1
-                _slot_local__2 = Mul_a_2
+                _slot_local__1 = zero
+                _slot_local__2 = zero
                 lcl_3 = lr_loop_Mul(_slot_local__2, prim__state, prim__tokens)
                 lcl_3 = (True, lcl_3)
                 lcl_2 = lcl_3
-            lcl_1 = lcl_2
-        elif lcl_2 == prim__tk__id("quote *"):
-            lcl_2 = prim__tokens.offset
-            _off_1 = lcl_2
-            lcl_2 = prim__tk__id("number")
-            lcl_2 = prim__match__tk(prim__tokens, lcl_2)
-            _slot_0 = lcl_2
-            lcl_2 = prim__is__null(_slot_0)
-            if lcl_2:
-                lcl_2 = (_off_1, "number")
-                lcl_2 = prim__cons(lcl_2, prim__nil)
-                lcl_2 = prim__to__any(lcl_2)
-                lcl_2 = (False, lcl_2)
-            else:
-                Mul_a_2 = _slot_0
-                _slot_local__1 = Mul_a_2
-                Mul_a_2 = _slot_local__1
-                _slot_local__2 = Mul_a_2
-                lcl_2 = lr_loop_Mul(_slot_local__2, prim__state, prim__tokens)
-                lcl_2 = (True, lcl_2)
             lcl_1 = lcl_2
         elif lcl_2 == prim__tk__id("quote ("):
             lcl_2 = prim__tokens.offset
             _off_1 = lcl_2
             lcl_2 = prim__tk__id("quote (")
             lcl_2 = prim__match__tk(prim__tokens, lcl_2)
+            _slot_0 = lcl_2
+            lcl_2 = prim__is__null(_slot_0)
+            if lcl_2:
+                lcl_2 = (_off_1, "quote (")
+                lcl_2 = prim__cons(lcl_2, prim__nil)
+                lcl_2 = prim__to__any(lcl_2)
+                lcl_2 = (False, lcl_2)
+            else:
+                lcl_2 = parse_Mul(prim__state, prim__tokens)
+                _slot_1_check = lcl_2
+                lcl_2 = _slot_1_check[0]
+                lcl_2 = prim__eq(lcl_2, False)
+                if lcl_2:
+                    lcl_2 = _slot_1_check
+                else:
+                    lcl_2 = _slot_1_check[1]
+                    lcl_2 = prim__to__result(lcl_2)
+                    _slot_1 = lcl_2
+                    Mul_a_2 = _slot_1
+                    lcl_2 = prim__tokens.offset
+                    _off_2 = lcl_2
+                    lcl_2 = prim__tk__id("quote )")
+                    lcl_2 = prim__match__tk(prim__tokens, lcl_2)
+                    _slot_2 = lcl_2
+                    lcl_2 = prim__is__null(_slot_2)
+                    if lcl_2:
+                        lcl_3 = (_off_2, "quote )")
+                        lcl_3 = prim__cons(lcl_3, prim__nil)
+                        lcl_3 = prim__to__any(lcl_3)
+                        lcl_3 = (False, lcl_3)
+                        lcl_2 = lcl_3
+                    else:
+                        lcl_3 = (_slot_0, _slot_1, _slot_2)
+                        _slot_local__1 = lcl_3
+                        _slot_local__2 = Mul_a_2
+                        _slot_local__3 = zero
+                        lcl_3 = lr_loop_Mul(_slot_local__3, prim__state, prim__tokens)
+                        lcl_3 = (True, lcl_3)
+                        lcl_2 = lcl_3
+            lcl_1 = lcl_2
+        elif lcl_2 == prim__tk__id("number"):
+            lcl_2 = prim__tokens.offset
+            _off_1 = lcl_2
+            lcl_3 = prim__tk__id("quote (")
+            lcl_2 = prim__match__tk(prim__tokens, lcl_3)
             _slot_0 = lcl_2
             lcl_2 = prim__is__null(_slot_0)
             if lcl_2:
@@ -323,58 +283,11 @@ def parse_Mul(prim__state, prim__tokens):
                         lcl_4 = (_slot_0, _slot_1, _slot_2)
                         _slot_local__1 = lcl_4
                         _slot_local__2 = Mul_a_2
-                        Mul_a_3 = _slot_local__2
-                        _slot_local__3 = Mul_a_3
+                        _slot_local__3 = zero
                         lcl_4 = lr_loop_Mul(_slot_local__3, prim__state, prim__tokens)
                         lcl_4 = (True, lcl_4)
                         lcl_3 = lcl_4
                 lcl_2 = lcl_3
-            lcl_1 = lcl_2
-        elif lcl_2 == prim__tk__id("number"):
-            lcl_2 = prim__tokens.offset
-            _off_1 = lcl_2
-            lcl_3 = prim__tk__id("quote (")
-            lcl_4 = prim__match__tk(prim__tokens, lcl_3)
-            _slot_0 = lcl_4
-            lcl_2 = prim__is__null(_slot_0)
-            if lcl_2:
-                lcl_2 = (_off_1, "quote (")
-                lcl_2 = prim__cons(lcl_2, prim__nil)
-                lcl_2 = prim__to__any(lcl_2)
-                lcl_2 = (False, lcl_2)
-            else:
-                lcl_2 = parse_Mul(prim__state, prim__tokens)
-                _slot_1_check = lcl_2
-                lcl_2 = _slot_1_check[0]
-                lcl_2 = prim__eq(lcl_2, False)
-                if lcl_2:
-                    lcl_2 = _slot_1_check
-                else:
-                    lcl_2 = _slot_1_check[1]
-                    lcl_2 = prim__to__result(lcl_2)
-                    _slot_1 = lcl_2
-                    Mul_a_2 = _slot_1
-                    lcl_2 = prim__tokens.offset
-                    _off_2 = lcl_2
-                    lcl_2 = prim__tk__id("quote )")
-                    lcl_2 = prim__match__tk(prim__tokens, lcl_2)
-                    _slot_2 = lcl_2
-                    lcl_2 = prim__is__null(_slot_2)
-                    if lcl_2:
-                        lcl_3 = (_off_2, "quote )")
-                        lcl_3 = prim__cons(lcl_3, prim__nil)
-                        lcl_3 = prim__to__any(lcl_3)
-                        lcl_3 = (False, lcl_3)
-                        lcl_2 = lcl_3
-                    else:
-                        lcl_3 = (_slot_0, _slot_1, _slot_2)
-                        _slot_local__1 = lcl_3
-                        _slot_local__2 = Mul_a_2
-                        Mul_a_3 = _slot_local__2
-                        _slot_local__3 = Mul_a_3
-                        lcl_3 = lr_loop_Mul(_slot_local__3, prim__state, prim__tokens)
-                        lcl_3 = (True, lcl_3)
-                        lcl_2 = lcl_3
             lcl_1 = lcl_2
         else:
             _tmp_0_flag = True
@@ -384,17 +297,17 @@ def parse_Mul(prim__state, prim__tokens):
         lcl_0 = lcl_1
     else:
         lcl_1 = prim__to__any(prim__nil)
-        lcl_1 = (False, lcl_1)
-        lcl_0 = lcl_1
+        lcl_4 = (False, lcl_1)
+        lcl_0 = lcl_4
     _tmp_0_result = lcl_0
     lcl_0 = _tmp_0_result[0]
-    lcl_1 = prim__eq(False, lcl_0)
-    lcl_0 = lcl_1 or _tmp_0_flag
+    lcl_0 = prim__eq(False, lcl_0)
+    lcl_0 = lcl_0 or _tmp_0_flag
     if lcl_0:
-        lcl_0 = prim__reset(prim__tokens, _off_0)
-        lcl_1 = prim__to__any(prim__nil)
-        lcl_1 = (False, lcl_1)
-        lcl_0 = lcl_1
+        lcl_1 = prim__reset(prim__tokens, _off_0)
+        lcl_2 = prim__to__any(prim__nil)
+        lcl_2 = (False, lcl_2)
+        lcl_0 = lcl_2
     else:
         lcl_0 = _tmp_0_result
     return lcl_0

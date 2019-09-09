@@ -99,7 +99,7 @@ wain xs = case parseOptsKey M.empty xs of
         k :: IO Int
         k = case fmap read $ M.lookup "k" m of
             Just i  -> return i
-            Nothing -> putStrLn "Lookahead K not specified." >> exitFailure
+            Nothing -> putStrLn "Lookahead K not specified." >> help >> exitFailure
 
         trace :: Bool
         trace = "trace" `M.member` m
@@ -109,6 +109,8 @@ usage =
     putStrLn $
         "Usage: [-v] [-h] [-in filename] [-out filename]\n" ++
         "[-be python|ocaml|marisa(default)]\n" ++
-        "[-k lookahead number] [--trace : codegen with tracebacks.]"
+        "[-k lookahead number] [--trace : codegen with tracebacks.]\n" ++
+        "[--noinline : might be useful when viewing generated code]\n"
+
 version = putStrLn "2.0"
 exit = exitSuccess

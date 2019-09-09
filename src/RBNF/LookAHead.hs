@@ -296,8 +296,8 @@ decideID3 = do
 decideId3FromLATree :: (Show cls, Ord cls) => [LATree cls] -> ID3Decision LAEdge cls
 decideId3FromLATree trees =
     let (paths_src, states_src) =
-            unzip          $ -- (\x -> trace (showLATreePaths x) x) $
-            flattenLATrees $ -- (\x -> trace (dispLATrees 0 x) x) $
+            unzip          $ (\x -> trace (showLATreePaths x) x) $
+            flattenLATrees $ (\x -> trace (dispLATrees 0 x) x) $
             trees
         paths = V.fromList [ V.fromList row | row <- paths_src ]
         states                  = V.fromList states_src
@@ -305,4 +305,5 @@ decideId3FromLATree trees =
         offsets                 = [0 .. maximum (V.map V.length paths) - 1]
         env                     = (states, paths)
         dp                      = DP { offsets = offsets, numbers = numbers }
-    in  flip runReader env $ evalStateT decideID3 dp
+    in (\x -> trace (dispID3Tree 0 x ++ "\n") x) $
+        flip runReader env $ evalStateT decideID3 dp

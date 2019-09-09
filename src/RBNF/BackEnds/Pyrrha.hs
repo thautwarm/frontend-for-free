@@ -151,6 +151,7 @@ cgPy = \case
         py_release test
         cgPy defaultCase
     MKSwitch test (hd:tl) defaultCase -> do
+        py_build $ "# switch"
         lhs <- py_alloc
         test <- cgPy test
         let genif token ((MKCall (MKVar dsl_s_to_i) [MKStr t]), e) = do

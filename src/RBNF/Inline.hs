@@ -7,14 +7,14 @@ import           Debug.Trace
 import qualified Data.Map                      as M
 
 inline :: Grammar [P] -> Grammar [P]
-inline g = Grammar { _prods = inlineProds inlinedNLeftRs productions
-                   , _leftR = inlineProds inlinedNLeftRs leftRs
+inline g = Grammar { _prods = inlineProds nLeftRs productions
+                   , _leftR = inlineProds nLeftRs leftRs
                    }
   where
     productions    = view prods g
     leftRs         = M.filter (not . null) $ view leftR g
     nLeftRs        = M.difference productions leftRs
-    inlinedNLeftRs = inlineProds nLeftRs nLeftRs
+    -- inlinedNLeftRs = inlineProds nLeftRs nLeftRs
     inlineProd :: Map String [[P]] -> String -> [P] -> [[P]]
     inlineProd nLeftRs me rule =
         let letBlock :: String -> [P] -> [P]

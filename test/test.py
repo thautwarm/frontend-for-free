@@ -211,13 +211,22 @@ mult = Token(token_cnt["quote *"])
 div = Token(token_cnt["quote /"])
 
 tokens = Tokens([
-    # number, mult, number, mult,
-    # number, mult,
+    number, mult, number, mult,
+    lp,
+        number, mult, number, mult, number,
+    rp
+])
+
+
+assert parse_Mul(None, tokens) == (True, 5)
+
+tokens = Tokens([
     number
 ])
 
-print(token_cnt)
-print(parse_Mul(None, tokens))
+# print(token_cnt)
+assert parse_Mul(None, tokens) == (True, 1)
+
 #     True,
 
 #     Mul(lhs=Token(idint=1),

@@ -1,4 +1,4 @@
 Mul  ::= !lhs=<Mul> "*" !rhs=<Atom> -> add(lhs, rhs);
-Mul  ::= <Atom> -> zero;
+Mul  ::= <Atom> -> one;
 Atom ::= "(" !a=<Mul> ")" -> a;
-Atom ::= number -> zero;
+Atom ::= number -> one;

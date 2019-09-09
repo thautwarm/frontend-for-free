@@ -15,7 +15,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 import           Control.Arrow
-import Debug.Trace (trace)
+import           Debug.Trace                    ( trace )
 
 import qualified Data.List                     as L
 import qualified Data.Map                      as M
@@ -69,28 +69,31 @@ data Next1
     }
     deriving (Eq, Ord, Show)
 
-next1 :: Graph -> Travel -> Map String [Next1]
+next1 :: Graph -> Travel -> (Bool, Map String [Next1])
 next1 graph travel = case kind curNode of
     NEntity (ENonTerm s) ->
         let idx      = startIndices M.! s
             descTrvl = Travel (Just travel) idx
-        in  M.map (map stop) $ frec descTrvl
+            (a, b)   = frec descTrvl
+        in  (a, M.map (map stop) $ b)
     NEntity (ETerm c) ->
         let
             next1s =
                 [ Next1 False travel { cur = nextIdx }
                 | nextIdx <- nextIndices
                 ]
-        in  M.singleton c next1s
+        in  (False, M.singleton c next1s)
     ent -> flip detectStop ent $ case (nextIndices, par travel) of
-        ([], Nothing) -> M.empty
+        ([], Nothing) -> (True, M.empty)
         ([], Just parent) ->
-            let parNode = nodeStore M.! cur parent
-                trvls   = [ parent { cur = i } | i <- nextBrs parNode ]
-            in  M.unionsWith uniqueCat $ map frec trvls
+            let parNode  = nodeStore M.! cur parent
+                trvls    = [ parent { cur = i } | i <- nextBrs parNode ]
+                (as, bs) = unzip $ map frec trvls
+            in  (or as, M.unionsWith uniqueCat bs)
         (xs, _) ->
-            let trvls = [ travel { cur = i } | i <- nextIndices ]
-            in  M.unionsWith uniqueCat $ map frec trvls
+            let trvls    = [ travel { cur = i } | i <- nextIndices ]
+                (as, bs) = unzip $ map frec trvls
+            in  (or as, M.unionsWith uniqueCat bs)
   where
     frec         = next1 graph
     endIndices   = view ends graph
@@ -102,32 +105,26 @@ next1 graph travel = case kind curNode of
     nextIndices  = nextBrs curNode
 
     stop x = x { foundStop = True }
-    detectStop a = \case
-        Stop      -> M.map (map stop) a
-        LeftRecur -> M.map (map stop) a
-        _         -> a
-
-isRec Travel { cur, par = Just par } = frec cur par
-  where
-    frec i Travel { cur, par }
-        | i == cur = True
-        | otherwise = case par of
-            Nothing  -> False
-            Just par -> frec i par
+    detectStop (a, b) = \case
+        Stop      -> (True, M.map (map stop) b)
+        LeftRecur -> (True, M.map (map stop) b)
+        _         -> (a, b)
 
 data Nat' = NZ | NS Nat'
 nextK :: Graph -> Travel -> Nat' -> [LATree Travel]
-nextK graph trvl n = case n of
-    _ | M.null xs -> [LAEnd [trvl]]
-    NZ            -> xsToTrees $ pure . LAEnd . map nextTravel
-    NS n'         -> xsToTrees $ concatMap nextDec1
-      where
-        nextDec1 :: Next1 -> [LATree Travel]
-        nextDec1 Next1 { foundStop, nextTravel } =
-            nextK graph nextTravel $ if foundStop then n' else n
+nextK graph trvl n | stopable  = LAEnd [trvl] : laTrees
+                   | otherwise = laTrees
   where
-    xs = next1 graph trvl
+    (stopable, xs) = next1 graph trvl
     xsToTrees f = mapToTrees . M.map f $ xs
+    laTrees = case n of
+        _ | M.null xs -> [LAEnd [trvl]]
+        NZ            -> xsToTrees $ pure . LAEnd . map nextTravel
+        NS n'         -> xsToTrees $ concatMap nextDec1
+          where
+            nextDec1 :: Next1 -> [LATree Travel]
+            nextDec1 Next1 { foundStop, nextTravel } =
+                nextK graph nextTravel $ if foundStop then n' else n
 
 mergeLATrees :: Eq a => [LATree a] -> [LATree a]
 mergeLATrees []  = error "invalid"
@@ -140,10 +137,9 @@ mergeLATrees las = cases
         LA1 edge ms : xs -> M.insertWith (++) edge ms <$> frec xs
         LAEnd sts   : xs -> modify (++ sts) >> frec xs
     (trees, ends) = runState (frec las) []
-    nonEnds = mapToTrees (M.map (mergeLATrees . L.nub) trees)
-    cases
-        | L.null ends = nonEnds
-        | otherwise   = LAEnd (L.nub ends):nonEnds
+    nonEnds       = mapToTrees (M.map (mergeLATrees . L.nub) trees)
+    cases | L.null ends = nonEnds
+          | otherwise   = LAEnd (L.nub ends) : nonEnds
 
 intToNat :: Int -> Nat'
 intToNat i | i < 0     = error "invalid"
@@ -178,11 +174,12 @@ makeLATables k graph =
 
 showLATreePaths :: Show a => [([LAEdge], a)] -> String
 showLATreePaths [] = []
-showLATreePaths ((path, a):xs) = show path ++ " -> " ++ show a ++ "\n" ++ showLATreePaths xs
+showLATreePaths ((path, a) : xs) =
+    show path ++ " -> " ++ show a ++ "\n" ++ showLATreePaths xs
 
 flattenLATrees :: [LATree a] -> [([LAEdge], a)]
 flattenLATrees = \case
-    [] -> []
+    []               -> []
     LAEnd xs    : tl -> [ ([], x) | x <- xs ] ++ flattenLATrees tl
     LA1 edge xs : tl -> recurse ++ flattenLATrees tl
       where
@@ -293,17 +290,20 @@ decideID3 = do
                       else
                           ID3Split nth $ recurse split
 
-decideId3FromLATree :: (Show cls, Ord cls) => [LATree cls] -> ID3Decision LAEdge cls
+decideId3FromLATree
+    :: (Show cls, Ord cls) => [LATree cls] -> ID3Decision LAEdge cls
 decideId3FromLATree trees =
     let (paths_src, states_src) =
-            unzip          $ (\x -> trace (showLATreePaths x) x) $
-            flattenLATrees $ (\x -> trace (dispLATrees 0 x) x) $
-            trees
-        paths = V.fromList [ V.fromList row | row <- paths_src ]
-        states                  = V.fromList states_src
-        numbers                 = [0 .. V.length paths - 1]
-        offsets                 = [0 .. maximum (V.map V.length paths) - 1]
-        env                     = (states, paths)
-        dp                      = DP { offsets = offsets, numbers = numbers }
-    in (\x -> trace (dispID3Tree 0 x ++ "\n") x) $
+                unzip
+                    $ -- (\x -> trace (showLATreePaths x) x) $
+                      flattenLATrees
+                    $ -- (\x -> trace (dispLATrees 0 x) x) $
+                      trees
+        paths   = V.fromList [ V.fromList row | row <- paths_src ]
+        states  = V.fromList states_src
+        numbers = [0 .. V.length paths - 1]
+        offsets = [0 .. maximum (V.map V.length paths) - 1]
+        env     = (states, paths)
+        dp      = DP { offsets = offsets, numbers = numbers }
+    in   -- (\x -> trace (dispID3Tree 0 x ++ "\n") x) $
         flip runReader env $ evalStateT decideID3 dp

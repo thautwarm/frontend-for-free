@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 77265246ba21a08a172c1ab8301348eca3ab24430f6016f65cbc28ced12fa06b
+-- hash: 9a43b5345e4e1704952332a01a78b77ec80c156dd01290d3222142031bb2e626
 
 name:           RBNF
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       RBNF.Grammar
       RBNF.Graph
       RBNF.HMTypeInfer
+      RBNF.Inline
       RBNF.IRs.Cirno
       RBNF.IRs.Flandre
       RBNF.IRs.IRTrans

@@ -64,7 +64,7 @@ parsers = CGrammar [
     --         CSeq [CTerm negation, "a" |= CNonTerm "Factor" ]
     --     ]
     , "Mul"    --> CAlt [
-            CSeq [ CPred (MTerm "always_true"), CNonTerm "Atom" ],
+            CNonTerm "Atom",
             CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Atom"]
         ]
     ]
@@ -88,7 +88,7 @@ test1 = do
     -- forM_ (M.toList laForests) $ \(i, laTrees) -> do
     --     putStrLn $ "Node=======" ++ show i ++ "============="
     --     forM laTrees $ putStrLn . dispLATree 2
-    let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
+    let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 2 ms
     forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
         putStrLn $ "======== Node" ++ show i ++ " ========"
         forM_ latrees $ putStrLn . dispLATree 2

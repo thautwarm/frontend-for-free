@@ -2,7 +2,7 @@ module RBNF.Utils
 (
 Set, Map, Lens', TaggedFixT(..),
 indent, groupBy, over, view, makeLenses, intercalate,
-mangling, pack, Text
+mangling, pack, Text, (&&&)
 )
 where
 import qualified Data.Map   as M

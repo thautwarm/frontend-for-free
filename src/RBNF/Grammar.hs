@@ -76,24 +76,9 @@ standardizeRule = \case
     CPred app   -> return [[PPred app]]
     CModif mdf  -> return [[PModif mdf]]
 
-inline :: PGrammarBuilder -> PGrammarBuilder
-inline g = concatMap inlineProd g
-    where groups = M.map (map snd) $ groupBy fst g
-          inlineProd :: PProd -> [PProd]
-          inlineProd (me, rule) =
-            let letBlock :: String -> [P] -> [P]
-                letBlock s xs = PPushScope s:xs ++ [PPopScope s]
-                inlineP :: P -> [PRule]
-                inlineP = \case
-                    x@(PNonTerm s) | s /= me  ->
-                            map (letBlock s) $ groups M.! s
-                    x              -> [[x]]
-            in map ((const me &&& id) . concat) $
-               mapM inlineP rule
-
 mkGrammar :: CGrammar -> PGrammarBuilder
 mkGrammar m =
-    inline $ execState procedure []
+    execState procedure []
     where
         procedure :: State PGrammarBuilder ()
         procedure = do

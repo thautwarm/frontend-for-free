@@ -106,10 +106,10 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
         switch = switchImpl [] failed
         switchImpl cases default' = \case
           [] -> (cases, default')
-          (LAReduce, subDecision) : xs ->
+{-           (LAReduce, subDecision) : xs ->
             let cont = runToCode cfg $ mkSwitch c subDecision
-            in  switchImpl cases cont xs
-          (LAShift t, subDecision) : xs ->
+            in  switchImpl cases cont xs -}
+          (t, subDecision) : xs ->
             let idx   = MKCall dsl_s_to_i [MKStr t]
                 cont  = runToCode cfg $ mkSwitch c subDecision
                 case' = (idx, cont)

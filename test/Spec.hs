@@ -58,14 +58,14 @@ a |= b = CBind a b
 
 a --> b = (a, b, Nothing)
 parsers = CGrammar [
-    "Number"   --> CTerm number
-    , "Factor" --> CAlt [
-            CNonTerm "Number",
-            CSeq [CTerm negation, "a" |= CNonTerm "Factor" ]
-        ]
+    "Atom"   --> CAlt [ CTerm number, CSeq [CTerm "(", CNonTerm "Mul", CTerm ")"]]
+    -- , "Factor" --> CAlt [
+    --         CNonTerm "Atom",
+    --         CSeq [CTerm negation, "a" |= CNonTerm "Factor" ]
+    --     ]
     , "Mul"    --> CAlt [
-            CSeq [ CPred (MTerm "always_true"), CNonTerm "Factor" ],
-            CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Factor"]
+            CSeq [ CPred (MTerm "always_true"), CNonTerm "Atom" ],
+            CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Atom"]
         ]
     ]
 
@@ -84,14 +84,18 @@ test1 = do
     -- forM_ (view prods g) print
     print ms
     writeFile "./test.json" (encodeToLazyText ms)
+    -- let laForests = makeLATables 1 ms
+    -- forM_ (M.toList laForests) $ \(i, laTrees) -> do
+    --     putStrLn $ "Node=======" ++ show i ++ "============="
+    --     forM laTrees $ putStrLn . dispLATree 2
     let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 1 ms
-    forM_ (M.toList trees) $ \(i, (latree, id3tree)) -> do
+    forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
         putStrLn $ "======== Node" ++ show i ++ " ========"
-        putStrLn $ dispLATree 2 latree
+        forM_ latrees $ putStrLn . dispLATree 2
         putStrLn "--- LA optimization:"
         putStrLn $ dispID3Tree 2 id3tree
         putStrLn ""
-    -- putStrLn "left recursions:"
+    -- -- putStrLn "left recursions:"
     -- for_ (M.toList $ _leftR ms) $ \(s, xs) -> do
     --     putStrLn $ "Rule:" ++ s
     --     for_ xs $ \s -> putStrLn "" >> print s
@@ -194,4 +198,4 @@ test6 = do
         py = emit
     print $ py a
 
-main = test6
+main = test1

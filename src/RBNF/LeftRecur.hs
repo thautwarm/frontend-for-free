@@ -2,19 +2,17 @@
 -- Author: Taine Zhao(thautwarm)
 -- Date: 2019-07-13
 -- License: BSD-3-clause
+-- {-# OPTIONS_GHC -Wall #-}
 module RBNF.LeftRecur where
 
 import RBNF.Utils
 import RBNF.Symbols
 import RBNF.Grammar
 
-import Control.Monad.State
-import Control.Lens (makeLenses, Lens', over, view)
 import Control.Arrow
 
 import qualified Data.Map  as M
 import qualified Data.Set  as S
-import qualified Data.List as L
 
 -- hereafter as SPILR
 data SplitByIsLeftRecursive
@@ -58,7 +56,7 @@ markedLeftRecur g =
                 frec :: Set String -> PRule -> SplitByIsLeftRecursive
                 frec recurs = \case
                     [] -> error "..." -- TODO: invalid prule
-                    rule@(PTerm _:xs) -> SplitByIsLeftRecursive [] [rule]
+                    rule@(PTerm _:_) -> SplitByIsLeftRecursive [] [rule]
                     rule@(PNonTerm name:xs)
                         | S.member name recurs ->
                             if name == root then SplitByIsLeftRecursive [rule] []

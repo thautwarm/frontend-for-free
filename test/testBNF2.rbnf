@@ -1,3 +1,2 @@
-Add  ::= [<Add> ("+" | "-")] <Mul>;
-Mul  ::= [<Mul> ("*" | "/")] <Atom>;
-Atom ::= "(" <Add> ")" | number;
+Mul  ::= <Mul> ("*" | "/") <Atom> | <Atom>;
+Atom ::= "(" <Mul> ")" | number;

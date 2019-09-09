@@ -177,7 +177,7 @@ stmtP = do
     n <- bound identifier
     bound $ string "::="
     combinatoric <- cP
-    reduce <- optionP (bound (string "->")  *> miniP)
+    reduce <- optionP (bound (string "->")  *> bound miniP)
     bound $ char ';'
     return (n, combinatoric, reduce)
 

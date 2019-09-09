@@ -1,3 +1,5 @@
+import sys
+
 import operator
 from dataclasses import dataclass
 from typing import Generic, TypeVar
@@ -116,7 +118,10 @@ class Count(dict):
     def __missing__(self, k):
         v = self[k] = len(self)
         return v
+
+
 token_cnt = Count()
+
 
 def prim__tk__id(s):
     return token_cnt[s]
@@ -130,7 +135,8 @@ prim__cons = Cons
 prim__nil = nil
 
 
-def prim__to__result(x): return x
+def prim__to__result(x):
+    return x
 
 
 def prim__to__any(x): return x
@@ -159,6 +165,7 @@ class Tokens:
         self.array = array
         self.offset = 0
 
+
 with open("./gen.py") as f:
     exec(f.read(), globals())
 
@@ -181,6 +188,13 @@ assert parse_B(None, tokens) == AST(
          Token(idint=0)),))
 
 
+@dataclass
+class Mul:
+    lhs: object
+    op: object
+    rhs: object
+
+
 with open("./gen2.py") as f:
     exec(f.read(), globals())
 
@@ -192,15 +206,28 @@ mult = Token(token_cnt["quote *"])
 div = Token(token_cnt["quote /"])
 
 tokens = Tokens([
-    number
-    # lp, number, rp, mult,
+    # number, mult, number, mult,
     # number, mult,
-    # lp,
-    #     number, div,
-    #     lp,
-    #         number, mult, number, mult, number,
-    #     rp,
-    # rp
+    lp,
+    number, div,
+    lp,
+    number, mult, number, div, number,
+    rp,
+    rp
 ])
 
-print(parse_Atom(None, tokens))
+
+assert parse_Mul(None, tokens) == (
+    True,
+
+    Mul(lhs=Token(idint=1),
+        op=Token(idint=5),
+        rhs=Mul(
+        lhs=Mul(
+            lhs=Token(idint=1),
+            op=Token(
+                idint=4),
+            rhs=Token(idint=1)),
+        op=Token(idint=5),
+        rhs=Token(idint=1)))
+)

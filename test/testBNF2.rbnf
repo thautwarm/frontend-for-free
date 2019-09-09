@@ -1,2 +1,4 @@
-Mul  ::= <Mul> ("*" | "/") <Atom> | <Atom>;
-Atom ::= "(" <Mul> ")" | number;
+Mul  ::= !lhs=<Mul> !op=("*" | "/") !rhs=<Atom> -> Mul(lhs, op, rhs);
+Mul  ::= !a=<Atom> -> a;
+Atom ::= "(" !a=<Mul> ")" -> a;
+Atom ::= !a=number -> a;

@@ -16,6 +16,7 @@ import           RBNF.Graph
 import           RBNF.LookAHead
 import           RBNF.IRs.Marisa
 import           RBNF.IRs.MarisaLibrary
+import Debug.Trace (trace)
 
 import qualified Data.Map                      as M
 import qualified Data.Set                      as S
@@ -84,6 +85,10 @@ runToCodeSuite cfg = L.reverse . flip evalState cfg . flip execStateT []
 runToCode :: CFG -> StateT [Marisa] (State CFG) () -> Marisa
 runToCode cfg = block . runToCodeSuite cfg
 
+mkSuccess :: Bool -> Marisa -> Marisa
+mkSuccess True ir = MKTuple [MKBool True, ir]
+mkSuccess False ir = ir
+
 mkSwitch
   :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [Marisa] (State CFG) ()
 mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
@@ -136,24 +141,26 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
     -- check if any cases success or default branch has got tried.
     -- otherwise we'll have a try on default branch
     build
-      $ let cond1 = if withTrace
-              then MKCall dsl_eq [dsl_false, MKPrj (MKVar dsl_tmp_res_n) 0]
-              else MKCall dsl_is_null [MKVar dsl_tmp_res_n]
-            cond2 = MKVar dsl_tmp_flag_n
-        in  MKIf (MKOr cond1 cond2) (MKVar dsl_tmp_res_n)
-              $ MKBlock
-                  [ MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
-                  , default'
-                  ]
-
+      $ let
+          cond1 = if withTrace
+            then MKCall dsl_eq [dsl_false, MKPrj (MKVar dsl_tmp_res_n) 0]
+            else MKCall dsl_is_null [MKVar dsl_tmp_res_n]
+          cond2 = MKVar dsl_tmp_flag_n
+          reset =
+            MKBlock
+              [MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n], default']
+        in
+          MKIf (MKOr cond1 cond2) reset (MKVar dsl_tmp_res_n)
 
 codeGen :: CompilationInfo -> Int -> StateT [Marisa] (State CFG) ()
 codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
   let
     node = view nodes graph M.! i
     getCont i cfg =
+      let node = view nodes graph M.! i in
       runToCode cfg $ case (i `M.lookup` decisions, view followed node) of
-        (Just decision, _        ) -> mkSwitch c decision
+        (Just decision, _        ) -> -- trace (dispID3Tree 0 decision) $
+          mkSwitch c decision
         (_            , [followI]) -> codeGen c followI
   in
     case kind node of
@@ -239,7 +246,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
       NReturn slotId -> do
         expr <- lift $ irToCode $ IRVar (Slot slotId)
         cfg  <- lift $ modified $ \cfg -> cfg { ret = expr } :: CFG
-        build $ getCont i cfg
+        build $  mkSuccess withTrace $ getCont i cfg
       Stop -> do
         cfg <- lift get
         let CFG { ret } = cfg
@@ -293,13 +300,12 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
               params3 = map MKVar [reduced, dsl_globST_n, dsl_tokens_n]
               step    = MKDef rec2 args3 cont
               loop    = MKDef rec1 args3 $ MKBlock
-                [ MKAssign reduced (MKVar arg0)
+                [ MKAssign reduced   (MKVar arg0)
                 , MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
                 , MKAssign try $ MKCall (MKVar rec2) params3
                 , MKWhile cond $ MKBlock
-                  [
-                    MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
-                  , MKAssign reduced      fold
+                  [ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
+                  , MKAssign reduced   fold
                   , MKAssign try $ MKCall (MKVar rec2) params3
                   ]
                 , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]

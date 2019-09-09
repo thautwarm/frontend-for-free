@@ -15,6 +15,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 import           Control.Arrow
+import Debug.Trace (trace)
 
 import qualified Data.List                     as L
 import qualified Data.Map                      as M
@@ -39,7 +40,10 @@ dispLATree :: Show a => Int -> LATree a -> String
 dispLATree i = \case
     LAEnd xs    -> indent i $ "end: " ++ show xs
     LA1 edge xs -> indent i ("case " ++ edge) ++ "\n" ++ nest
-        where nest = L.intercalate "\n" $ map (dispLATree (i + 4)) xs
+        where nest = unlines $ map (dispLATree (i + 4)) xs
+
+dispLATrees :: Show a => Int -> [LATree a] -> String
+dispLATrees i xs = unlines $ map (dispLATree i) xs
 
 mapToTrees :: Map LAEdge [LATree a] -> [LATree a]
 mapToTrees m = [ LA1 edge trees | (edge, trees) <- M.toList m ]
@@ -172,6 +176,10 @@ makeLATables k graph =
         _ -> return ()
 
 
+showLATreePaths :: Show a => [([LAEdge], a)] -> String
+showLATreePaths [] = []
+showLATreePaths ((path, a):xs) = show path ++ " -> " ++ show a ++ "\n" ++ showLATreePaths xs
+
 flattenLATrees :: [LATree a] -> [([LAEdge], a)]
 flattenLATrees = \case
     [] -> []
@@ -285,9 +293,12 @@ decideID3 = do
                       else
                           ID3Split nth $ recurse split
 
-decideId3FromLATree :: Ord cls => [LATree cls] -> ID3Decision LAEdge cls
+decideId3FromLATree :: (Show cls, Ord cls) => [LATree cls] -> ID3Decision LAEdge cls
 decideId3FromLATree trees =
-    let (paths_src, states_src) = unzip $ flattenLATrees trees
+    let (paths_src, states_src) =
+            unzip          $ -- (\x -> trace (showLATreePaths x) x) $
+            flattenLATrees $ -- (\x -> trace (dispLATrees 0 x) x) $
+            trees
         paths = V.fromList [ V.fromList row | row <- paths_src ]
         states                  = V.fromList states_src
         numbers                 = [0 .. V.length paths - 1]

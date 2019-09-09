@@ -2,7 +2,7 @@ module RBNF.Utils
 (
 Set, Map, Lens', TaggedFixT(..),
 indent, groupBy, over, view, makeLenses, intercalate,
-mangling, pack, Text, (&&&)
+mangling, pack, Text, (&&&), trace
 )
 where
 import qualified Data.Map   as M
@@ -11,6 +11,7 @@ import qualified Data.List  as L
 import Control.Arrow
 import Control.Lens (over, view, makeLenses, Lens')
 import Data.Text(pack, unpack, replace, Text, append)
+import Debug.Trace (trace)
 
 type Set = S.Set
 type Map = M.Map

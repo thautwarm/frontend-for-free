@@ -86,7 +86,8 @@ mkGrammar m =
                 do  prules <- standardizeRule crule
                     let packer =
                             case reduce of
-                                Just apply -> reduceStack apply
+                                Just apply -> -- trace (show apply) $
+                                    reduceStack apply
                                 _          -> mkSExpStack sym
                     return [(sym, packer rule) | rule <- prules]
             modify (concat a ++)

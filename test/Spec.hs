@@ -83,7 +83,7 @@ test1 = do
     let ms = buildGraph ks
     -- forM_ gbuilder print
     -- forM_ (view prods g) print
-    print ms
+    -- print ms
     writeFile "./test.json" (encodeToLazyText ms)
     -- let laForests = makeLATables 1 ms
     -- forM_ (M.toList laForests) $ \(i, laTrees) -> do
@@ -91,7 +91,7 @@ test1 = do
     --     forM laTrees $ putStrLn . dispLATree 2
     let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 2 ms
     forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
-        putStrLn $ "======== Node" ++ show i ++ " ========"
+        putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
         forM_ latrees $ putStrLn . dispLATree 2
         putStrLn "--- LA optimization:"
         putStrLn $ dispID3Tree 2 id3tree

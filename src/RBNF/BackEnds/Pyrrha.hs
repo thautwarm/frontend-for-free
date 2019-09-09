@@ -66,7 +66,11 @@ py_dedent :: State CFG ()
 py_dedent = modify $ over lyt (\x -> x - 1)
 
 py_assign :: PyName -> [Text] -> State CFG ()
-py_assign lhs rhs = py_build $ T.concat (lhs : " = " : rhs)
+py_assign lhs rhs =
+    let rhs' = T.concat rhs
+    in if lhs /= rhs'
+       then py_build $ T.concat [lhs, " = ", rhs']
+       else pure ()
 
 within_py_indent :: State CFG a -> State CFG a
 within_py_indent m = do
@@ -129,12 +133,18 @@ cgPy = \case
             py_assign lhs [falseC]
         return lhs
     MKWhile cond body -> do
-        cond <- cgPy cond
-        py_release cond
-        py_build $ T.concat ["while ", cond, ":"]
+        test <- cgPy cond
+        py_build $ T.concat ["while ", test, ":"]
         within_py_indent $ do
             body <- cgPy body
             py_release body
+
+            py_build $ "# recalculate condition"
+            test' <- cgPy cond
+            py_release test'
+            py_assign test [test']
+
+        py_release test
         return "None"
     MKSwitch test [] defaultCase -> do
         test <- cgPy test

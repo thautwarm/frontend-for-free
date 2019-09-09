@@ -173,13 +173,12 @@ analyse' seman = \case
         seman <- analyse' seman xs
         return $ over route (EPopScope s:) seman
     PReduce m n:xs -> do
-        tp  <- IRTuple . reverse . map irOfObj <$> replicateM n pop
+        replicateM_ n pop
         obj <- newObj
         push obj
         pos' <- gets $ view pos
-        let fn   = miniLangToIR m
-            call = IRCall fn [tp]
-            prog = EProc [refObj obj call]
+        let app   = miniLangToIR m
+            prog = EProc [refObj obj app]
         seman <- analyse' seman xs
         return $ over route (prog:) seman
 

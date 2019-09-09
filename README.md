@@ -62,8 +62,9 @@ support for error reporting.
 - `<a>`: non-terminal rule `a`
 - `a/"a"`: terminal rule `a/quote a`
 - `a | b`: `a` or `b`
+- `[a b c]`: an optional block
 - `a b c`: a sequence of parsing symbols
-- `name=rule`: context-xsensitive feature, locally bind what produced by `rule` to `name`.
+- `!name=rule`: context-xsensitive feature, locally bind what produced by `rule` to `name`.
 - `?f(x)/?f/?(f(g(x))`: use locally-binded variables to do some predictions.
 
 - `a ::= b;`: classic production definition

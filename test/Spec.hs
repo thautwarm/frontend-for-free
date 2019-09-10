@@ -8,6 +8,7 @@ import RBNF.Graph
 import RBNF.LookAHead
 import RBNF.Inline
 import RBNF.CodeGen
+import RBNF.FrontEnd
 import RBNF (parserGen)
 import RBNF.Serialization
 
@@ -69,6 +70,15 @@ parsers = CGrammar [
             CSeq [ CNonTerm "Mul", CTerm multiply, CNonTerm "Atom"]
         ]
     ]
+
+bnf =
+    "Mul  ::= !lhs=<Mul> !op=(\"*\" | \"/\") !rhs=<Atom>  -> arith_call(op, lhs, rhs);" ++
+    "Mul  ::= !a=<Atom>                               -> a;" ++
+    "Add  ::= !lhs=<Add> !op=(\"+\" | \"-\") !rhs=<Mul>   -> arith_call(op, lhs, rhs);"++
+    "Add  ::= !a=<Mul>                                -> a;" ++
+    "Atom ::= \"(\" !a=<Add> \")\"                        -> a;" ++
+    "Atom ::= !a=number                               -> unwrap(a);" ++
+    "TOP  ::= BOF !a=<Add> EOF                        -> a;"
 
 test1 = do
     putStrLn ""
@@ -199,4 +209,36 @@ test6 = do
         py = emit
     print $ py a
 
-main = test1
+test7 = do
+    putStrLn ""
+    -- for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
+    --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
+    let parsers = parseDoc bnf
+    parsers <- case parsers of
+        Left _ -> error "emm"
+        Right (a, s) -> return a
+
+    let gbuilder = mkGrammar $  parsers
+    let g = markedLeftRecur gbuilder
+    let ks = pGToSG  g
+    let ps = view prods g
+    -- let leftR' = M.toList $ view leftR ks
+    -- let syms = L.map fst prods'
+    let ms = buildGraph ks
+    -- forM_ gbuilder print
+    -- forM_ (view prods g) print
+    -- print ms
+    writeFile "./test.json" (encodeToLazyText ms)
+    -- let laForests = makeLATables 1 ms
+    -- forM_ (M.toList laForests) $ \(i, laTrees) -> do
+    --     putStrLn $ "Node=======" ++ show i ++ "============="
+    --     forM laTrees $ putStrLn . dispLATree 2
+    let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 2 ms
+    forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
+        putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
+        forM_ latrees $ putStrLn . dispLATree 2
+        putStrLn "--- LA optimization:"
+        putStrLn $ dispID3Tree 2 id3tree
+        putStrLn ""
+
+main = test7

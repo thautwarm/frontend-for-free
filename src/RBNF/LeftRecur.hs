@@ -5,14 +5,16 @@
 -- {-# OPTIONS_GHC -Wall #-}
 module RBNF.LeftRecur where
 
-import RBNF.Utils
-import RBNF.Symbols
-import RBNF.Grammar
+import           RBNF.Utils
+import           RBNF.Symbols
+import           RBNF.Grammar
 
-import Control.Arrow
+import           Control.Arrow
+import           Control.Monad.State
 
-import qualified Data.Map  as M
-import qualified Data.Set  as S
+import qualified Data.Map                      as M
+import qualified Data.Set                      as S
+import qualified Data.List                     as L
 
 -- hereafter as SPILR
 data SplitByIsLeftRecursive
@@ -23,51 +25,64 @@ makeLenses ''SplitByIsLeftRecursive
 
 mergeSplited :: [SplitByIsLeftRecursive] -> SplitByIsLeftRecursive
 mergeSplited xs = SplitByIsLeftRecursive isLeftR' notLeftR'
-                  where
-                    extract f = concatMap  (view f) xs
-                    isLeftR'  = extract isLeftR
-                    notLeftR' = extract notLeftR
+  where
+    extract f = concatMap (view f) xs
+    isLeftR'  = extract isLeftR
+    notLeftR' = extract notLeftR
 
 
 markedLeftRecur :: PGrammarBuilder -> Grammar [P]
 markedLeftRecur g =
-        uncurry Grammar .
-        (M.fromList . fst &&& M.fromList . snd) .
-        unzip .
-        M.elems .
-        M.mapWithKey _SPILR2Pair .
-        (M.mapWithKey f) $ groups
-    where
-        _SPILR2Pair :: String -> SplitByIsLeftRecursive -> ((String, [PRule]), (String, [PRule]))
-        _SPILR2Pair sym spilr =
-            let f g = (sym, view g spilr)
-            in (f notLeftR, f isLeftR)
+    uncurry Grammar
+        . (M.fromList . fst &&& M.fromList . snd)
+        . unzip
+        . M.elems
+        . M.mapWithKey _SPILR2Pair
+        $ fold S.empty pairs
+  where
+    _SPILR2Pair
+        :: String
+        -> SplitByIsLeftRecursive
+        -> ((String, [PRule]), (String, [PRule]))
+    _SPILR2Pair sym spilr =
+        let f g = (sym, view g spilr) in (f notLeftR, f isLeftR)
 
-        groups :: Map String [PRule]
-        groups = M.map (map snd) $ groupBy fst g
+    groups :: Map String [PRule]
+    groups = M.map (map snd) $ groupBy fst g
 
-        f :: String -> [PRule] -> SplitByIsLeftRecursive
-        f sym rules =
-            let recurs = S.singleton sym
-            in  mergeSplited $ map (splitLR sym recurs) rules
-        splitLR :: String -> Set String -> PRule -> SplitByIsLeftRecursive
-        splitLR root = frec
-            where
-                frec :: Set String -> PRule -> SplitByIsLeftRecursive
-                frec recurs = \case
-                    [] -> error "..." -- TODO: invalid prule
-                    rule@(PTerm _:_) -> SplitByIsLeftRecursive [] [rule]
-                    rule@(PNonTerm name:xs)
-                        | S.member name recurs ->
-                            if name == root then SplitByIsLeftRecursive [rule] []
-                            else SplitByIsLeftRecursive [] [rule]
-                        | otherwise ->
-                            let recurs' = S.insert name recurs
-                                arr = groups M.! name
-                            in  mergeSplited $
-                                map (frec recurs' . (++ xs)) arr
-                    x:xs ->
-                        let separated = frec recurs xs
-                            addHd rules = [x:rule | rule <- rules]
-                        in over isLeftR addHd . over notLeftR addHd $ separated
+    pairs  = M.toList groups
+    fold
+        :: Set String
+        -> [(String, [PRule])]
+        -> Map String SplitByIsLeftRecursive
+    fold leftRNames = \case
+        [] -> M.empty
+        (sym, rules) : xs ->
+            let recurs = S.insert sym leftRNames
+                split  = mergeSplited $ map (splitLR sym recurs) rules
+                leftRNames' | L.null (view isLeftR split) = leftRNames
+                            | -- not left recur name
+                              otherwise = S.insert sym leftRNames
+            in  M.insert sym split $ fold leftRNames' xs
+
+    splitLR :: String -> Set String -> PRule -> SplitByIsLeftRecursive
+    splitLR root = frec
+      where
+        frec :: Set String -> PRule -> SplitByIsLeftRecursive
+        frec recurs = \case
+            []                 -> error "..." -- TODO: invalid prule
+            rule@(PTerm _ : _) -> SplitByIsLeftRecursive [] [rule]
+            rule@(PNonTerm name : xs)
+                | S.member name recurs
+                -> if name == root
+                    then SplitByIsLeftRecursive [rule] []
+                    else SplitByIsLeftRecursive [] [rule]
+                | otherwise
+                -> let recurs' = S.insert name recurs
+                       arr     = groups M.! name
+                   in  mergeSplited $ map (frec recurs' . (++ xs)) arr
+            x : xs ->
+                let separated = frec recurs xs
+                    addHd rules = [ x : rule | rule <- rules ]
+                in  over isLeftR addHd . over notLeftR addHd $ separated
 

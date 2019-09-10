@@ -105,23 +105,27 @@ mkSwitch
 mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
   ID3Leaf []  -> error "invalid" -- TODO
   ID3Leaf [a] -> codeGen c a
-  ID3Leaf xs  -> error
-    "Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
+  leaf@(ID3Leaf xs)  -> do
+      cur_scope <- last . scopes <$> lift get
+      error $
+        --  trace (dispID3Tree 0 leaf) $
+        "Found backtracing at rule " ++ cur_scope ++
+        ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
   ID3Split k xs -> do
     hs_tmp_i <- lift incTmp
     cfg      <- lift get
-    last     <- last scopes
     let -- dsl_tmp_flag_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
+        cur_scope      = last $ scopes cfg
         dsl_tmp_res_n  = MName $ ".tmp." ++ show hs_tmp_i ++ ".result"
         dsl_off_n      = MName $ ".off." ++ show hs_tmp_i
-        la_failed_msg  = last ++ " lookahead failed"
-        eof_msg        = last ++ " got EOF"
+        la_failed_msg  = cur_scope ++ " lookahead failed"
+        eof_msg        = cur_scope ++ " got EOF"
 
         eof_err        = if withTrace
-          then MKTuple [dsl_false, mkErrors [mkError (MName dsl_off_n) (MKStr eof_msg)]]
+          then MKTuple [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr eof_msg)]]
           else dsl_null
         la_failed       = if withTrace
-          then MKTuple [dsl_false, mkErrors [mkError (MName dsl_off_n) (MKStr la_failed_msg)]]
+          then MKTuple [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr la_failed_msg)]]
           else dsl_null
 
     let dsl_tokens = MKVar dsl_tokens_n
@@ -153,7 +157,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
       --  consBlock (MKAssign dsl_tmp_flag_n dsl_true) default'
       -- initialize the flag to test whether the default branch has got tried.
 
-    build $ MKAssign dsl_tmp_flag_n dsl_false
+    -- build $ MKAssign dsl_tmp_flag_n dsl_false
     build $ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
     build $ switch_expr
     -- build $ MKAssign dsl_tmp_res_n expr
@@ -196,7 +200,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
         let tokenId = MKCall dsl_s_to_i [MKStr t]
         build $ MKAssign dsl_sloti_n (MKCall dsl_match_tk [dsl_tokens, tokenId])
         let cont   = getCont i cfg
-            err_hd = MKTuple [MKVar dsl_off_n, MKStr t]
+            err_hd = MKTuple [MKVar dsl_off_n, MKStr $ t ++ " not match"]
             errs   = MKCall dsl_to_any [MKCall dsl_cons [err_hd, dsl_nil]]
             ifErr | withTrace = MKTuple [dsl_false, errs]
                   | otherwise = dsl_null

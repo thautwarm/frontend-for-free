@@ -72,6 +72,7 @@ parsers = CGrammar [
     ]
 
 bnf =
+    "# aa \n"++
     "Mul  ::= !lhs=<Mul> !op=(\"*\" | \"/\") !rhs=<Atom>  -> arith_call(op, lhs, rhs);" ++
     "Mul  ::= !a=<Atom>                               -> a;" ++
     "Add  ::= !lhs=<Add> !op=(\"+\" | \"-\") !rhs=<Mul>   -> arith_call(op, lhs, rhs);"++

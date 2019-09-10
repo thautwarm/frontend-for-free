@@ -187,6 +187,7 @@ commentP = many it >> bound eps
             char '#'
             many $ noneOf "\n"
             char '\n'
+            whiteSpace
             pure ()
 
 modP :: Parser CGrammar

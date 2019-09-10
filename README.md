@@ -47,10 +47,10 @@ rbnf-lex -in <infile>.rbnf -out <outfile>
 ## Example
 
 ```
-Number -> number
-Factor -> Number | '-' a=Factor
-Mul    -> ?always_true Factor
-        | Mul '*' Factor
+Number ::= number
+Factor ::= Number | "-" !a=Factor
+Mul    ::= ?always_true Factor
+           | Mul "*" Factor
 ```
 
 You can configure the generator to specify whether to generate
@@ -85,7 +85,8 @@ P.S: comments not supported yet.
 ### eDSL in Haskell
 
 ```haskell
-infix 5
+
+infix 5 -->
 infix 6 |=
 
 number = "number"
@@ -94,13 +95,13 @@ multiply = "*"
 
 a |= b = CBind a b
 
-a b = (a, b, Nothing)
-case' a = CTerm (Case a)
+a --> b = (a, b, Nothing)
+
 parsers = S.fromList [
-    "Number"   --> case' number
+    "Number"   --> CTerm number
     , "Factor" --> CAlt [
             CNonTerm "Number",
-            CSeq [case' negation, "a" |= CNonTerm "Factor" ]
+            CSeq [CTerm negation, "a" |= CNonTerm "Factor" ]
         ]
     , "Mul"    --> CAlt [
             CSeq [ CPred (MTerm "always_true"), CNonTerm "Factor" ],
@@ -112,10 +113,10 @@ parsers = S.fromList [
 Its equivalent notation of BNF derivative is
 
 ```
-Number -> number
-Factor -> Number | '-' a=Factor
-Mul    -> ?always_true Factor
-        | Mul '*' Factor
+Number ::= number
+Factor ::= Number | "-" !a=Factor
+Mul    ::= ?always_true Factor
+           | Mul "*" Factor
 ```
 
 ## Note: Left Recursion Handling
@@ -137,6 +138,7 @@ Mul    -> ?always_true Factor
           [6]
   LAShift (Case "number")
       [12]
+
 --- LA optimization:
 case elts[0]
       LAShift (Case "-") => [6]
@@ -177,6 +179,7 @@ case elts[1]
   LAShift (Case "number")
       LAShift (Case "*")
           [48]
+
 --- LA optimization:
 case elts[1]
       LAShift (Case "*") => [48]
@@ -199,35 +202,49 @@ Check `RBNF.BackEnds.Merlin (resolve*)`.
 ### Python Example:
 
 ```python
+def lr_step_Mul(_slot_0, prim__state, prim__tokens):
+    Mul_lhs_0 = _slot_0
+    lcl_0 = prim__tokens.offset
+    _off_0 = lcl_0
+    lcl_0 = prim__tk__id("quote *")
+    lcl_0 = prim__match__tk(prim__tokens, lcl_0)
+    _slot_1 = lcl_0
+    lcl_0 = prim__is__null(_slot_1)
+    if lcl_0:
+        lcl_1 = (_off_0, "quote *")
+        lcl_1 = prim__cons(lcl_1, prim__nil)
+        lcl_1 = prim__to__any(lcl_1)
+        lcl_1 = (False, lcl_1)
+        lcl_0 = lcl_1
+    else:
+        lcl_1 = parse_Atom(prim__state, prim__tokens)
+        _slot_2_check = lcl_1
+        lcl_1 = _slot_2_check[0]
+        lcl_1 = prim__eq(lcl_1, False)
+        if lcl_1:
+            lcl_1 = _slot_2_check
+        else:
+            lcl_1 = _slot_2_check[1]
+            lcl_1 = prim__to__result(lcl_1)
+            _slot_2 = lcl_1
+            Mul_rhs_1 = _slot_2
+            lcl_1 = (_slot_0, _slot_1, _slot_2)
+            _slot_local__1 = lcl_1
+            lcl_1 = add(Mul_lhs_0, Mul_rhs_1)
+            _slot_local__2 = lcl_1
+            lcl_1 = (True, _slot_local__2)
+        lcl_0 = lcl_1
+    return lcl_0
 def lr_loop_Mul(_slot_0, prim__state, prim__tokens):
     lr_Mul_reduce = _slot_0
     lcl_0 = prim__tokens.offset
     _off_0 = lcl_0
     lcl_0 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
     lr_Mul_try = lcl_0
-    lcl_0 = prim__is__null(lr_Mul_try)
+    lcl_0 = lr_Mul_try[0]
+    lcl_0 = prim__not__eq(lcl_0, False)
     while lcl_0:
-        lcl_0 = prim__tokens.offset
-        _off_0 = lcl_0
-        lr_Mul_reduce = lr_Mul_try
-        lcl_0 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
-        lr_Mul_try = lcl_0
-    lcl_0 = prim__reset(prim__tokens, _off_0)
-    return lr_Mul_reduce
-def lr_step_Mul(_slot_0, prim__state, prim__tokens):
-    lcl_0 = prim__tokens.offset
-    _off_0 = lcl_0
-    lcl_0 = prim__tk__id("*")
-    lcl_0 = prim__match__tk(prim__tokens, lcl_0)
-    _slot_1 = lcl_0
-    lcl_0 = prim__is__null(_slot_1)
-    if lcl_0:
-        lcl_0 = prim__null
-    else:
-        _tmp_1_flag = False
-        lcl_1 = prim__tokens.offset
-        _off_1 = lcl_1
-    ...
+        ...
 ```
 
 ### OCaml Example:

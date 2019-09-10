@@ -54,9 +54,19 @@ ghc-options:
   - -fno-warn-partial-type-signatures
 
 executables:
-  RBNF-exe:
+  rbnf-pgen:
     main:                Main.hs
-    source-dirs:         app
+    source-dirs:         pgen
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - RBNF
+    - base >=4.7 && <5
+  rbnf-lex:
+    main:                Main.hs
+    source-dirs:         lex
     ghc-options:
     - -threaded
     - -rtsopts

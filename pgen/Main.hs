@@ -25,10 +25,6 @@ import qualified Data.Text.IO                  as T
 import qualified Data.Text                     as T
 import qualified Data.Map                      as M
 
-data Flag
-    = Aeson String
-    | Dump
-
 main = getArgs >>= wain
 
 parseOptsKey m = \case

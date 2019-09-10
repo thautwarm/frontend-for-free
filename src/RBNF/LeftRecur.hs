@@ -38,7 +38,7 @@ markedLeftRecur g =
         . unzip
         . M.elems
         . M.mapWithKey _SPILR2Pair
-        $ fold S.empty pairs
+        $ fold pairs
   where
     _SPILR2Pair
         :: String
@@ -51,19 +51,25 @@ markedLeftRecur g =
     groups = M.map (map snd) $ groupBy fst g
 
     pairs  = M.toList groups
-    fold
-        :: Set String
-        -> [(String, [PRule])]
-        -> Map String SplitByIsLeftRecursive
-    fold leftRNames = \case
+
+    detectLRNames leftRNamesAcc = \case
+        [] -> leftRNamesAcc
+        (sym, rules) : xs ->
+            let recurs = S.insert sym leftRNamesAcc
+                split  = mergeSplited $ map (splitLR sym recurs) rules
+                leftRNamesAcc' | L.null (view isLeftR split) = leftRNamesAcc
+                               | -- left recur symbol
+                                 otherwise = recurs
+            in detectLRNames leftRNamesAcc' xs
+
+    lRNames = detectLRNames S.empty pairs
+
+    fold :: [(String, [PRule])] -> Map String SplitByIsLeftRecursive
+    fold = \case
         [] -> M.empty
         (sym, rules) : xs ->
-            let recurs = S.insert sym leftRNames
-                split  = mergeSplited $ map (splitLR sym recurs) rules
-                leftRNames' | L.null (view isLeftR split) = leftRNames
-                            | -- not left recur name
-                              otherwise = S.insert sym leftRNames
-            in  M.insert sym split $ fold leftRNames' xs
+            let split  = mergeSplited $ map (splitLR sym lRNames) rules
+            in  M.insert sym split $ fold xs
 
     splitLR :: String -> Set String -> PRule -> SplitByIsLeftRecursive
     splitLR root = frec

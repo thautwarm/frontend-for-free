@@ -7,7 +7,8 @@ import           Debug.Trace
 import qualified Data.Map                      as M
 
 inline :: Grammar [P] -> Grammar [P]
-inline g = Grammar { _prods = inlineProds nLeftRs productions
+inline g = trace "calling inline" $
+           Grammar { _prods = inlineProds nLeftRs productions
                    , _leftR = inlineProds nLeftRs leftRs
                    }
   where

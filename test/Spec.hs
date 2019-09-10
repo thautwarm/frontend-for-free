@@ -220,6 +220,10 @@ test7 = do
 
     let gbuilder = mkGrammar $  parsers
     let g = markedLeftRecur gbuilder
+    forM_ (M.toList $ view prods g) $ \(k, v) -> do
+        print k
+        forM_ v (\x -> putStrLn "===" >> print x)
+        putStrLn ""
     let ks = pGToSG  g
     let ps = view prods g
     -- let leftR' = M.toList $ view leftR ks
@@ -233,12 +237,12 @@ test7 = do
     -- forM_ (M.toList laForests) $ \(i, laTrees) -> do
     --     putStrLn $ "Node=======" ++ show i ++ "============="
     --     forM laTrees $ putStrLn . dispLATree 2
-    let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 2 ms
-    forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
-        putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
-        forM_ latrees $ putStrLn . dispLATree 2
-        putStrLn "--- LA optimization:"
-        putStrLn $ dispID3Tree 2 id3tree
-        putStrLn ""
+    -- let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 2 ms
+    -- forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
+    --     putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
+    --     forM_ latrees $ putStrLn . dispLATree 2
+    --     putStrLn "--- LA optimization:"
+    --     putStrLn $ dispID3Tree 2 id3tree
+    --     putStrLn ""
 
 main = test7

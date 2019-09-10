@@ -90,23 +90,24 @@ string xs = do
             (a :) <$> collect xs
     collect xs
 
-escape :: Parser Char
-escape = do
+escape :: Char -> Parser Char
+escape quote = do
     char '\\'
-    oneOf "\\\""
+    oneOf (quote:"\\")
 
-nonEscape :: Parser Char
-nonEscape = noneOf "\\\""
+nonEscape :: Char -> Parser Char
+nonEscape quote = noneOf (quote:"\\")
 
-character :: Parser Char
-character = nonEscape <|> escape
+character :: Char -> Parser Char
+character quote = nonEscape quote <|> escape quote
 
 quotedStr :: Parser String
-quotedStr = do
-    char '"'
-    string <- many character
-    char '"'
-    return $ "quote " ++ string
+quotedStr = quoteStrImpl '"' <|>  quoteStrImpl '\''
+    where quoteStrImpl quote = do
+            char quote
+            string <- many $ character quote
+            char quote
+            return $ "quote " ++ string
 
 infixl 4 <***>
 (<***>) p1 p2 = do

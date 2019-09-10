@@ -72,14 +72,22 @@ parsers = CGrammar [
     ]
 
 bnf =
-    "# aa \n"++
-    "Mul  ::= !lhs=<Mul> !op=(\"*\" | \"/\") !rhs=<Atom>  -> arith_call(op, lhs, rhs);" ++
-    "Mul  ::= !a=<Atom>                               -> a;" ++
-    "Add  ::= !lhs=<Add> !op=(\"+\" | \"-\") !rhs=<Mul>   -> arith_call(op, lhs, rhs);"++
-    "Add  ::= !a=<Mul>                                -> a;" ++
-    "Atom ::= \"(\" !a=<Add> \")\"                        -> a;" ++
-    "Atom ::= !a=number                               -> unwrap(a);" ++
-    "TOP  ::= BOF !a=<Add> EOF                        -> a;"
+    -- "LocalName  ::= '%' (name | decimals);\n" ++
+    -- "GlobalName ::= '@' (name | decimals);\n" ++
+    -- "MetaName   ::= '!' name;\n"              ++
+    -- "DecimalLit ::= ['-'] decimals;\n"        ++
+    -- "IntLit     ::= <DecimalLit>;\n"++
+    "FloatLit   ::= ['+' | '-'] [decimals '.' digits ('e' | 'E') ['+' | '-']] decimals;\n"-- ++
+    -- "StrLit     ::= quotedStr;\n"
+
+    -- "# aa \n"++
+    -- "Mul  ::= !lhs=<Mul> !op=(\"*\" | \"/\") !rhs=<Atom>  -> arith_call(op, lhs, rhs);" ++
+    -- "Mul  ::= !a=<Atom>                               -> a;" ++
+    -- "Add  ::= !lhs=<Add> !op=(\"+\" | \"-\") !rhs=<Mul>   -> arith_call(op, lhs, rhs);"++
+    -- "Add  ::= !a=<Mul>                                -> a;" ++
+    -- "Atom ::= \"(\" !a=<Add> \")\"                        -> a;" ++
+    -- "Atom ::= !a=number                               -> unwrap(a);" ++
+    -- "TOP  ::= BOF !a=<Add> EOF                        -> a;"
 
 test1 = do
     putStrLn ""

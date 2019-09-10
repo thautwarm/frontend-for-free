@@ -12,11 +12,13 @@ Usage: [-v] [-h] [-in filename] [-out filename]
 
 
 # gen python
-RBNF -in <infile>.rbnf -k <lookahead number> -out <outfile> -be python [--codegen-with-trace] --noinline
+rbnf-pgen -in <infile>.rbnf -k <lookahead number> -out <outfile> -be python [--codegen-with-trace] --noinline
 
 # gen ocaml
-RBNF -in <infile>.rbnf -k <lookahead number> -out <outfile> -be ocaml [--codegen-with-trace] --noinline
+rbnf-pgen -in <infile>.rbnf -k <lookahead number> -out <outfile> -be ocaml [--codegen-with-trace] --noinline
 
+# list out all terminals of the given grammar
+rbnf-lex -in <infile>.rbnf -out <outfile>
 ```
 
 ## Repo Structure

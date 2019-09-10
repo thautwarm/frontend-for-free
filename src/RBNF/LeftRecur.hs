@@ -91,4 +91,3 @@ markedLeftRecur g =
                 let separated = frec recurs xs
                     addHd rules = [ x : rule | rule <- rules ]
                 in  over isLeftR addHd . over notLeftR addHd $ separated
-

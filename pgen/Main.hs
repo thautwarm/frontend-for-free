@@ -73,6 +73,7 @@ wain xs = case parseOptsKey M.empty xs of
             Nothing -> "marisa"
         outf <- outf
         if outf == "stdout" then T.putStrLn text else T.writeFile outf text
+        exitSuccess
       where
         doInline | "noinline" `M.member` m = False
                  | otherwise = True

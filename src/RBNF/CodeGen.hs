@@ -89,6 +89,17 @@ mkSuccess :: Bool -> Marisa -> Marisa
 mkSuccess True ir = MKTuple [MKBool True, ir]
 mkSuccess False ir = ir
 
+mkError :: Marisa -> Marisa -> Marisa
+mkError off err = MKTuple [off, err]
+
+mkErrors :: [Marisa] -> Marisa
+mkErrors xs =  MKCall dsl_to_any $ [mkErrors' xs]
+  where mkErrors' [] = dsl_nil
+        mkErrors' (x:xs) = MKCall dsl_cons [x, mkErrors' xs]
+
+toErrors :: Marisa -> Marisa
+toErrors sup = MKCall dsl_to_errs [sup]
+
 mkSwitch
   :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [Marisa] (State CFG) ()
 mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
@@ -99,16 +110,24 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
   ID3Split k xs -> do
     hs_tmp_i <- lift incTmp
     cfg      <- lift get
-    let dsl_tmp_flag_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
+    last     <- last scopes
+    let -- dsl_tmp_flag_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
         dsl_tmp_res_n  = MName $ ".tmp." ++ show hs_tmp_i ++ ".result"
         dsl_off_n      = MName $ ".off." ++ show hs_tmp_i
-        failed         = if withTrace
-          then MKTuple [dsl_false, MKCall dsl_to_any [dsl_nil]]
+        la_failed_msg  = last ++ " lookahead failed"
+        eof_msg        = last ++ " got EOF"
+
+        eof_err        = if withTrace
+          then MKTuple [dsl_false, mkErrors [mkError (MName dsl_off_n) (MKStr eof_msg)]]
           else dsl_null
+        la_failed       = if withTrace
+          then MKTuple [dsl_false, mkErrors [mkError (MName dsl_off_n) (MKStr la_failed_msg)]]
+          else dsl_null
+
     let dsl_tokens = MKVar dsl_tokens_n
         switch
           :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(Marisa, Marisa)], Marisa)
-        switch = switchImpl [] failed
+        switch = switchImpl [] la_failed
         switchImpl cases default' = \case
           [] -> (cases, default')
 {-           (LAReduce, subDecision) : xs ->
@@ -123,34 +142,35 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
         dsl_cur_int   = MKAttr dsl_cur_token tokenId
         dsl_la_cond   = MKCall dsl_peekable [dsl_tokens, dsl_int k]
     let
-      switch'  = switch xs
-      cases    = fst switch'
-      default' = snd switch'
-      expr     = MKIf dsl_la_cond
-                      (MKSwitch dsl_cur_int cases defaultWithFlagAssigned)
-                      failed
+      switch'     = switch xs
+      cases       = fst switch'
+      default'    = snd switch'
+      switch_expr = MKIf dsl_la_cond
+                      (MKSwitch dsl_cur_int cases default')
+                      eof_err
 
-      defaultWithFlagAssigned =
-        consBlock (MKAssign dsl_tmp_flag_n dsl_true) default'
+      -- defaultWithFlagAssigned =
+      --  consBlock (MKAssign dsl_tmp_flag_n dsl_true) default'
       -- initialize the flag to test whether the default branch has got tried.
 
     build $ MKAssign dsl_tmp_flag_n dsl_false
     build $ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
-    build $ MKAssign dsl_tmp_res_n expr
+    build $ switch_expr
+    -- build $ MKAssign dsl_tmp_res_n expr
 
-    -- check if any cases success or default branch has got tried.
-    -- otherwise we'll have a try on default branch
-    build
-      $ let
-          cond1 = if withTrace
-            then MKCall dsl_eq [dsl_false, MKPrj (MKVar dsl_tmp_res_n) 0]
-            else MKCall dsl_is_null [MKVar dsl_tmp_res_n]
-          cond2 = MKVar dsl_tmp_flag_n
-          reset =
-            MKBlock
-              [MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n], default']
-        in
-          MKIf (MKOr cond1 cond2) reset (MKVar dsl_tmp_res_n)
+    -- -- check if any cases success or default branch has got tried.
+    -- -- otherwise we'll have a try on default branch
+    -- build
+    --   $ let
+    --       cond1 = if withTrace
+    --         then MKCall dsl_eq [dsl_false, MKPrj (MKVar dsl_tmp_res_n) 0]
+    --         else MKCall dsl_is_null [MKVar dsl_tmp_res_n]
+    --       cond2 = MKVar dsl_tmp_flag_n
+    --       reset =
+    --         MKBlock
+    --           [MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n], default']
+    --     in
+    --       MKIf (MKOr cond1 cond2) reset (MKVar dsl_tmp_res_n)
 
 codeGen :: CompilationInfo -> Int -> StateT [Marisa] (State CFG) ()
 codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =

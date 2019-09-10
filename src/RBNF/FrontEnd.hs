@@ -182,12 +182,11 @@ stmtP = do
     return (n, combinatoric, reduce)
 
 commentP :: Parser ()
-commentP = it <|> eps
+commentP = many it >> bound eps
     where it = do
             char '#'
             many $ noneOf "\n"
             char '\n'
-            whiteSpace
             pure ()
 
 modP :: Parser CGrammar

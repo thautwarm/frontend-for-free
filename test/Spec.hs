@@ -215,7 +215,7 @@ test7 = do
     --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
     let parsers = parseDoc bnf
     parsers <- case parsers of
-        Left _ -> error "emm"
+        Left err -> error err
         Right (a, s) -> return a
 
     let gbuilder = mkGrammar $  parsers

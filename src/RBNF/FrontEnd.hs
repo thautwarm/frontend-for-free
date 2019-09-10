@@ -181,8 +181,17 @@ stmtP = do
     bound $ char ';'
     return (n, combinatoric, reduce)
 
+commentP :: Parser ()
+commentP = it <|> eps
+    where it = do
+            char '#'
+            many $ noneOf "\n"
+            char '\n'
+            whiteSpace
+            pure ()
+
 modP :: Parser CGrammar
-modP = CGrammar <$> (whiteSpace *> bound (many stmtP))
+modP = CGrammar <$> (whiteSpace *> bound (many (commentP *> stmtP)) <* commentP)
 
 sepBy :: Parser a -> Parser b -> Parser [b]
 sepBy sep p = do

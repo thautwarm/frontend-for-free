@@ -212,6 +212,10 @@ test4 = do
 test5  = T.writeFile "a.txt" $ dumpCG parsers
 
 test6 = do
+    let parsers = parseDoc bnf
+    parsers <- case parsers of
+        Left err -> error err
+        Right (a, s) -> return a
     putStrLn ""
     let a = parserGen True 1 False parsers
         py :: Marisa -> Doc PythonBackEnd
@@ -244,8 +248,8 @@ test7 = do
     writeFile "./test.json" (encodeToLazyText ms)
     -- let laForests = makeLATables 1 ms
     -- forM_ (M.toList laForests) $ \(i, laTrees) -> do
-    --     putStrLn $ "Node=======" ++ show i ++ "============="
-    --     forM laTrees $ putStrLn . dispLATree 2
+        -- putStrLn $ "Node=======" ++ show i ++ "============="
+        -- forM laTrees $ putStrLn . dispLATree 2
     -- let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 2 ms
     -- forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
     --     putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
@@ -254,4 +258,4 @@ test7 = do
     --     putStrLn $ dispID3Tree 2 id3tree
     --     putStrLn ""
 
-main = test7
+main = test6

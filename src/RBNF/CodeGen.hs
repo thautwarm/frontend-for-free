@@ -108,7 +108,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
   leaf@(ID3Leaf xs)  -> do
       cur_scope <- last . scopes <$> lift get
       error $
-        --  trace (dispID3Tree 0 leaf) $
+         trace (dispID3Tree 0 leaf) $
         "Found backtracing at rule " ++ cur_scope ++
         ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
   ID3Split k xs -> do

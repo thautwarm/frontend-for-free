@@ -1,7 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
 module Main where
 
-import           RBNF                           ( parserGen )
+import           RBNF                           ( parserGen, graphToJSON, parsingGraph)
+import           RBNF.Graph                     ( Graph )
 import           RBNF.Serialization
 import           RBNF.IRs.Marisa
 import           RBNF.IRs.Reimu
@@ -27,16 +28,17 @@ import qualified Data.Map                      as M
 main = getArgs >>= wain
 
 parseOptsKey m = \case
-    "-h"      : xs -> parseOptsKey (M.insert "h" "" m) xs
-    "-v"      : xs -> parseOptsKey (M.insert "v" "" m) xs
-    "-be"     : xs -> parseOptVal "be" m xs
-    "-out"    : xs -> parseOptVal "out" m xs
-    "-in"     : xs -> parseOptVal "in" m xs
-    "-k"      : xs -> parseOptVal "k" m xs
-    "--trace" : xs -> parseOptsKey (M.insert "trace" "" m) xs
-    "--noinline":xs -> parseOptsKey (M.insert "noinline" "" m) xs
-    k         : xs -> Left k
-    []             -> Right m
+    "-h"         : xs -> parseOptsKey (M.insert "h" "" m) xs
+    "-v"         : xs -> parseOptsKey (M.insert "v" "" m) xs
+    "-be"        : xs -> parseOptVal "be" m xs
+    "-out"       : xs -> parseOptVal "out" m xs
+    "-in"        : xs -> parseOptVal "in" m xs
+    "-k"         : xs -> parseOptVal "k" m xs
+    "-jsongraph" : xs -> parseOptVal "jsongraph" m xs
+    "--trace"    : xs -> parseOptsKey (M.insert "trace" "" m) xs
+    "--noinline" : xs -> parseOptsKey (M.insert "noinline" "" m) xs
+    k            : xs -> Left k
+    []                -> Right m
 
 parseOptVal k m = \case
     v : xs -> parseOptsKey (M.insert k v m) xs
@@ -66,6 +68,7 @@ wain xs = case parseOptsKey M.empty xs of
         ast   <- case parseDoc inStr of
             Left  err    -> putStrLn err >> exitFailure
             Right (a, s) -> return a
+        many_dump_json $ parsingGraph doInline ast
         let marisa = parserGen doInline k trace ast
         text <- backendGen marisa $ case M.lookup "be" m of
             Just a  -> a
@@ -75,7 +78,7 @@ wain xs = case parseOptsKey M.empty xs of
         exitSuccess
       where
         doInline | "noinline" `M.member` m = False
-                 | otherwise = True
+                 | otherwise               = True
         help = usage >> exit
         may_print_help :: IO ()
         may_print_help | "h" `M.member` m = help >> exitSuccess
@@ -83,6 +86,12 @@ wain xs = case parseOptsKey M.empty xs of
         may_print_ver :: IO ()
         may_print_ver | "v" `M.member` m = version >> exitSuccess
                       | otherwise        = return ()
+
+        many_dump_json :: Graph -> IO ()
+        many_dump_json ms = case M.lookup "jsongraph" m of
+            Just fname -> graphToJSON fname ms
+            Nothing    -> pure ()
+
         inStr :: IO String
         inStr = case M.lookup "in" m of
             Just fname -> readFile fname
@@ -94,19 +103,21 @@ wain xs = case parseOptsKey M.empty xs of
 
         k :: IO Int
         k = case fmap read $ M.lookup "k" m of
-            Just i  -> return i
-            Nothing -> putStrLn "Lookahead K not specified." >> help >> exitFailure
+            Just i -> return i
+            Nothing ->
+                putStrLn "Lookahead K not specified." >> help >> exitFailure
 
         trace :: Bool
         trace = "trace" `M.member` m
 
 
 usage =
-    putStrLn $
-        "Usage: [-v] [-h] [-in filename] [-out filename]\n" ++
-        "[-be python|ocaml|marisa(default)]\n" ++
-        "[-k lookahead number] [--trace : codegen with tracebacks.]\n" ++
-        "[--noinline : might be useful when viewing generated code]\n"
+    putStrLn
+        $  "Usage: [-v] [-h] [-in filename] [-out filename]\n"
+        ++ "[-be python|ocaml|marisa(default)]\n"
+        ++ "[-k lookahead number] [--trace : codegen with tracebacks.]\n"
+        ++ "[--noinline : might be useful when viewing generated code]\n"
+        ++ "[--jsongraph : dump parsing graph to JSON format]"
 
 version = putStrLn "2.0"
 exit = exitSuccess

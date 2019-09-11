@@ -13,6 +13,11 @@ import RBNF.CodeGen
 import RBNF.IRs.Marisa
 import RBNF.IRs.MarisaHeader
 
+import RBNF.Serialization
+import Data.Aeson.Text (encodeToLazyText)
+import qualified Data.Text.Lazy.IO as T
+-- (writeFile)
+
 import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
@@ -48,3 +53,6 @@ parsingGraph doInline =
     (if doInline then inline else id) .
     markedLeftRecur .
     mkGrammar
+
+graphToJSON :: String -> Graph -> IO ()
+graphToJSON path ms = T.writeFile path (encodeToLazyText ms)

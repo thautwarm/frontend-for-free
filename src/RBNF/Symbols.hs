@@ -11,14 +11,14 @@ import Control.Arrow
 
 data MiniLang
     = MTerm String
-    | MApp String [MiniLang]
+    | MApp MiniLang [MiniLang]
     deriving (Eq, Ord, Generic)
 
 instance Show MiniLang where
     show = \case
         MTerm s -> s
         MApp f args ->
-            f ++ "("
+            show f ++ "("
               ++  L.intercalate ", " (map show args)
               ++ ")"
 

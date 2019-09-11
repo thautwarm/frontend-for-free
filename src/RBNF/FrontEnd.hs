@@ -54,6 +54,9 @@ noneOf cs = token ("none of " ++ show cs, (`notElem` cs))
 oneOf :: [Char] -> Parser Char
 oneOf cs = token ("one of " ++ show cs, (`elem` cs))
 
+withLoc :: Parser Loc
+withLoc = Parser $ \(s, loc) -> return (loc, s, loc)
+
 token :: (String, Char -> Bool) -> Parser Char
 token (info, f) = Parser $ \case
     ([], loc@Loc { col, line }) ->
@@ -152,10 +155,21 @@ nonTermP = bound $ CNonTerm <$> (char '<' *> identifier <* char '>')
 predP = CPred <$> (char '?' *> bound miniP)
 nestedP = bound (char '(') *> bound cP <* bound (char ')')
 optP  = COpt <$> (bound (char '[') *> cP <* bound (char ']'))
+
 bindP =
     bound $ uncurry CBind <$> (char '!' *> identifier <* char '=' <***> atomP)
 
-atomP = bound (nonTermP <|> bindP <|> predP <|> nestedP <|> optP <|> termP)
+atomP = bound (nonTermP <|> quickPredP <|> bindP <|> predP <|> nestedP <|> optP <|> termP)
+
+quickPredP = do
+    bound (char '{')
+    mini <- bound miniP
+    bound (char ':')
+    Loc {col, line} <- withLoc
+    let name = "auto-" ++ show line ++ "-" ++ show col
+    c <- cP
+    bound (char '}')
+    return $ CSeq [CBind name c, CPred $ MApp mini [MTerm name]]
 
 cPSeq :: Parser [C]
 cPSeq = sepBy whiteSpace atomP
@@ -201,13 +215,13 @@ sepBy sep p = do
 
 miniP :: Parser MiniLang
 miniP = bound $ do
-    f <- bound identifier
+    f <- MTerm <$> bound identifier
     let app = do
             bound $ char '('
             args <- sepBy (bound $ laChar ',') miniP
             bound $ char ')'
             return $ MApp f args
-    app <|> fmap (const $ MTerm f) eps
+    app <|> fmap (const $ f) eps
 
 parseRule :: String -> Parser a -> Either String (a, String)
 parseRule s p = case runParser p (s, Loc 0 0) of

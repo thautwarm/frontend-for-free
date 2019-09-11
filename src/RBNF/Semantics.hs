@@ -135,7 +135,7 @@ refObj (SObj iL) = IRAss (Slot iL)
 miniLangToIR = \case
     MTerm s -> IRVar $ Local s
     MApp f args ->
-        let fn = IRVar $ Local f
+        let fn = miniLangToIR f
             args' = map miniLangToIR args
         in IRCall fn args'
 

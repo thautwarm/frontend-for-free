@@ -266,13 +266,7 @@ decideID3 cur@DP { offsets = curOffsets, transi = transi@(unzip -> (paths, state
                       let hd = decideID3 cur { offsets = nextOffsets, transi }
                       in  (elt, hd) : tl
                   where tl = recurse xs
-      in
-          if maxInfo == 0.0 || L.null nextOffsets
-              then case transi of
-                  [(path, state)] ->
-                      ID3Split nth [(path V.! nth, ID3Leaf [state])]
-                  _ -> ID3Leaf $ map snd transi
-              else ID3Split nth $ recurse split
+      in ID3Split nth $ recurse split
   where
     lengths      = V.fromList $ map V.length paths
     minIdx       = V.minIndex lengths

@@ -71,7 +71,7 @@ parsers = CGrammar [
         ]
     ]
 
-bnf = "S ::= b [a];"
+bnf = "S ::= '@' [a | b | b d];"
     -- "LocalName  ::= '%' (name | decimals);\n" ++
     -- "GlobalName ::= '@' (name | decimals);\n" ++
     -- "MetaName   ::= '!' name;\n"              ++

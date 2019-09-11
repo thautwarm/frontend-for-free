@@ -49,6 +49,8 @@ addHeader withTrace = flip execState id $ do
     dsl_peekable_n .: (tokensT :* int) :-> bool
     dsl_peek_n     .:  (tokensT :* int) :-> tokenT
 
+    dsl_mv_forward_n .:  tokensT :-> tokenT
+
     let dsl_match_tk_ret_ty
             | withTrace = bool :* sup
             | otherwise = astT

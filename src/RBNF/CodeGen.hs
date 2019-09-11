@@ -7,7 +7,7 @@ module RBNF.CodeGen where
 
 import           Control.Monad.State
 import           Control.Monad.Reader
-import           Data.Maybe (listToMaybe)
+import           Data.Maybe                     ( listToMaybe )
 
 import           RBNF.Utils
 import           RBNF.Name
@@ -17,8 +17,8 @@ import           RBNF.Graph
 import           RBNF.LookAHead
 import           RBNF.IRs.Marisa
 import           RBNF.IRs.MarisaLibrary
-import           Control.Monad ((>=>))
-import Debug.Trace (trace)
+import           Control.Monad                  ( (>=>) )
+import           Debug.Trace                    ( trace )
 
 import qualified Data.Map                      as M
 import qualified Data.Set                      as S
@@ -47,18 +47,44 @@ data CFG
     , ret       :: Marisa
     , isLR      :: Bool
     , ctx       :: [Map String String]
+    , laCache   :: Map Int String
   }
 
-emptyCFG scope = CFG { slot   = 0
-                     , tmp    = 0
-                     , scopes = [scope]
-                     , ret    = dsl_int 0
-                     , ctx    = [M.empty]
-                     , isLR   = False
+emptyCFG scope = CFG { slot    = 0
+                     , tmp     = 0
+                     , scopes  = [scope]
+                     , ret     = dsl_int 0
+                     , ctx     = [M.empty]
+                     , isLR    = False
+                     , laCache = M.empty
                      }
+
+-- reset lookahead cache
+reLA :: CFG -> CFG
+reLA cfg = cfg { laCache = M.empty }
+
+consumeLA :: CFG -> CFG
+consumeLA cfg@CFG { laCache } =
+  cfg { laCache = M.mapKeys (\x -> x - 1) laCache }
+
+-- if current terminal is checked
+hasLA :: String -> CFG -> Bool
+hasLA s cfg@CFG { laCache } = 0 `M.lookup` laCache == Just s
+
+produceLA :: Int -> String -> CFG -> CFG
+produceLA i s cfg@CFG { laCache } = cfg { laCache = M.insert i s laCache }
+
 
 build :: Monad m => a -> StateT [a] m ()
 build a = modify (a :)
+
+tryElse :: MName -> MName -> Marisa -> Marisa -> Bool -> Marisa
+tryElse dsl_off_n res clause1 clause2 withTrace = MKBlock
+  [MKAssign res clause1, MKIf succeeded (MKVar res) (MKBlock [reset, clause2])]
+ where
+  succeeded | withTrace = MKCall dsl_is_not_null [MKVar res]
+            | otherwise = MKCall dsl_eq [MKBool True, MKPrj (MKVar res) 0]
+  reset = MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
 
 
 consBlock a (MKBlock xs) = MKBlock (a : xs)
@@ -88,16 +114,17 @@ runToCode :: CFG -> StateT [Marisa] (State CFG) () -> Marisa
 runToCode cfg = block . runToCodeSuite cfg
 
 mkSuccess :: Bool -> Marisa -> Marisa
-mkSuccess True ir = MKTuple [MKBool True, ir]
+mkSuccess True  ir = MKTuple [MKBool True, ir]
 mkSuccess False ir = ir
 
 mkError :: Marisa -> Marisa -> Marisa
 mkError off err = MKTuple [off, err]
 
 mkErrors :: [Marisa] -> Marisa
-mkErrors xs =  MKCall dsl_to_any $ [mkErrors' xs]
-  where mkErrors' [] = dsl_nil
-        mkErrors' (x:xs) = MKCall dsl_cons [x, mkErrors' xs]
+mkErrors xs = MKCall dsl_to_any $ [mkErrors' xs]
+ where
+  mkErrors' []       = dsl_nil
+  mkErrors' (x : xs) = MKCall dsl_cons [x, mkErrors' xs]
 
 toErrors :: Marisa -> Marisa
 toErrors sup = MKCall dsl_to_errs [sup]
@@ -105,63 +132,81 @@ toErrors sup = MKCall dsl_to_errs [sup]
 mkSwitch
   :: CompilationInfo -> Decision LAEdge Int -> StateT [Marisa] (State CFG) ()
 mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
-  NDLeaf [] -> error "TODO" -- TODO ?
-  NDLeaf [a] -> codeGen c a
-  leaf@(NDLeaf xs)  -> do
-      cur_scope <- last . scopes <$> lift get
-      error $
-         -- trace (dispID3Tree 0 leaf) $
-        "Found backtracing among nodes " ++ show xs ++ " at rule " ++ cur_scope ++
-        ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
-  NDSplit k (a:b:tl) xs -> do
-      cur_scope <- last . scopes <$> lift get
-      error $
-         -- trace (dispID3Tree 0 leaf) $
-        "Found backtracing among nodes " ++ show (a:b:tl) ++ " at rule " ++ cur_scope ++
-        ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
+  NDLeaf []        -> error "TODO" -- TODO ?
+  NDLeaf [a]       -> codeGen c a
+  leaf@(NDLeaf xs) -> do
+    cur_scope <- last . scopes <$> lift get
+    error
+      $
+       -- trace (dispID3Tree 0 leaf) $
+         "Found backtracing among nodes "
+      ++ show xs
+      ++ " at rule "
+      ++ cur_scope
+      ++ ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
+  NDSplit k (a : b : tl) xs -> do
+    cur_scope <- last . scopes <$> lift get
+    error
+      $
+       -- trace (dispID3Tree 0 leaf) $
+         "Found backtracing among nodes "
+      ++ show (a : b : tl)
+      ++ " at rule "
+      ++ cur_scope
+      ++ ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
 
   NDSplit k (listToMaybe -> optional) branches -> do
     hs_tmp_i <- lift incTmp
     cfg      <- lift get
     let -- dsl_tmp_flag_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
-        cur_scope      = last $ scopes cfg
-        dsl_tmp_res_n  = MName $ ".tmp." ++ show hs_tmp_i ++ ".result"
-        dsl_off_n      = MName $ ".off." ++ show hs_tmp_i
-        dsl_tokens     = MKVar dsl_tokens_n
+      cur_scope     = last $ scopes cfg
+      dsl_tmp_res_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".result"
+      dsl_off_n     = MName $ ".off." ++ show hs_tmp_i
+      dsl_tokens    = MKVar dsl_tokens_n
 
-        la_failed_msg  = cur_scope ++ " lookahead failed"
-        eof_msg        = cur_scope ++ " got EOF"
+      la_failed_msg = cur_scope ++ " lookahead failed"
+      eof_msg       = cur_scope ++ " got EOF"
 
-        eof_err        = if withTrace
-          then MKTuple [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr eof_msg)]]
+      eof_err       = if withTrace
+        then MKTuple
+          [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr eof_msg)]]
+        else dsl_null
+      la_failed = case optional of
+        Nothing -> if withTrace
+          then
+            MKTuple
+              [ dsl_false
+              , mkErrors [mkError (MKVar dsl_off_n) (MKStr la_failed_msg)]
+              ]
           else dsl_null
-        la_failed       = case optional of
-          Nothing -> if withTrace
-                      then MKTuple [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr la_failed_msg)]]
-                      else dsl_null
-          Just a -> runToCode cfg $ codeGen c a
+        Just a -> runToCode cfg $ codeGen c a
 
-        switch
-          :: [(LAEdge, Decision LAEdge Int)] -> ([(Marisa, Marisa)], Marisa)
-        switch = switchImpl [] la_failed
-        switchImpl cases default' = \case
-          [] -> (cases, default')
-          (t, subDecision) : xs ->
-            let idx   = MKCall dsl_s_to_i [MKStr t]
-                cont  = runToCode cfg $ mkSwitch c subDecision
-                case' = (idx, cont)
-            in  switchImpl (case' : cases) default' xs
+      switch :: [(LAEdge, Decision LAEdge Int)] -> ([(Marisa, Marisa)], Marisa)
+      switch = switchImpl [] la_failed
+      switchImpl cases default' = \case
+        [] -> (cases, default')
+        (t, subDecision) : xs ->
+          let idx   = MKCall dsl_s_to_i [MKStr t]
+              cont  = runToCode (produceLA k t cfg) $ mkSwitch c subDecision
+              case' = (idx, cont)
+          in  switchImpl (case' : cases) default' xs
 
-        dsl_cur_token = MKCall dsl_peek [dsl_tokens, dsl_int k]
-        dsl_cur_int   = MKAttr dsl_cur_token tokenId
-        dsl_la_cond   = MKCall dsl_peekable [dsl_tokens, dsl_int k]
+      preDecided = \case
+        [] -> Nothing
+        (t, subDecision) : tl | hasLA t cfg ->
+          Just $ runToCode cfg $ mkSwitch c subDecision
+        _ : tl -> preDecided tl
 
-        switch'       = switch branches
-        cases         = fst switch'
-        default'      = snd switch'
-        switch_expr   = MKIf dsl_la_cond
-                        (MKSwitch dsl_cur_int cases default')
-                        eof_err
+      dsl_cur_token = MKCall dsl_peek [dsl_tokens, dsl_int k]
+      dsl_cur_int   = MKAttr dsl_cur_token tokenId
+      dsl_la_cond   = MKCall dsl_peekable [dsl_tokens, dsl_int k]
+
+      switch'       = switch branches
+      cases         = fst switch'
+      default'      = snd switch'
+      switch_expr   = case preDecided branches of
+          Nothing -> MKIf dsl_la_cond (MKSwitch dsl_cur_int cases default') eof_err
+          Just a  -> a
 
     build $ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
     build switch_expr
@@ -171,11 +216,11 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
   let
     node = view nodes graph M.! i
     getCont i cfg =
-      let node = view nodes graph M.! i in
-      runToCode cfg $ case (i `M.lookup` decisions, view followed node) of
-        (Just decision, _        ) -> -- trace (dispID3Tree 0 decision) $
-          mkSwitch c decision
-        (_            , [followI]) -> codeGen c followI
+      let node = view nodes graph M.! i
+      in  runToCode cfg $ case (i `M.lookup` decisions, view followed node) of
+            (Just decision, _) -> -- trace (dispID3Tree 0 decision) $
+              mkSwitch c decision
+            (_, [followI]) -> codeGen c followI
   in
     case kind node of
       NEntity (ETerm t) -> do
@@ -183,21 +228,24 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
         let dsl_tokens  = MKVar dsl_tokens_n
             hs_slot     = slot cfg
             dsl_sloti_n = MName $ slotToStr hs_slot
-        hs_tmp_i <- lift incTmp
-        cfg      <- lift $ modified (\a -> a { slot = slot a + 1 })
-        let dsl_off_n = MName $ ".off." ++ show hs_tmp_i
-        build $ MKAssign dsl_off_n (MKAttr dsl_tokens tokenOff)
-        let tokenId = MKCall dsl_s_to_i [MKStr t]
-        build $ MKAssign dsl_sloti_n (MKCall dsl_match_tk [dsl_tokens, tokenId])
-        let cont   = getCont i cfg
-            err_hd = MKTuple [MKVar dsl_off_n, MKStr $ t ++ " not match"]
-            errs   = MKCall dsl_to_any [MKCall dsl_cons [err_hd, dsl_nil]]
-            ifErr | withTrace = MKTuple [dsl_false, errs]
-                  | otherwise = dsl_null
-        build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_n]) ifErr cont
+        if hasLA t cfg then do
+          build $ MKAssign dsl_sloti_n (MKCall dsl_mv_forward [dsl_tokens])
+          cfg      <- lift $ modified (\a@CFG{slot} -> a { slot = slot + 1 })
+          build $ getCont i $ consumeLA cfg
+        else do
+          hs_tmp_i <- lift incTmp
+          cfg      <- lift $ modified (\a@CFG{slot} -> a { slot = slot + 1 })
+          let tokenId = MKCall dsl_s_to_i [MKStr t]
+          build $ MKAssign dsl_sloti_n (MKCall dsl_match_tk [dsl_tokens, tokenId])
+          let cont   = getCont i cfg
+              err_hd = MKTuple [MKAttr dsl_tokens tokenOff, MKStr $ t ++ " not match"]
+              errs   = mkErrors [err_hd]
+              ifErr | withTrace = MKTuple [dsl_false, errs]
+                    | otherwise = dsl_null
+          build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_n]) ifErr cont
 
       NEntity (ENonTerm n) -> do
-        cfg <- lift get
+        cfg <- lift $ modified reLA
         let dsl_tokens    = MKVar dsl_tokens_n
             hs_slot       = slot cfg
             dsl_sloti_chk = MName $ slotToStr hs_slot ++ ".check"
@@ -260,7 +308,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
       NReturn slotId -> do
         expr <- lift $ irToCode $ IRVar (Slot slotId)
         cfg  <- lift $ modified $ \cfg -> cfg { ret = expr } :: CFG
-        build $  mkSuccess withTrace $ getCont i cfg
+        build $ mkSuccess withTrace $ getCont i cfg
       Stop -> do
         cfg <- lift get
         let CFG { ret } = cfg

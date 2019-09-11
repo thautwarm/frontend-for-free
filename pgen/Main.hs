@@ -89,7 +89,7 @@ wain xs = case parseOptsKey M.empty xs of
 
         many_dump_json :: Graph -> IO ()
         many_dump_json ms = case M.lookup "jsongraph" m of
-            Just fname -> graphToJSON fname ms
+            Just fname -> graphToJSON fname ms >> exitSuccess
             Nothing    -> pure ()
 
         inStr :: IO String

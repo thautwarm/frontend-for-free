@@ -255,7 +255,7 @@ test7 = do
         putStrLn $ dispDecison 0 id3tree
         putStrLn ""
 
-bnf2 = "START ::= a; a ::= b <o> | <o>; \n b ::= a <o>;\n"
+bnf2 = "START : a; a : b <o> | <o>; \n b : a <o>;\n"
 
 test8 = do
     putStrLn ""

@@ -190,7 +190,8 @@ optionP p = fmap Just p <|> fmap (const Nothing) eps
 stmtP :: Parser CProd
 stmtP = do
     n <- bound identifier
-    bound $ string "::="
+    char ':'
+    bound $ (string ":=" >> pure ()) <|> eps
     combinatoric <- cP
     reduce <- optionP (bound (string "->")  *> bound miniP)
     bound $ char ';'

@@ -77,7 +77,7 @@ next1 graph travel = case kind curNode of
         let idx      = startIndices M.! s
             descTrvl = Travel (Just travel) idx
             (a, b)   = frec descTrvl
-        in  (a, M.map (map stop) $ b)
+        in  (a, M.map (map stop) b)
     NEntity (ETerm c) ->
         let
             next1s =
@@ -170,7 +170,9 @@ makeLATables :: LANum -> Graph -> Map Int [LATree Int]
 makeLATables k graph =
     flip execState M.empty $ forM_ (M.toList $ view nodes graph) $ \case
         (idx, node) | L.length (nextBrs node) > 1 ->
-            modify $ M.insert idx (lookAHeadRoot k graph idx)
+            let trees = lookAHeadRoot k graph idx
+            in modify $ -- trace ("===========Node idx" ++ show idx ++ "\n" ++ dispLATrees 2 trees) $
+                M.insert idx trees
         _ -> return ()
 
 
@@ -273,12 +275,13 @@ decideID3 cur@DP { offsets = curOffsets, transi = transi@(unzip -> (paths, state
     minLen       = lengths V.! minIdx
     validOffsets = V.fromList $ takeWhile (< minLen) curOffsets
 
-decideId3FromLATree :: Ord cls => [LATree cls] -> ID3Decision LAEdge cls
+decideId3FromLATree :: (Show cls, Ord cls) => [LATree cls] -> ID3Decision LAEdge cls
 decideId3FromLATree trees =
     let transi  = map (V.fromList . fst &&& snd) $ flattenLATrees trees
         offsets = [0 .. maximum [ V.length path | (path, _) <- transi ] - 1]
         dp      = DP { offsets, transi }
-    in  decideID3 dp
+    in  -- trace (unlines $ map show transi) $
+        decideID3 dp
 
 data Decision elt cls =
       NDSplit Int [cls] [(elt, Decision elt cls)]
@@ -292,7 +295,7 @@ normalizeDecision = \case
     ID3Split i xs -> NDSplit i [] $ map (fst &&& normalizeDecision . snd) xs
     ID3Leaf xs    -> NDLeaf xs
 
-decideFromLATree :: Ord cls => [LATree cls] -> Decision LAEdge cls
+decideFromLATree :: (Show cls, Ord cls) => [LATree cls] -> Decision LAEdge cls
 decideFromLATree = normalizeDecision . decideId3FromLATree
 
 dispDecison :: (Show cls, Show elt) => Int -> Decision elt cls -> String

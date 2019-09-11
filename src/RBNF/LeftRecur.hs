@@ -62,7 +62,7 @@ markedLeftRecur g =
                                  otherwise = recurs
             in detectLRNames leftRNamesAcc' xs
 
-    lRNames = detectLRNames S.empty pairs
+    lRNames = (\x -> trace (show x) x) $ detectLRNames S.empty pairs
 
     fold :: [(String, [PRule])] -> Map String SplitByIsLeftRecursive
     fold = \case
@@ -85,7 +85,9 @@ markedLeftRecur g =
                     else SplitByIsLeftRecursive [] [rule]
                 | otherwise
                 -> let recurs' = S.insert name recurs
-                       arr     = groups M.! name
+                       arr     = case name `M.lookup` groups  of
+                            Just arr -> arr
+                            _        -> error $ "unknown terminal symbol " ++ name
                    in  mergeSplited $ map (frec recurs' . (++ xs)) arr
             x : xs ->
                 let separated = frec recurs xs

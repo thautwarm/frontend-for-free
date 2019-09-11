@@ -53,6 +53,18 @@ mkSExpStack name xs =
         n -> xs ++ [PMkSExp name n]
 
 
+standardizeRoot :: CRule -> State PGrammarBuilder [PRule]
+standardizeRoot = \case
+    CSeq cs -> do
+        cs <- mapM standardizeRoot cs -- :: [[PRule]]
+
+        return $ map concat
+               $ sequence cs
+    CAlt cs -> do
+        cs <- mapM standardizeRoot cs
+        return $ concat cs
+    a -> standardizeRule a
+
 standardizeRule :: CRule -> State PGrammarBuilder [PRule]
 standardizeRule = \case
     CTerm c -> return [[PTerm c]]
@@ -83,7 +95,7 @@ mkGrammar m =
         procedure :: State PGrammarBuilder ()
         procedure = do
             a <- forM (L.nub $ getCGrammar m) $ \(sym, crule, reduce) ->
-                do  prules <- standardizeRule crule
+                do  prules <- standardizeRoot crule
                     let packer =
                             case reduce of
                                 Just apply -> -- trace (show apply) $

@@ -94,7 +94,7 @@ test1 = do
     -- for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
     --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
     let gbuilder = mkGrammar $ parsers
-    let g = inline $ markedLeftRecur gbuilder
+    let g = inline $ markedLeftRecur "START" gbuilder
     let ks = pGToSG  g
     let ps = view prods g
     -- let leftR' = M.toList $ view leftR ks
@@ -136,7 +136,7 @@ test2 = do
 test3 = do
     putStrLn ""
     let gbuilder = mkGrammar $ parsers
-    let g = inline $ markedLeftRecur gbuilder
+    let g = inline $ markedLeftRecur "START" gbuilder
     let ks = pGToSG  g
     let graph = buildGraph ks
     let dectrees = M.map decideFromLATree $ makeLATables 1 graph
@@ -229,7 +229,7 @@ test7 = do
         Right (a, s) -> return a
 
     let gbuilder = mkGrammar $  parsers
-    let g = markedLeftRecur gbuilder
+    let g = markedLeftRecur "START" gbuilder
     forM_ (M.toList $ view prods g) $ \(k, v) -> do
         print k
         forM_ v (\x -> putStrLn "===" >> print x)
@@ -255,4 +255,19 @@ test7 = do
         putStrLn $ dispDecison 0 id3tree
         putStrLn ""
 
-main = test7
+bnf2 = "START ::= a; a ::= b <o> | <o>; \n b ::= a <o>;\n"
+
+test8 = do
+    putStrLn ""
+    let parsers = parseDoc bnf2
+    parsers <- case parsers of
+        Left err -> error err
+        Right (a, s) -> return a
+    let gbuilder = mkGrammar $  parsers
+    let g = markedLeftRecur "START" gbuilder
+    putStrLn "leftR:"
+    forM_ (view leftR g) print
+    putStrLn "prods:"
+    forM_ (view prods g) print
+
+main = test8

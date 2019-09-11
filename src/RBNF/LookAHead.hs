@@ -280,7 +280,7 @@ decideId3FromLATree trees =
     let transi  = map (V.fromList . fst &&& snd) $ flattenLATrees trees
         offsets = [0 .. maximum [ V.length path | (path, _) <- transi ] - 1]
         dp      = DP { offsets, transi }
-    in  -- trace (unlines $ map show transi) $
+    in  trace (unlines $ map show transi) $
         decideID3 dp
 
 data Decision elt cls =

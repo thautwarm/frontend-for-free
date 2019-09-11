@@ -51,7 +51,7 @@ parsingGraph doInline =
     buildGraph .
     pGToSG .
     (if doInline then inline else id) .
-    markedLeftRecur .
+    markedLeftRecur "START".
     mkGrammar
 
 graphToJSON :: String -> Graph -> IO ()

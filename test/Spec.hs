@@ -71,13 +71,13 @@ parsers = CGrammar [
         ]
     ]
 
-bnf =
+bnf = "S ::= b [a];"
     -- "LocalName  ::= '%' (name | decimals);\n" ++
     -- "GlobalName ::= '@' (name | decimals);\n" ++
     -- "MetaName   ::= '!' name;\n"              ++
     -- "DecimalLit ::= ['-'] decimals;\n"        ++
     -- "IntLit     ::= <DecimalLit>;\n"++
-    "FloatLit   ::= ['+' | '-'] [decimals '.' digits ('e' | 'E') ['+' | '-']] decimals;\n"-- ++
+    -- "FloatLit   ::= ['+' | '-'] [decimals '.' digits ('e' | 'E') ['+' | '-']] decimals;\n"-- ++
     -- "StrLit     ::= quotedStr;\n"
 
     -- "# aa \n"++
@@ -258,4 +258,4 @@ test7 = do
     --     putStrLn $ dispID3Tree 2 id3tree
     --     putStrLn ""
 
-main = test6
+main = test1

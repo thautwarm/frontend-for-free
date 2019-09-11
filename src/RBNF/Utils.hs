@@ -2,7 +2,7 @@ module RBNF.Utils
 (
 Set, Map, Lens', TaggedFixT(..),
 indent, groupBy, over, view, makeLenses, intercalate,
-mangling, pack, Text, (&&&), trace
+mangling, pack, Text, (&&&), trace, deleteAt
 )
 where
 import qualified Data.Map   as M
@@ -25,6 +25,15 @@ deriving instance Functor f => Functor (TaggedFixT f)
 deriving instance Foldable f => Foldable (TaggedFixT f)
 deriving instance Traversable f => Traversable (TaggedFixT f)
 
+
+deleteAt :: Int -> [a] -> [a]
+deleteAt n xs
+    | n < 0 = xs
+    | otherwise = deleteAt' n xs
+    where
+        deleteAt' _ [] = []
+        deleteAt' 0 (x:xs) = xs
+        deleteAt' n (x:xs) = x:deleteAt' (n-1) xs
 
 mangling :: Text -> Text -> Text -> Text
 mangling a b = replace a b . replace b (append b b)

@@ -103,14 +103,14 @@ toErrors sup = MKCall dsl_to_errs [sup]
 mkSwitch
   :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [Marisa] (State CFG) ()
 mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
-  ID3Leaf []  -> error "invalid" -- TODO
-  ID3Leaf [a] -> codeGen c a
-  leaf@(ID3Leaf xs)  -> do
+  ID3Leaf a -> codeGen c a
+  leaf@(ID3Optional x xs)  -> do
       cur_scope <- last . scopes <$> lift get
       error $
          trace (dispID3Tree 0 leaf) $
         "Found backtracing at rule " ++ cur_scope ++
         ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
+
   ID3Split k xs -> do
     hs_tmp_i <- lift incTmp
     cfg      <- lift get

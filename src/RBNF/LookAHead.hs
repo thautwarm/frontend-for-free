@@ -15,6 +15,8 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 import           Control.Arrow
+import           Data.Foldable                  ( minimumBy )
+import           Data.Ord                       ( comparing )
 import           Debug.Trace                    ( trace )
 
 import qualified Data.List                     as L
@@ -188,12 +190,17 @@ flattenLATrees = \case
 
 data ID3Decision elt cls
     = ID3Split Int [(elt, ID3Decision elt cls)]
-    | ID3Leaf [cls]
+    | ID3Optional cls (ID3Decision elt cls)
+    | ID3Leaf cls
+    | ID3Alt cls cls [cls]
     deriving (Show, Eq, Ord)
 
 dispID3Tree :: (Show cls, Show elt) => Int -> ID3Decision elt cls -> String
 dispID3Tree i = \case
-    ID3Leaf xs    -> show xs
+    ID3Leaf xs       -> show xs
+    ID3Alt a b tl    -> "alternatives " ++ show (a:b:tl)
+    ID3Optional x xs ->
+        "optional " ++ show x ++ "\n" ++ (indent i $ dispID3Tree i xs)
     ID3Split n xs -> head ++ "\n" ++ body
       where
         nextI = i + 4
@@ -201,14 +208,10 @@ dispID3Tree i = \case
         body  = L.intercalate "\n" . flip map xs $ \(elt, tree) ->
             indent nextI (show elt) ++ " => " ++ dispID3Tree nextI tree
 
-type Offsets = [Int]
-type Numbers = [Int]
-type PathsOfElements elt = V.Vector (V.Vector elt)
-type States cls = V.Vector cls
-data DecisionProcess
+data DecisionProcess elt cls
     = DP {
         offsets :: [Int],
-        numbers :: [Int]
+        transi  :: [(V.Vector elt,  cls)]
     }
 
 data ArgMax a = ArgMax {idx:: Int, val:: a}
@@ -238,72 +241,51 @@ classifInfo clses elts =
             (map lengthf xs)
 
 decideID3
-    :: (Ord elt, Ord cls)
-    => StateT
-           DecisionProcess
-           (Reader (States cls, PathsOfElements elt))
-           (ID3Decision elt cls)
-decideID3 = do
-    cur                 <- get
-    env@(states, paths) <- lift ask
-    let minLen       = minimum $ V.map V.length paths
-        validOffsets = takeWhile (< minLen) $ offsets cur
-        states'      = V.toList states
-        nums         = L.nub . map (states V.!) $ numbers cur
-    if L.null validOffsets
-        then return $ ID3Leaf nums
-        else
-            let
-                clsfInfos =
-                    flip map validOffsets
-                        $ \j -> classifInfo
-                              states'
-                              [ paths V.! i V.! j | i <- numbers cur ]
-                (nth, maxI) = argmaxWithVal clsfInfos
-                split =
-                    M.toList . groupBy (\i -> paths V.! i V.! nth) $ numbers cur
-                nextOffsets = L.delete nth $ offsets cur
+    :: (Ord elt, Ord cls) =>
+    DecisionProcess elt cls
+    -> ID3Decision elt cls
 
-                recurse     = \case
-                    []               -> []
-                    (elt, nums) : xs -> case L.nub nums of
-                        [num] -> (elt, ID3Leaf [states V.! num]) : tl
-                        ns ->
-                            let hd = flip runReader env
-                                    $ evalStateT
-                                          decideID3
-                                          cur
-                                              { offsets = nextOffsets
-                                              , numbers = ns
-                                              }
-                            in  (elt, hd) : tl
-                        where tl = recurse xs
-            in
-                return
-                    $ if maxI
-                         == 0.0
-                         || L.null validOffsets
-                         || L.length nums
-                         == 1
-                      then
-                          ID3Leaf nums
-                      else
-                          ID3Split nth $ recurse split
+decideID3 cur@DP {offsets=curOffsets, transi = transi@(unzip -> (paths, states))}
+    | V.null validOffsets
+    = let state       = states !! minIdx
+      in case deleteAt minIdx transi of
+            [] -> ID3Leaf state
+            transi  -> ID3Optional state $ decideID3 cur {transi}
+    | otherwise
+    = let
+          score j = classifInfo states [ path V.! j | path <- paths ]
+          -- calculate i= 1 .. n for lookahead(n), select the best split node.
+          clsfInfos   = V.map score validOffsets
+          maxInfoInd  = V.maxIndex clsfInfos
+          nth         = validOffsets V.! maxInfoInd
+          maxInfo     = clsfInfos V.! maxInfoInd
+          split       = M.toList . groupBy (\(path, state) -> path V.! nth) $ transi
+          nextOffsets = L.delete nth curOffsets
+
+          recurse     = \case
+              []                 -> []
+              (elt, transi) : xs -> case L.nub $ map snd transi of
+                  [state] -> (elt, ID3Leaf state) : tl
+                  _ ->
+                      let
+                          hd = decideID3 cur { offsets = nextOffsets, transi}
+                      in  (elt, hd) : tl
+                  where tl = recurse xs
+      in if maxInfo == 0.0 || L.null nextOffsets
+         then case states of
+                [a]    -> ID3Leaf a
+                a:b:tl -> ID3Alt a b tl
+         else ID3Split nth $ recurse split
+  where
+    lengths      = V.fromList $ map V.length paths
+    minIdx       = V.minIndex lengths
+    minLen       = lengths V.! minIdx
+    validOffsets = V.fromList $ takeWhile (< minLen) curOffsets
 
 decideId3FromLATree
     :: (Show cls, Ord cls) => [LATree cls] -> ID3Decision LAEdge cls
 decideId3FromLATree trees =
-    let (paths_src, states_src) =
-                unzip
-                    $ -- (\x -> trace (showLATreePaths x) x) $
-                      flattenLATrees
-                    $ -- (\x -> trace (dispLATrees 0 x) x) $
-                      trees
-        paths   = V.fromList [ V.fromList row | row <- paths_src ]
-        states  = V.fromList states_src
-        numbers = [0 .. V.length paths - 1]
-        offsets = [0 .. maximum (V.map V.length paths) - 1]
-        env     = (states, paths)
-        dp      = DP { offsets = offsets, numbers = numbers }
-    in   -- (\x -> trace (dispID3Tree 0 x ++ "\n") x) $
-        flip runReader env $ evalStateT decideID3 dp
+    let transi  = map (V.fromList . fst &&& snd) $ flattenLATrees trees
+        offsets = [0 .. maximum [V.length path | (path, _) <- transi] - 1]
+        dp      = DP {offsets,  transi}
+    in decideID3 dp

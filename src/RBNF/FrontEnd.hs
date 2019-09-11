@@ -150,8 +150,8 @@ bound p = do
 laChar s = la (strip [s] (whiteSpace *> char s))
 laString s = la (strip s (whiteSpace *> string s))
 
-termP = bound $ CTerm <$> (identifier <|> quotedStr)
-nonTermP = bound $ CNonTerm <$> (char '<' *> identifier <* char '>')
+termP = bound $ CTerm <$> ((char '<' *> identifier <* char '>') <|> quotedStr)
+nonTermP = bound $ CNonTerm <$> identifier
 predP = CPred <$> (char '?' *> bound miniP)
 nestedP = bound (char '(') *> bound cP <* bound (char ')')
 optP  = COpt <$> (bound (char '[') *> cP <* bound (char ']'))

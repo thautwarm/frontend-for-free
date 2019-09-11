@@ -61,14 +61,14 @@ support for error reporting.
 
 ### .rbnf
 
-- `<a>`: non-terminal rule `a`
-- `a/"a"`: terminal rule `a/quote a`
+- `<a>/"a"`: terminal rule `a/quote a`
+- `a`:  non-terminal rule
 - `a | b`: `a` or `b`
 - `[a b c]`: an optional block
 - `a b c`: a sequence of parsing symbols
 - `!name=rule`: context-xsensitive feature, locally bind what produced by `rule` to `name`.
 - `?f(x)/?f/?(f(g(x))`: use locally-binded variables to do some predictions.
-
+- `{E: p}` : a syntactic sugar for `!tmp=p ?E(tmp)`, where `tmp` is a mangled name.
 - `a ::= b;`: classic production definition
 - `a ::= b -> f;`: specify custom reduction rule
 

@@ -272,8 +272,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
                             dsl_null
                             ifNotErr
       NEntity (EPredicate ir) -> do
-        fn <- lift $ irToCode ir
-        let expr = MKCall fn [MKVar dsl_globST_n]
+        expr <- lift $ irToCode ir
         cfg <- lift get
         let cont = getCont i cfg
         build $ MKIf expr cont $ if withTrace

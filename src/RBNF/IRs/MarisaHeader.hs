@@ -70,4 +70,4 @@ addHeader withTrace = flip execState id $ do
                       (str :* TFresh "a") :-> astT
     dsl_is_null_n  .: tforall ["a"] $ TFresh "a" :-> bool
     dsl_is_not_null_n  .: tforall ["a"] $ TFresh "a" :-> bool
-    MName "always_true" .: state :-> bool
+    MName "always_true" .: bool

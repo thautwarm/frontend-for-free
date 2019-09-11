@@ -73,9 +73,9 @@ support for error reporting.
 - `a ::= b -> f;`: specify custom reduction rule
 
 ```
-exp ::= "if" cond=<exp> "then"
-            t=<exp>
-        "else" f=<exp>
+exp ::= "if" cond=exp "then"
+            t=exp
+        "else" f=exp
         -> If(cond, t, f);
 exp ::= ...
 ```

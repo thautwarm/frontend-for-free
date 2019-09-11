@@ -191,14 +191,12 @@ flattenLATrees = \case
 data ID3Decision elt cls
     = ID3Split Int [(elt, ID3Decision elt cls)]
     | ID3Optional cls (ID3Decision elt cls)
-    | ID3Leaf cls
-    | ID3Alt cls cls [cls]
+    | ID3Leaf [cls]
     deriving (Show, Eq, Ord)
 
 dispID3Tree :: (Show cls, Show elt) => Int -> ID3Decision elt cls -> String
 dispID3Tree i = \case
     ID3Leaf xs       -> show xs
-    ID3Alt a b tl    -> "alternatives " ++ show (a:b:tl)
     ID3Optional x xs ->
         "optional " ++ show x ++ "\n" ++ (indent i $ dispID3Tree i xs)
     ID3Split n xs -> head ++ "\n" ++ body
@@ -249,7 +247,7 @@ decideID3 cur@DP {offsets=curOffsets, transi = transi@(unzip -> (paths, states))
     | V.null validOffsets
     = let state       = states !! minIdx
       in case deleteAt minIdx transi of
-            [] -> ID3Leaf state
+            [] -> ID3Leaf [state]
             transi  -> ID3Optional state $ decideID3 cur {transi}
     | otherwise
     = let
@@ -265,16 +263,16 @@ decideID3 cur@DP {offsets=curOffsets, transi = transi@(unzip -> (paths, states))
           recurse     = \case
               []                 -> []
               (elt, transi) : xs -> case L.nub $ map snd transi of
-                  [state] -> (elt, ID3Leaf state) : tl
+                  [state] -> (elt, ID3Leaf [state]) : tl
                   _ ->
                       let
                           hd = decideID3 cur { offsets = nextOffsets, transi}
                       in  (elt, hd) : tl
                   where tl = recurse xs
       in if maxInfo == 0.0 || L.null nextOffsets
-         then case states of
-                [a]    -> ID3Leaf a
-                a:b:tl -> ID3Alt a b tl
+         then case transi of
+                [(path, state)] -> ID3Split nth [(path V.! nth, ID3Leaf [state])]
+                _ -> ID3Leaf $ map snd transi
          else ID3Split nth $ recurse split
   where
     lengths      = V.fromList $ map V.length paths
@@ -283,9 +281,38 @@ decideID3 cur@DP {offsets=curOffsets, transi = transi@(unzip -> (paths, states))
     validOffsets = V.fromList $ takeWhile (< minLen) curOffsets
 
 decideId3FromLATree
-    :: (Show cls, Ord cls) => [LATree cls] -> ID3Decision LAEdge cls
+    :: Ord cls => [LATree cls] -> ID3Decision LAEdge cls
 decideId3FromLATree trees =
     let transi  = map (V.fromList . fst &&& snd) $ flattenLATrees trees
         offsets = [0 .. maximum [V.length path | (path, _) <- transi] - 1]
         dp      = DP {offsets,  transi}
     in decideID3 dp
+
+data Decision elt cls =
+      NDSplit Int [cls] [(elt, Decision elt cls)]
+    | NDLeaf [cls]
+
+normalizeDecision :: (Eq cls) => ID3Decision elt cls -> Decision elt cls
+normalizeDecision = \case
+    ID3Optional x nest ->
+        case normalizeDecision nest of
+            NDSplit i clses xs -> NDSplit i (x:clses) xs
+            NDLeaf clses       -> NDLeaf (x:clses)
+    ID3Split i xs -> NDSplit i [] $ map (fst &&& normalizeDecision . snd) xs
+    ID3Leaf xs    -> NDLeaf xs
+
+decideFromLATree :: Ord cls => [LATree cls] -> Decision LAEdge cls
+decideFromLATree = normalizeDecision . decideId3FromLATree
+
+dispDecison :: (Show cls, Show elt) => Int -> Decision elt cls -> String
+dispDecison i = \case
+    NDLeaf xs  -> show xs
+    NDSplit n clses xs -> optionals ++ head ++ "\n" ++ body
+      where
+        nextI = i + 4
+        optionals = case clses of
+            [] -> ""
+            _  -> "optional: " ++ show clses ++ "\n" ++ indent i ""
+        head  = "case elts[" ++ show n ++ "]"
+        body  = unlines . flip map xs $ \(elt, tree) ->
+            indent nextI (show elt) ++ " => " ++ dispDecison nextI tree

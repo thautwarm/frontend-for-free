@@ -21,7 +21,7 @@ parserGen :: Bool -> Int -> Bool -> CGrammar -> Marisa
 parserGen doInline k withTrace cg = addHeader withTrace . MKBlock $ lrCodes ++ nonLRCodes
     where
         graph      = parsingGraph doInline cg
-        decisions  = M.map decideId3FromLATree $ makeLATables k graph
+        decisions  = M.map decideFromLATree $ makeLATables k graph
         c = CompilationInfo {
             graph     = graph
             , decisions = decisions

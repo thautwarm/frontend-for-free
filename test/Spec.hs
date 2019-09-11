@@ -108,13 +108,13 @@ test1 = do
     -- forM_ (M.toList laForests) $ \(i, laTrees) -> do
     --     putStrLn $ "Node=======" ++ show i ++ "============="
     --     forM laTrees $ putStrLn . dispLATree 2
-    let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 2 ms
-    forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
-        putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
-        forM_ latrees $ putStrLn . dispLATree 2
-        putStrLn "--- LA optimization:"
-        putStrLn $ dispID3Tree 2 id3tree
-        putStrLn ""
+    -- let trees = M.map (id&&&decideFromLATree) $ makeLATables 2 ms
+    -- forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
+        -- putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
+        -- forM_ latrees $ putStrLn . dispLATree 2
+        -- putStrLn "--- LA optimization:"
+        -- putStrLn $ dispDecison 2 id3tree
+        -- putStrLn ""
     -- -- putStrLn "left recursions:"
     -- for_ (M.toList $ _leftR ms) $ \(s, xs) -> do
     --     putStrLn $ "Rule:" ++ s
@@ -138,9 +138,8 @@ test3 = do
     let gbuilder = mkGrammar $ parsers
     let g = inline $ markedLeftRecur gbuilder
     let ks = pGToSG  g
-
     let graph = buildGraph ks
-    let dectrees = M.map decideId3FromLATree $ makeLATables 1 graph
+    let dectrees = M.map decideFromLATree $ makeLATables 1 graph
     let c = CompilationInfo {
             graph    = graph
             , decisions = dectrees
@@ -173,14 +172,14 @@ test4 = do
     let a = parserGen True 1 False parsers
     -- print $ seeMarisa a
     -- let a =
-    --       ADef (AName "parse.Number") [ABuiltin "state", ABuiltin "tokens"] $
-    --           ABlock [
-    --                 AAssign (ABuiltin "off") (AAttr (AVar $ ABuiltin "tokens") "offset")
-    --             --   , ACall (AVar $ ABuiltin "tk_id") [AStr "number"]
-    --             --   , ACall (AVar $ ABuiltin "match_tk") [AVar $ ABuiltin "tokens", AInt 0]
-    --             --   , ACall (AVar $ ABuiltin "match_tk") [AVar $ ABuiltin "tokens", ACall (AVar $ ABuiltin "tk_id") [AStr "number"]]
-    --                 -- AAssign (AName ".slot.0")
-    --             --   , AVar (ABuiltin "off")
+        --   ADef (AName "parse.Number") [ABuiltin "state", ABuiltin "tokens"] $
+            --   ABlock [
+                    -- AAssign (ABuiltin "off") (AAttr (AVar $ ABuiltin "tokens") "offset")
+                --   , ACall (AVar $ ABuiltin "tk_id") [AStr "number"]
+                --   , ACall (AVar $ ABuiltin "match_tk") [AVar $ ABuiltin "tokens", AInt 0]
+                --   , ACall (AVar $ ABuiltin "match_tk") [AVar $ ABuiltin "tokens", ACall (AVar $ ABuiltin "tk_id") [AStr "number"]]
+                    -- AAssign (AName ".slot.0")
+                --   , AVar (ABuiltin "off")
     --           ]
     let bs = irTransform a :: [Reimu RT]
     -- ($ bs) (print . pretty)
@@ -224,8 +223,6 @@ test6 = do
 
 test7 = do
     putStrLn ""
-    -- for_ (M.toList $ followSet $ mkGrammar parsers) $ \(a, b) ->
-    --         putStr a >> putStrLn ":" >> putStrLn (L.intercalate ", " $ map show b)
     let parsers = parseDoc bnf
     parsers <- case parsers of
         Left err -> error err
@@ -250,12 +247,12 @@ test7 = do
     -- forM_ (M.toList laForests) $ \(i, laTrees) -> do
         -- putStrLn $ "Node=======" ++ show i ++ "============="
         -- forM laTrees $ putStrLn . dispLATree 2
-    -- let trees = M.map (id&&&decideId3FromLATree) $ makeLATables 2 ms
-    -- forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
-    --     putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
-    --     forM_ latrees $ putStrLn . dispLATree 2
-    --     putStrLn "--- LA optimization:"
-    --     putStrLn $ dispID3Tree 2 id3tree
-    --     putStrLn ""
+    let trees = M.map (id&&&decideFromLATree) $ makeLATables 2 ms
+    forM_ (M.toList trees) $ \(i, (latrees, id3tree)) -> do
+        putStrLn $ "======== Node" ++ show i ++ " || " ++ show (_nodes ms M.! i) ++ " ========"
+        forM_ latrees $ putStrLn . dispLATree 0
+        putStrLn "--- LA optimization:"
+        putStrLn $ dispDecison 0 id3tree
+        putStrLn ""
 
-main = test1
+main = test7

@@ -7,6 +7,7 @@ module RBNF.CodeGen where
 
 import           Control.Monad.State
 import           Control.Monad.Reader
+import           Data.Maybe (listToMaybe)
 
 import           RBNF.Utils
 import           RBNF.Name
@@ -16,6 +17,7 @@ import           RBNF.Graph
 import           RBNF.LookAHead
 import           RBNF.IRs.Marisa
 import           RBNF.IRs.MarisaLibrary
+import           Control.Monad ((>=>))
 import Debug.Trace (trace)
 
 import qualified Data.Map                      as M
@@ -25,7 +27,7 @@ import qualified Data.List                     as L
 data CompilationInfo
     = CompilationInfo {
         graph      :: Graph
-        , decisions  :: Map Int (ID3Decision LAEdge Int)
+        , decisions  :: Map Int (Decision LAEdge Int)
         , withTrace  :: Bool
         , isLeftRec  :: Bool
       }
@@ -101,80 +103,68 @@ toErrors :: Marisa -> Marisa
 toErrors sup = MKCall dsl_to_errs [sup]
 
 mkSwitch
-  :: CompilationInfo -> ID3Decision LAEdge Int -> StateT [Marisa] (State CFG) ()
+  :: CompilationInfo -> Decision LAEdge Int -> StateT [Marisa] (State CFG) ()
 mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
-  ID3Leaf a -> codeGen c a
-  leaf@(ID3Optional x xs)  -> do
+  NDLeaf [] -> error "TODO" -- TODO ?
+  NDLeaf [a] -> codeGen c a
+  leaf@(NDLeaf xs)  -> do
       cur_scope <- last . scopes <$> lift get
       error $
-         trace (dispID3Tree 0 leaf) $
-        "Found backtracing at rule " ++ cur_scope ++
+         -- trace (dispID3Tree 0 leaf) $
+        "Found backtracing among nodes " ++ show xs ++ " at rule " ++ cur_scope ++
+        ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
+  NDSplit k (a:b:tl) xs -> do
+      cur_scope <- last . scopes <$> lift get
+      error $
+         -- trace (dispID3Tree 0 leaf) $
+        "Found backtracing among nodes " ++ show (a:b:tl) ++ " at rule " ++ cur_scope ++
         ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
 
-  ID3Split k xs -> do
+  NDSplit k (listToMaybe -> optional) branches -> do
     hs_tmp_i <- lift incTmp
     cfg      <- lift get
     let -- dsl_tmp_flag_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
         cur_scope      = last $ scopes cfg
         dsl_tmp_res_n  = MName $ ".tmp." ++ show hs_tmp_i ++ ".result"
         dsl_off_n      = MName $ ".off." ++ show hs_tmp_i
+        dsl_tokens     = MKVar dsl_tokens_n
+
         la_failed_msg  = cur_scope ++ " lookahead failed"
         eof_msg        = cur_scope ++ " got EOF"
 
         eof_err        = if withTrace
           then MKTuple [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr eof_msg)]]
           else dsl_null
-        la_failed       = if withTrace
-          then MKTuple [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr la_failed_msg)]]
-          else dsl_null
+        la_failed       = case optional of
+          Nothing -> if withTrace
+                      then MKTuple [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr la_failed_msg)]]
+                      else dsl_null
+          Just a -> runToCode cfg $ codeGen c a
 
-    let dsl_tokens = MKVar dsl_tokens_n
         switch
-          :: [(LAEdge, ID3Decision LAEdge Int)] -> ([(Marisa, Marisa)], Marisa)
+          :: [(LAEdge, Decision LAEdge Int)] -> ([(Marisa, Marisa)], Marisa)
         switch = switchImpl [] la_failed
         switchImpl cases default' = \case
           [] -> (cases, default')
-{-           (LAReduce, subDecision) : xs ->
-            let cont = runToCode cfg $ mkSwitch c subDecision
-            in  switchImpl cases cont xs -}
           (t, subDecision) : xs ->
             let idx   = MKCall dsl_s_to_i [MKStr t]
                 cont  = runToCode cfg $ mkSwitch c subDecision
                 case' = (idx, cont)
             in  switchImpl (case' : cases) default' xs
+
         dsl_cur_token = MKCall dsl_peek [dsl_tokens, dsl_int k]
         dsl_cur_int   = MKAttr dsl_cur_token tokenId
         dsl_la_cond   = MKCall dsl_peekable [dsl_tokens, dsl_int k]
-    let
-      switch'     = switch xs
-      cases       = fst switch'
-      default'    = snd switch'
-      switch_expr = MKIf dsl_la_cond
-                      (MKSwitch dsl_cur_int cases default')
-                      eof_err
 
-      -- defaultWithFlagAssigned =
-      --  consBlock (MKAssign dsl_tmp_flag_n dsl_true) default'
-      -- initialize the flag to test whether the default branch has got tried.
+        switch'       = switch branches
+        cases         = fst switch'
+        default'      = snd switch'
+        switch_expr   = MKIf dsl_la_cond
+                        (MKSwitch dsl_cur_int cases default')
+                        eof_err
 
-    -- build $ MKAssign dsl_tmp_flag_n dsl_false
     build $ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
-    build $ switch_expr
-    -- build $ MKAssign dsl_tmp_res_n expr
-
-    -- -- check if any cases success or default branch has got tried.
-    -- -- otherwise we'll have a try on default branch
-    -- build
-    --   $ let
-    --       cond1 = if withTrace
-    --         then MKCall dsl_eq [dsl_false, MKPrj (MKVar dsl_tmp_res_n) 0]
-    --         else MKCall dsl_is_null [MKVar dsl_tmp_res_n]
-    --       cond2 = MKVar dsl_tmp_flag_n
-    --       reset =
-    --         MKBlock
-    --           [MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n], default']
-    --     in
-    --       MKIf (MKOr cond1 cond2) reset (MKVar dsl_tmp_res_n)
+    build switch_expr
 
 codeGen :: CompilationInfo -> Int -> StateT [Marisa] (State CFG) ()
 codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =

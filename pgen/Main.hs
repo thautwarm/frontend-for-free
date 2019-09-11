@@ -63,12 +63,12 @@ wain xs = case parseOptsKey M.empty xs of
     Right m -> do
         may_print_help
         may_print_ver
-        k     <- k
         inStr <- inStr
         ast   <- case parseDoc inStr of
             Left  err    -> putStrLn err >> exitFailure
             Right (a, s) -> return a
         many_dump_json $ parsingGraph doInline ast
+        k     <- k
         let marisa = parserGen doInline k trace ast
         text <- backendGen marisa $ case M.lookup "be" m of
             Just a  -> a

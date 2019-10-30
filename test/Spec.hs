@@ -221,7 +221,7 @@ test6 = do
         py = emit
     print $ py a
 
-test7 = do
+test7 bnf = do
     putStrLn ""
     let parsers = parseDoc bnf
     parsers <- case parsers of
@@ -255,9 +255,9 @@ test7 = do
         putStrLn $ dispDecison 0 id3tree
         putStrLn ""
 
-bnf2 = "START : a; a : b <o> | <o>; \n b : a <o>;\n"
+bnf2 = "START : <BOF> Type <EOF>;\nType         : TypeArrow;\nTypeArrow    : TypeApp ['->' TypeArrow];\nTypeApp      : [TypeApp] LitType;\nLitType      : '*';"
 
-test8 = do
+test8 bnf = do
     putStrLn ""
     let parsers = parseDoc bnf2
     parsers <- case parsers of
@@ -266,8 +266,8 @@ test8 = do
     let gbuilder = mkGrammar $  parsers
     let g = markedLeftRecur "START" gbuilder
     putStrLn "leftR:"
-    forM_ (view leftR g) print
+    forM_ (M.toList $ view leftR g) print
     putStrLn "prods:"
-    forM_ (view prods g) print
+    forM_ (M.toList $ view prods g) print
 
-main = test8
+main = test7 bnf2

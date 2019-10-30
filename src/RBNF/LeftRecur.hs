@@ -67,7 +67,7 @@ markedLeftRecur top g =
             iteratorFunc $ LRStep {syms=S.union syms symsDiff, itrs=newItrs ++ itrs, lrs=lrs', news=S.toList symsDiff}
             where
                 (lrs', newItrs) = fold lrs [(sym, getProd groups sym) | sym <- news]
-                symRefs = S.unions [unionRefs $ (ps1 ++ ps2) | (_, SplitByLR ps1 ps2) <- newItrs]
+                symRefs = S.unions [unionRefs (ps1 ++ ps2) | (_, SplitByLR ps1 ps2) <- newItrs]
                 symsDiff = S.difference symRefs syms -- new news
 
         fold :: [String] -> [(String, [PRule])] -> ([String], [(String, SplitByLR)])

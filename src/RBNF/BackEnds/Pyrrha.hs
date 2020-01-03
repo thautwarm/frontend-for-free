@@ -43,21 +43,28 @@ py_release :: PyName -> State CFG ()
 py_release n = do
     locals <- gets $ view lcls
     when (n `S.member` locals) $ do
+        py_build $ T.concat ["#release ", n]
         modify $ over lcls (S.delete n)
         modify $ over rus (S.insert n)
 
 py_alloc :: State CFG PyName
 py_alloc = do
     reusable <- gets $ view rus
+    py_build $ T.concat $ ("#" : S.toList reusable)
     if S.null reusable then do
         locals    <- gets $ view lcls
         let new_tmp = gensym (S.size locals)
         modify $ over lcls (S.insert new_tmp)
+        py_build $ T.concat ["#newtmp: ", new_tmp]
         return new_tmp
+
     else
         let (hd, tl) = S.splitAt 1 reusable in
         do modify $ over rus (const tl)
-           return $ S.elemAt 0 hd
+           let tmp = S.elemAt 0 hd
+           modify $ over lcls (S.insert tmp)
+           py_build $ T.concat ["#reuse: ", tmp]
+           return $ tmp
 
 py_indent :: State CFG ()
 py_indent = modify $ over lyt (+1)

@@ -219,10 +219,16 @@ miniP = bound $ do
     f <- MTerm <$> bound identifier
     let app = do
             bound $ char '('
-            args <- sepBy (bound $ laChar ',') miniP
-            bound $ char ')'
+            args <- noArgs <|> hasArgs
             return $ MApp f args
     app <|> fmap (const $ f) eps
+  where
+    noArgs = fmap (const []) $ bound $ char ')'
+    hasArgs = do
+        args <- sepBy (bound $ laChar ',') miniP
+        bound $ char ')'
+        return args
+
 
 parseRule :: String -> Parser a -> Either String (a, String)
 parseRule s p = case runParser p (s, Loc 0 0) of

@@ -50,14 +50,12 @@ genJl quoted = align . \case
     MKDef fname args body ->
         let
             fnName = pretty $ showMN fname
-            argDef = sep $ punctuate comma $ map viaShow args
-        in
-            nest 4
-                $ vsep
-                      [ pretty "function" <+> fnName <> parens argDef
-                      , align $ nest 4 $ genJl True body
-                      , pretty "end"
-                      ]
+            argDef = sep $ punctuate comma $ map (pretty . showMN) args
+        in vsep
+            [ pretty "function" <+> fnName <> parens argDef
+            , align $ nest 4 $ genJl True body
+            , pretty "end"
+            ]
     MKBlock suite  ->
         if quoted then
             vsep $ map (genJl True) suite

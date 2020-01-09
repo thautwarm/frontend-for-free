@@ -39,17 +39,39 @@ vNameToStr = \case
   Local s -> s
   Slot  i -> slotToStr i
 
+-- every function holds it own CFG
 data CFG
   = CFG {
+    -- e.g., for prod `A ::= b c d`
+    --    when `slot = 1`,
+    --      we're currently parsing `[b, c, d][1] = c`;
+    --    when `slot = 2`,
+    --      we're parsing `[b, c, d][2] = d`.
       slot      :: Int
+    -- the number of allocated temporary variable
     , tmp       :: Int
+    -- the nested scopes in case grammar inline happened.
+    -- e.g., for prod group:
+    --      A ::= B c
+    --      B :: d e
+    -- Inline must occur, and B gets eliminated, A becomes
+    --      A ::= <push scope B> d e <pop scope> c
+    -- , hence, when parsing term `d` or `e`, we shall
+    -- have scopes `[..., A, B]`.
     , scopes    :: [String]
+    -- The expression to return for current function
     , ret       :: Marisa
+    -- is this function to be compiled for handling left recursion?
+    -- if true, the slot starts with `1` instead of `0`.
     , isLR      :: Bool
+    -- the `(name, manglingName)` pairs for aliased names in current scope.
     , ctx       :: [Map String String]
+    -- lookahead cache
     , laCache   :: Map Int String
   }
 
+-- NOTE!!!
+-- Don't use this straightforward when compiling left recursion handlers.
 emptyCFG scope = CFG { slot    = 0
                      , tmp     = 0
                      , scopes  = [scope]
@@ -74,9 +96,8 @@ hasLA s cfg@CFG { laCache } = 0 `M.lookup` laCache == Just s
 produceLA :: Int -> String -> CFG -> CFG
 produceLA i s cfg@CFG { laCache } = cfg { laCache = M.insert i s laCache }
 
-
 build :: Monad m => a -> StateT [a] m ()
-build a = modify (a :)
+build a = modify (a:)
 
 tryElse :: MName -> MName -> Marisa -> Marisa -> Bool -> Marisa
 tryElse dsl_off_n res clause1 clause2 withTrace = MKBlock
@@ -114,11 +135,12 @@ runToCode :: CFG -> StateT [Marisa] (State CFG) () -> Marisa
 runToCode cfg = block . runToCodeSuite cfg
 
 mkSuccess :: Bool -> Marisa -> Marisa
-mkSuccess True  ir = MKTuple [MKBool True, ir]
-mkSuccess False ir = ir
+mkSuccess withTrace ir | withTrace = MKTuple [MKBool True, ir]
+                       | otherwise = ir
 
+-- `mkError` and `mkErrors` work only when `withTrace = True`
 mkError :: Marisa -> Marisa -> Marisa
-mkError off err = MKTuple [off, err]
+mkError offset error = MKTuple [offset, error]
 
 mkErrors :: [Marisa] -> Marisa
 mkErrors xs = MKCall dsl_to_any $ [mkErrors' xs]
@@ -126,6 +148,7 @@ mkErrors xs = MKCall dsl_to_any $ [mkErrors' xs]
   mkErrors' []       = dsl_nil
   mkErrors' (x : xs) = MKCall dsl_cons [x, mkErrors' xs]
 
+-- `any` type to type of errors
 toErrors :: Marisa -> Marisa
 toErrors sup = MKCall dsl_to_errs [sup]
 
@@ -144,13 +167,12 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
       ++ " at rule "
       ++ cur_scope
       ++ ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
-  NDSplit k (a : b : tl) xs -> do
+  NDSplit k states xs -> do
     cur_scope <- last . scopes <$> lift get
     error
       $
-       -- trace (dispID3Tree 0 leaf) $
          "Found backtracing among nodes "
-      ++ show (a : b : tl)
+      ++ show states
       ++ " at rule "
       ++ cur_scope
       ++ ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."

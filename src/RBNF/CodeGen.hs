@@ -167,7 +167,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
       ++ " at rule "
       ++ cur_scope
       ++ ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
-  NDSplit k states xs -> do
+  NDSplit k (states@(_:_:_)) xs -> do
     cur_scope <- last . scopes <$> lift get
     error
       $

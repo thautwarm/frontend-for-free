@@ -1,6 +1,4 @@
 flags: {}
 packages:
 - .
-extra-deps:
-- RSolve-2.0.0.0
 resolver: lts-13.12

@@ -6,8 +6,6 @@ module RBNF.IRs.Marisa where
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   ( Generic )
 import           RBNF.Name
-import           RBNF.HMTypeInfer               ( HMT )
-import           RBNF.TypeSystem                ( RT )
 import           RBNF.Utils
 
 -- | MK for Marisa Kirisame
@@ -17,8 +15,7 @@ data Marisa
     = MKAssign MName Marisa
     | MKCall Marisa [Marisa]
     | MKAttr Marisa String
-    -- statiically projections on tuples
-    | MKPrj    Marisa Int
+    | MKPrj    Marisa Int -- statically projections on tuples
     | MKIf     Marisa Marisa Marisa
     | MKWhile  Marisa Marisa
     | MKSwitch Marisa [(Marisa, Marisa)] Marisa
@@ -31,20 +28,11 @@ data Marisa
     | MKTuple  [Marisa]
     | MKAnd    Marisa Marisa
     | MKOr     Marisa Marisa
-    -- Either Type [(FieldName, Type)]
-    -- if is Left, it's global variable's type declaration
-    -- if is Right, it's structure type's declaration.
-    | MKExtern MName (Either (HMT RT) ([String], [(String, HMT RT)])) Marisa
+
 
 deriving instance Eq Marisa
 deriving instance Ord Marisa
 deriving instance Generic Marisa
-
-showSig :: Either (HMT RT) ([String], [(String, HMT RT)]) -> String
-showSig = \case
-    Left ht -> "::" ++ show ht
-    Right (as, xs) -> "=" ++ unwords as ++ ". " ++ "{" ++ fields ++ "}"
-        where fields = intercalate ", " [field ++ ":" ++ show t | (field, t) <- xs]
 
 isSimpleMarisa = \case
     MKInt  _   -> True
@@ -105,14 +93,6 @@ seeMarisa = align . \case
     MKTuple elts   -> pretty "tuple" <> tupled (map seeMarisa elts)
     MKAnd a b      -> seeMarisa a <+> pretty "and" <+> seeMarisa b
     MKOr  a b      -> seeMarisa a <+> pretty "or" <+> seeMarisa b
-    MKExtern n (Right t) m -> vsep
-        [ sep [pretty "external", viaShow n, pretty (":" ++ show t)]
-        , seeMarisa m
-        ]
-    MKExtern n (Left t) m -> vsep
-        [ sep [pretty "external", viaShow n, pretty (":" ++ show t)]
-        , seeMarisa m
-        ]
 
 instance Pretty Marisa where
     pretty = seeMarisa

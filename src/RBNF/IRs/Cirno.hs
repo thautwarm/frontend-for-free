@@ -1,4 +1,3 @@
-
 module RBNF.IRs.Cirno
 (Cirno(..))
 where

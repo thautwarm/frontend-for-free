@@ -45,7 +45,6 @@ dependencies:
 - prettyprinter
 - utf8-string
 - parsec
-- RSolve
 library:
   source-dirs:
   - src

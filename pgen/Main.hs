@@ -5,8 +5,6 @@ import           RBNF                           ( parserGen, graphToJSON, parsin
 import           RBNF.Graph                     ( Graph )
 import           RBNF.Serialization
 import           RBNF.IRs.Marisa
-import           RBNF.IRs.Reimu
-import           RBNF.TypeSystem
 import           RBNF.BackEnds.TargetGen
 import           RBNF.FrontEnd
 import           System.IO
@@ -51,8 +49,6 @@ doc2Text = renderStrict . layoutPretty defaultLayoutOptions
 backendGen :: Marisa -> String -> IO T.Text
 backendGen marisa backend = case backend of
     "marisa" -> return . doc2Text . seeMarisa $ marisa
-    "ocaml" ->
-        let ocaml = emit marisa :: Doc OCamlBackEnd in return $ doc2Text ocaml
     "python" ->
         let python = emit marisa :: Doc PythonBackEnd
         in  return $ doc2Text python

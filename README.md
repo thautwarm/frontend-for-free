@@ -1,6 +1,14 @@
 # RBNF
 
-This README is going to get updated by Aug 15.
+Due to the obstacle of individually maintaining type inference framework and corresponding IRs,
+I now rule out current implementation for OCaml back end.
+
+Instead, a plan to support following back ends is established.
+
+- Julia(source code)
+- Python(bytecode, by [sijuiacion-ir](https://github.com/RemuLang/sijuiacion-lang))
+- Ruby(source code)
+- Lua(source code)
 
 ## Usage
 
@@ -10,12 +18,8 @@ Usage: [-v] [-h] [-in filename] [-out filename]
 [-k lookahead number] [--trace : codegen with tracebacks.]
 [--noinline : might be useful when viewing generated code]
 
-
 # gen python
 rbnf-pgen -in <infile>.rbnf -k <lookahead number> -out <outfile> -be python [--codegen-with-trace] --noinline
-
-# gen ocaml
-rbnf-pgen -in <infile>.rbnf -k <lookahead number> -out <outfile> -be ocaml [--codegen-with-trace] --noinline
 
 # list out all terminals of the given grammar
 rbnf-lex -in <infile>.rbnf -out <outfile>
@@ -33,13 +37,7 @@ rbnf-lex -in <infile>.rbnf -out <outfile>
         It lacks of declarations, and is untyped, however sufficient for dynamic languages to
         do codegen.
 
-    - Reimu:
-
-        Typed by an extended HM type inferencer, resolved to have declarations(`let` bindings).
-
 - RBNF.BackEnds
-    - Merlin: code generator targeting OCaml back end, internally     extending `Reimu` IRs to
-              resolve a lot of information useful for generating OCaml codes.
     - Pyrrha: code generator targeting Python back end
 
 - to be continue
@@ -54,8 +52,7 @@ Mul    ::= ?always_true Factor
 ```
 
 You can configure the generator to specify whether to generate
-codes with error reports. The following code has no
-support for error reporting.
+codes with error reports.
 
 ## Note: Front End
 
@@ -80,43 +77,36 @@ exp ::= "if" cond=exp "then"
 exp ::= ...
 ```
 
-P.S: comments not supported yet.
+Line comments are supported(`# ...`), but not very fancy.
 
-### eDSL in Haskell
+The `.rbnf` is really weak, however, with a simple bootstrap and adding some syntax sugars,
+it can be as powerful as OCaml Menhir.
+
+Check out the capabilities of `.exrbnf` in [rbnf-rts](https://github.com/thautwarm/rbnf-rts),
+and you can find the fastest generated JSON parser by RBNF at [rbnfjson](https://github.com/thautwarm/rbnf-rts/blob/master/test/rbnfjson/json.exrbnf).
+
+### Top Level Combinators in Haskell
+
+RBNF accepts a `C` data(given below), and produces efficient generated parser.
 
 ```haskell
-
-infix 5 -->
-infix 6 |=
-
-number = "number"
-negation = "-"
-multiply = "*"
-
-a |= b = CBind a b
-
-a --> b = (a, b, Nothing)
-
-parsers = S.fromList [
-    "Number"   --> CTerm number
-    , "Factor" --> CAlt [
-            CNonTerm "Number",
-            CSeq [CTerm negation, "a" |= CNonTerm "Factor" ]
-        ]
-    , "Mul"    --> CAlt [
-            CSeq [ CPred (MTerm "always_true"), CNonTerm "Factor" ],
-            CSeq [ CNonTerm "Mul", case' multiply, CNonTerm "Factor"]
-        ]
-    ]
-```
-
-Its equivalent notation of BNF derivative is
-
-```
-Number ::= number
-Factor ::= Number | "-" !a=Factor
-Mul    ::= ?always_true Factor
-           | Mul "*" Factor
+data C
+    = CTerm    String
+    | CNonTerm String
+    | CSeq     [C]
+    | CAlt     [C]
+    | COpt     C
+    -- advanced:
+    | CBind    String C
+    | CPred    MiniLang
+    | CModif   MiniLang -- modify current context
+    deriving (Eq, Ord, Generic)
+type CRule = C
+type CProd = (String, C, Maybe MiniLang)
+data MiniLang
+    = MTerm String
+    | MApp MiniLang [MiniLang]
+    deriving (Eq, Ord, Generic)
 ```
 
 ## Note: Left Recursion Handling
@@ -185,110 +175,4 @@ case elts[1]
       LAShift (Case "*") => [48]
       LAShift (Case "-") => [39]
       LAShift (Case "number") => [39]
-```
-
-
-
-## Note: Type Inference and Code Generation
-
-The type inference is based on HM unification and propositioinal logics(logic formulas in disjunctive normal form).
-
-## Note: Mutable Variable Resolutions
-
-Check `RBNF.BackEnds.Merlin (resolve*)`.
-
-## Back Ends
-
-### Python Example:
-
-```python
-def lr_step_Mul(_slot_0, prim__state, prim__tokens):
-    Mul_lhs_0 = _slot_0
-    lcl_0 = prim__tokens.offset
-    _off_0 = lcl_0
-    lcl_0 = prim__tk__id("quote *")
-    lcl_0 = prim__match__tk(prim__tokens, lcl_0)
-    _slot_1 = lcl_0
-    lcl_0 = prim__is__null(_slot_1)
-    if lcl_0:
-        lcl_1 = (_off_0, "quote *")
-        lcl_1 = prim__cons(lcl_1, prim__nil)
-        lcl_1 = prim__to__any(lcl_1)
-        lcl_1 = (False, lcl_1)
-        lcl_0 = lcl_1
-    else:
-        lcl_1 = parse_Atom(prim__state, prim__tokens)
-        _slot_2_check = lcl_1
-        lcl_1 = _slot_2_check[0]
-        lcl_1 = prim__eq(lcl_1, False)
-        if lcl_1:
-            lcl_1 = _slot_2_check
-        else:
-            lcl_1 = _slot_2_check[1]
-            lcl_1 = prim__to__result(lcl_1)
-            _slot_2 = lcl_1
-            Mul_rhs_1 = _slot_2
-            lcl_1 = (_slot_0, _slot_1, _slot_2)
-            _slot_local__1 = lcl_1
-            lcl_1 = add(Mul_lhs_0, Mul_rhs_1)
-            _slot_local__2 = lcl_1
-            lcl_1 = (True, _slot_local__2)
-        lcl_0 = lcl_1
-    return lcl_0
-def lr_loop_Mul(_slot_0, prim__state, prim__tokens):
-    lr_Mul_reduce = _slot_0
-    lcl_0 = prim__tokens.offset
-    _off_0 = lcl_0
-    lcl_0 = lr_step_Mul(lr_Mul_reduce, prim__state, prim__tokens)
-    lr_Mul_try = lcl_0
-    lcl_0 = lr_Mul_try[0]
-    lcl_0 = prim__not__eq(lcl_0, False)
-    while lcl_0:
-        ...
-```
-
-### OCaml Example:
-
-```ocaml
-module GeneratedParser (
-    LexerInfo: sig val prim_token_names : (string, int) Hashtbl.t end
-) = struct
-let (* * *)token_id_of_42 : int Hashtbl.find LexerInfo.prim_token_names "*"
-let (* - *)token_id_of_45 : int Hashtbl.find LexerInfo.prim_token_names "-"
-let (* number *)token_id_of_110_117_109_98_101_114 : int Hashtbl.find LexerInfo.prim_token_names "number"
-let rec lr_step_Mul : ((ast * state) * tokens) -> ast =
-fun (_slot_0, prim__state, prim__tokens) ->
-  ...
-and lr_loop_Mul : ((ast * state) * tokens) -> ast =
-fun (_slot_0, prim__state, prim__tokens) ->
-  begin
-    let lr_Mul_reduce : (ast) ref =
-        ref _slot_0
-    in
-    let _off_0 : (int) ref =
-        ref prim__tokens .offset
-    in
-    let lr_Mul_try : (ast) ref =
-        ref (lr_step_Mul (!lr_Mul_reduce prim__state prim__tokens))
-    in
-    while prim__is__null (!lr_Mul_try)
-      begin
-        _off_0  :=  prim__tokens .offset ;
-        lr_Mul_reduce  :=  !lr_Mul_try ;
-        lr_Mul_try  :=  lr_step_Mul (!lr_Mul_reduce prim__state prim__tokens) ;
-        end
-    done ;
-    prim__reset (prim__tokens !_off_0) ;
-    !lr_Mul_reduce ;
-    end
-and parse_Factor : (state * tokens) -> ast =
-fun (prim__state, prim__tokens) ->
-    ...
-and parse_Mul : (state * tokens) -> ast =
-fun (prim__state, prim__tokens) ->
-    ...
-and parse_Number : (state * tokens) -> ast =
-fun (prim__state, prim__tokens) ->
-  ...
-end
 ```

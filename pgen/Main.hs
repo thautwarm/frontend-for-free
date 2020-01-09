@@ -52,6 +52,9 @@ backendGen marisa backend = case backend of
     "python" ->
         let python = emit marisa :: Doc PythonBackEnd
         in  return $ doc2Text python
+    "julia" ->
+        let julia = emit marisa :: Doc JuliaBackEnd
+        in return $ doc2Text julia
     a -> putStrLn ("Unknown back end " ++ a) >> exitFailure
 
 wain xs = case parseOptsKey M.empty xs of

@@ -87,7 +87,7 @@ and you can find the fastest generated JSON parser by RBNF at [rbnfjson](https:/
 
 ### Top Level Combinators in Haskell
 
-RBNF accepts a `C` data(given below), and produces efficient generated parser.
+RBNF accepts a `C` datum(given below), and produces efficient generated parser.
 
 ```haskell
 data C

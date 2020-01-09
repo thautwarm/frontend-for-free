@@ -1,4 +1,3 @@
-
 module RBNF.Inline where
 import           RBNF.Symbols
 import           RBNF.Grammar

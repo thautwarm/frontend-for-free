@@ -11,7 +11,6 @@ import RBNF.LookAHead
 import RBNF.Graph
 import RBNF.CodeGen
 import RBNF.IRs.Marisa
-import RBNF.IRs.MarisaHeader
 
 import RBNF.Serialization
 import Data.Aeson.Text (encodeToLazyText)
@@ -23,7 +22,7 @@ import qualified Data.Map as M
 import qualified Data.List as L
 
 parserGen :: Bool -> Int -> Bool -> CGrammar -> Marisa
-parserGen doInline k withTrace cg = addHeader withTrace . MKBlock $ lrCodes ++ nonLRCodes
+parserGen doInline k withTrace cg = MKBlock $ lrCodes ++ nonLRCodes
     where
         graph      = parsingGraph doInline cg
         decisions  = M.map decideFromLATree $ makeLATables k graph

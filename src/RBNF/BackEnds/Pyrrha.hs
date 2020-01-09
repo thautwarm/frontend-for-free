@@ -222,11 +222,6 @@ cgPy = \case
         lhs <- py_alloc
         py_assign lhs [a, " or ", b]
         return lhs
-    MKExtern n t body -> do
-        let name = showVar n
-        let x    = T.pack $ showSig t
-        py_build $ T.concat ["#", name, x]
-        cgPy body
 
 mk_indent :: Int -> Text
 mk_indent = flip T.replicate $ "    "

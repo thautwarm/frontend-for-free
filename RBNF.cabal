@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.32.0.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bf441617a30060070766441318827a9f10022208e2dede42aaa7577e46ceedaf
+-- hash: 99128b340ab34cf4eac1acc753517bed2af136ce82ea4030e1aa027aa92e27b4
 
 name:           RBNF
 version:        0.1.0.0
@@ -28,31 +28,24 @@ source-repository head
 library
   exposed-modules:
       RBNF
-      RBNF.BackEnds.Merlin
       RBNF.BackEnds.Pyrrha
       RBNF.BackEnds.TargetGen
       RBNF.CodeGen
       RBNF.FrontEnd
       RBNF.Grammar
       RBNF.Graph
-      RBNF.HMTypeInfer
       RBNF.Inline
       RBNF.IRs.Cirno
       RBNF.IRs.Flandre
       RBNF.IRs.IRTrans
       RBNF.IRs.Marisa
-      RBNF.IRs.MarisaHeader
       RBNF.IRs.MarisaLibrary
-      RBNF.IRs.Reimu
-      RBNF.IRs.ReimuTyping
-      RBNF.IRs.TransMarisaToReimu
       RBNF.LeftRecur
       RBNF.LookAHead
       RBNF.Name
       RBNF.Semantics
       RBNF.Serialization
       RBNF.Symbols
-      RBNF.TypeSystem
       RBNF.Utils
   other-modules:
       Paths_RBNF
@@ -61,8 +54,7 @@ library
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
   ghc-options: -fno-warn-partial-type-signatures
   build-depends:
-      RSolve
-    , aeson
+      aeson
     , base >=4.7 && <5
     , containers
     , lens
@@ -85,7 +77,6 @@ executable rbnf-lex
   ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
-    , RSolve
     , aeson
     , base >=4.7 && <5
     , containers
@@ -109,7 +100,6 @@ executable rbnf-pgen
   ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
-    , RSolve
     , aeson
     , base >=4.7 && <5
     , containers
@@ -134,7 +124,6 @@ test-suite RBNF-test
   ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
-    , RSolve
     , aeson
     , base >=4.7 && <5
     , containers

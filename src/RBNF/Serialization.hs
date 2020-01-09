@@ -6,8 +6,6 @@ import           RBNF.Graph
 import           RBNF.LookAHead
 import           RBNF.IRs.Marisa
 import           RBNF.Name
-import           RBNF.TypeSystem
-import           RBNF.HMTypeInfer
 import           Data.Aeson
 
 import qualified Data.Text.Lazy.Encoding       as T
@@ -90,17 +88,6 @@ instance ToJSON CGrammar
 
 instance FromJSON MName
 instance ToJSON MName
-
-instance FromJSON RTPrim
-instance ToJSON RTPrim
-
-
-instance FromJSON RT
-instance ToJSON RT
-
-instance FromJSON a => FromJSON (HMT a)
-instance ToJSON a => ToJSON (HMT a)
-
 
 instance FromJSON Marisa
 instance ToJSON Marisa

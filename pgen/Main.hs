@@ -26,17 +26,18 @@ import qualified Data.Map                      as M
 main = getArgs >>= wain
 
 parseOptsKey m = \case
-    "-h"         : xs -> parseOptsKey (M.insert "h" "" m) xs
-    "-v"         : xs -> parseOptsKey (M.insert "v" "" m) xs
-    "-be"        : xs -> parseOptVal "be" m xs
-    "-out"       : xs -> parseOptVal "out" m xs
-    "-in"        : xs -> parseOptVal "in" m xs
-    "-k"         : xs -> parseOptVal "k" m xs
-    "-jsongraph" : xs -> parseOptVal "jsongraph" m xs
-    "--trace"    : xs -> parseOptsKey (M.insert "trace" "" m) xs
-    "--noinline" : xs -> parseOptsKey (M.insert "noinline" "" m) xs
-    k            : xs -> Left k
-    []                -> Right m
+    "-h"            : xs -> parseOptsKey (M.insert "h" "" m) xs
+    "-v"            : xs -> parseOptsKey (M.insert "v" "" m) xs
+    "-be"           : xs -> parseOptVal "be" m xs
+    "-out"          : xs -> parseOptVal "out" m xs
+    "-in"           : xs -> parseOptVal "in" m xs
+    "-k"            : xs -> parseOptVal "k" m xs
+    "-jsongraph"    : xs -> parseOptVal "jsongraph" m xs
+    "--trace"       : xs -> parseOptsKey (M.insert "trace" "" m) xs
+    "--noinline"    : xs -> parseOptsKey (M.insert "noinline" "" m) xs
+    "--stoppablelr" : xs -> parseOptsKey (M.insert "stoppablelr" "" m) xs
+    k               : xs -> Left k
+    []                   -> Right m
 
 parseOptVal k m = \case
     v : xs -> parseOptsKey (M.insert k v m) xs
@@ -68,7 +69,7 @@ wain xs = case parseOptsKey M.empty xs of
             Right (a, s) -> return a
         many_dump_json $ parsingGraph doInline ast
         k     <- k
-        let marisa = parserGen doInline k trace ast
+        let marisa = parserGen stoppableLeftRecur doInline k trace ast
         text <- backendGen marisa $ case M.lookup "be" m of
             Just a  -> a
             Nothing -> "marisa"
@@ -109,6 +110,9 @@ wain xs = case parseOptsKey M.empty xs of
         trace :: Bool
         trace = "trace" `M.member` m
 
+        stoppableLeftRecur :: Bool
+        stoppableLeftRecur = "stoppablelr" `M.member` m
+
 
 usage =
     putStrLn
@@ -116,7 +120,9 @@ usage =
         ++ "[-be python|ocaml|marisa(default)]\n"
         ++ "[-k lookahead number] [--trace : codegen with tracebacks.]\n"
         ++ "[--noinline : might be useful when viewing generated code]\n"
-        ++ "[--jsongraph : dump parsing graph to JSON format]"
+        ++ "[--jsongraph : dump parsing graph to JSON format]\n"
+        ++ "[--stoppablelr: (not recommended but faster)\n"
+        ++ "   allow rollbacks during proceeding the left recursion branch]\n"
 
 version = putStrLn "2.0"
 exit = exitSuccess

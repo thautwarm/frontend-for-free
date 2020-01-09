@@ -21,8 +21,8 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
 
-parserGen :: Bool -> Int -> Bool -> CGrammar -> Marisa
-parserGen doInline k withTrace cg = MKBlock $ lrCodes ++ nonLRCodes
+parserGen :: Bool -> Bool -> Int -> Bool -> CGrammar -> Marisa
+parserGen stoppableLeftRecur doInline k withTrace cg = MKBlock $ lrCodes ++ nonLRCodes
     where
         graph      = parsingGraph doInline cg
         decisions  = M.map decideFromLATree $ makeLATables k graph
@@ -30,8 +30,9 @@ parserGen doInline k withTrace cg = MKBlock $ lrCodes ++ nonLRCodes
             graph     = graph
             , decisions = decisions
             , withTrace = withTrace
+            , stoppableLeftRecur = stoppableLeftRecur
             , isLeftRec = False
-           }
+            }
         startNodeIds = M.toList . view starts $ graph
         endsNodeIds  = M.toList . view ends   $ graph
         nonLRCodes   = startNodeIds >>= \(s, i) ->

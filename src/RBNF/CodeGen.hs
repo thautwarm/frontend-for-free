@@ -30,6 +30,7 @@ data CompilationInfo
         , decisions  :: Map Int (Decision LAEdge Int)
         , withTrace  :: Bool
         , isLeftRec  :: Bool
+        , stoppableLeftRecur :: Bool
       }
 
 
@@ -161,7 +162,6 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
     cur_scope <- last . scopes <$> lift get
     error
       $
-       -- trace (dispID3Tree 0 leaf) $
          "Found backtracing among nodes "
       ++ show xs
       ++ " at rule "
@@ -180,7 +180,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
   NDSplit k (listToMaybe -> optional) branches -> do
     hs_tmp_i <- lift incTmp
     cfg      <- lift get
-    let -- dsl_tmp_flag_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".flag"
+    let
       cur_scope     = last $ scopes cfg
       dsl_tmp_res_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".result"
       dsl_off_n     = MName $ ".off." ++ show hs_tmp_i
@@ -234,7 +234,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
     build switch_expr
 
 codeGen :: CompilationInfo -> Int -> StateT [Marisa] (State CFG) ()
-codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
+codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLeftRecur } i =
   let
     node = view nodes graph M.! i
     getCont i cfg =
@@ -329,29 +329,31 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
       NReturn slotId -> do
         expr <- lift $ irToCode $ IRVar (Slot slotId)
         cfg  <- lift $ modified $ \cfg -> cfg { ret = expr } :: CFG
-        build $ mkSuccess withTrace $ getCont i cfg
+        build $ getCont i cfg
       Stop -> do
         cfg <- lift get
         let CFG { ret } = cfg
-        build ret
+        -- if not left recursion, no need to check, must be a success
+        build $ mkSuccess withTrace $ ret
       LeftRecur | not isLeftRec -> do
         cfg <- lift get
         if isLR cfg
           then do
             let CFG { ret } = cfg
-            build ret
+            build $ mkSuccess withTrace $ ret
           else do
             let CFG { ret } = cfg
                 name        = L.head $ scopes cfg
                 recn        = MName $ "lr.loop." ++ name
             build $ MKCall (MKVar recn)
                            [ret, MKVar dsl_globST_n, MKVar dsl_tokens_n]
+            
       LeftRecur | isLeftRec -> do
         cfg <- lift get
         if isLR cfg
-          then do
+          then do -- in `xxx.lr.step`, no need to check
             let CFG { ret } = cfg
-            build ret
+            build $ mkSuccess withTrace $ ret
           else do
             hs_tmp_i <- lift incTmp
             cfg      <- lift get
@@ -391,8 +393,17 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec } i =
                   , MKAssign reduced   fold
                   , MKAssign try $ MKCall (MKVar rec2) params3
                   ]
-                , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
-                , MKVar reduced
+                -- following commented expr seems redundant
+                -- , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
+                , if stoppableLeftRecur then MKBlock
+                      [ MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
+                      , MKTuple [MKBool True, MKVar reduced]
+                      ]
+                  else
+                    let cur_off = (MKAttr (MKVar dsl_tokens_n) tokenOff)
+                    in  MKIf (MKCall dsl_eq [cur_off, MKVar dsl_off_n])
+                             (MKTuple [MKBool True, MKVar reduced])  -- left recursion branch exit correctly
+                             (MKVar try)
                 ]
             build step
             build loop

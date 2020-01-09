@@ -115,7 +115,7 @@ test6 = do
         Left err -> error err
         Right (a, s) -> return a
     putStrLn ""
-    let a = parserGen True 1 False parsers
+    let a = parserGen False True 1 False parsers
         py :: Marisa -> Doc PythonBackEnd
         py = emit
     print $ py a

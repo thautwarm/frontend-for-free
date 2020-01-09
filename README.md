@@ -17,6 +17,9 @@ Usage: [-v] [-h] [-in filename] [-out filename]
 [-be python|ocaml|marisa(default)]
 [-k lookahead number] [--trace : codegen with tracebacks.]
 [--noinline : might be useful when viewing generated code]
+[--jsongraph : dump parsing graph to JSON format]
+[--stoppablelr: (not recommended but faster)
+   allow rollbacks during proceeding the left recursion branch]
 
 # gen python
 rbnf-pgen -in <infile>.rbnf -k <lookahead number> -out <outfile> -be python [--codegen-with-trace] --noinline

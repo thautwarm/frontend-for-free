@@ -52,7 +52,7 @@ standardizeRule = \case
 
     CSeq     cs  -> map (packStack . concat) $ sequence $ map standardizeRule cs
 
-    COpt     c   -> [] : standardizeRule c
+    COpt     c   -> [PPack 0] : standardizeRule c
     CAlt     cs  -> cs >>= standardizeRule
 
     -- advanced:

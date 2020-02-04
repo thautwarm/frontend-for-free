@@ -11,6 +11,10 @@ import           Control.Arrow
 
 data MiniLang
     = MTerm String
+    | MSlot Int
+    | MBuiltin String
+    | MInt Int
+    | MTuple [MiniLang]
     | MApp MiniLang [MiniLang]
     deriving (Eq, Ord, Generic)
 

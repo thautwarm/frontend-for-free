@@ -1,0 +1,55 @@
+expr_lst : separated_list(',', expr) { $0 };
+
+Ident : <Ident> { *$0 };
+
+atom : <QuotedStr>          { Terminal(LITERAL, unesc(*$0)) }
+     | <Term>               { Terminal(SYMBOL, *$0) }
+     | Ident                { NonTerminal($0) }
+     | '(' expr ')'         { $1 }
+     | '[' expr ']'         { Optional($1) }
+     | <Fn> expr_lst ')'    { MacroUse(*$0, $1) }
+     | Ident '=' atom       { Bind($0, $2) }
+     ;
+
+seq : list(atom) { $0 };
+cseq : seq { Seq($0) };
+expr : separated_list('|', cseq) { Alt($0) };
+
+
+rewrite : seq               { Rewrite(Seq($0), None) }
+        | seq '{' lang '}'  { Rewrite(Seq($0), $2) }
+        ;
+
+alts : separated_list('|', rewrite) { $0 };
+
+
+IdentList : separated_list(',', Ident) { $0 };
+
+prod : Ident ':=' alts ';'              { Def($0, Define, $2) }
+     | <Fn> IdentList ')' ':=' alts ';' { MacroDef(*$0, $1, Define, $4)}
+     | <Fn> ')' ':=' alts ';'           { MacroDef(*$0, [], Define, $4)}
+     
+     | Ident '<=>' expr ';'              { Def($0, Alias, $2) }
+     | <Fn> IdentList ')' '<=>' expr ';' { MacroDef(*$0, $1, Alias, $4)}
+     | <Fn> ')' '<=>' expr ';'           { MacroDef(*$0, [], Alias, $4)}
+     ;
+
+lang_lst : separated_list(',', lang) { $0 };
+
+lang : lang_atom                     { $0 }
+     | lang '(' lang_lst ')'         { Call($0, $2) }
+     | lang '(' ')'                  { Call($0, []) }
+     ;
+
+lang_atom :
+       Ident                 { Var($0) }
+     | <Int>                 { Int(int(*$0)) }
+     | '(' ')'               { Tuple([]) }
+     | '[' ']'               { List([]) }
+     | '(' lang_lst ')'      { maybeTuple($1) }
+     | '(' lang_lst ',' ')'  { Tuple($1) }
+     | '[' lang_lst ']'      { List($1) }
+     | '$' <Int>             { Slot(int(*$1)) }
+     ;
+
+START : <BOF> list(prod) <EOF> { $1 };

@@ -1,0 +1,28 @@
+WS \s+
+QuotedStr "([^\\"]+|\\.)*?"|'([^\\']+|\\.)*?'
+Int \d+
+Fn [a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*\(
+Ident [a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*
+Term <.*?>
+%ignore WS
+
+%require Terminal
+%require LITERAL
+%require SYMBOL
+%require NonTerminal
+%require Optional
+%require MacroUse
+%require Bind
+%require Rewrite
+%require Define
+%require Alias
+%require Def
+%require MacroDef
+%require Var
+%require Int
+%require List
+%require maybeTuple
+%require Tuple
+%require Slot
+
+%require unesc

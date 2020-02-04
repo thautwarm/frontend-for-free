@@ -25,6 +25,7 @@ data S
   | STp [S]
   | SVar Name
   | SExp String S
+  | SInt Int
   | SCall S [S]
   deriving (Eq, Ord, Show)
 
@@ -131,6 +132,15 @@ refObj (SObj iL) = SAss (Tmp iL)
 
 
 mToS :: MiniLang -> State CFG S
+
+mToS (MSlot n) = gets $ irOfObj . (!! (n - 1)) . L.reverse . view stack
+
+mToS (MBuiltin n) = return $ SVar $ Builtin n
+
+mToS (MInt n) = return $ SInt n
+
+mToS (MTuple elts) = STp <$> mapM mToS elts
+
 mToS (MTerm n) = require n >>= \case
     Just v -> return $ irOfObj v
     _      -> return $ SVar (Lexical n)

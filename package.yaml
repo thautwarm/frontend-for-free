@@ -4,7 +4,7 @@ github:              "thautwarm/RBNF"
 license:             BSD3
 author:              "thautwarm"
 maintainer:          "twshere@outlook.com"
-copyright:           "2019 thautwarm"
+copyright:           "2020 thautwarm"
 
 extra-source-files:
 - README.md

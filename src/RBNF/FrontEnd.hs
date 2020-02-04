@@ -2,7 +2,7 @@
 
 module RBNF.FrontEnd where
 import           RBNF.Utils
-import           RBNF.Symbols
+import           RBNF.Constructs
 import           Control.Applicative
 import           Prelude                 hiding ( fail )
 import           Control.Monad           hiding ( fail )
@@ -152,24 +152,14 @@ laString s = la (strip s (whiteSpace *> string s))
 
 termP = bound $ CTerm <$> ((char '<' *> identifier <* char '>') <|> quotedStr)
 nonTermP = bound $ CNonTerm <$> identifier
-predP = CPred <$> (char '?' *> bound miniP)
 nestedP = bound (char '(') *> bound cP <* bound (char ')')
 optP  = COpt <$> (bound (char '[') *> cP <* bound (char ']'))
 
 bindP =
     bound $ uncurry CBind <$> (char '!' *> identifier <* char '=' <***> atomP)
 
-atomP = bound (nonTermP <|> quickPredP <|> bindP <|> predP <|> nestedP <|> optP <|> termP)
+atomP = bound (nonTermP <|> bindP <|> nestedP <|> optP <|> termP)
 
-quickPredP = do
-    bound (char '{')
-    mini <- bound miniP
-    bound (char ':')
-    Loc {col, line} <- withLoc
-    let name = "auto-" ++ show line ++ "-" ++ show col
-    c <- cP
-    bound (char '}')
-    return $ CSeq [CBind name c, CPred $ MApp mini [MTerm name]]
 
 cPSeq :: Parser [C]
 cPSeq = sepBy whiteSpace atomP
@@ -206,8 +196,8 @@ commentP = many it >> bound eps
             whiteSpace
             pure ()
 
-modP :: Parser CGrammar
-modP = CGrammar <$> (whiteSpace *> bound (many (commentP *> stmtP)) <* commentP)
+modP :: Parser [CProd]
+modP = (whiteSpace *> bound (many (commentP *> stmtP)) <* commentP)
 
 sepBy :: Parser a -> Parser b -> Parser [b]
 sepBy sep p = do
@@ -235,7 +225,7 @@ parseRule s p = case runParser p (s, Loc 0 0) of
     Left  (a, _)    -> Left a
     Right (a, s, _) -> Right (a, s)
 
-parseDoc :: String -> Either String (CGrammar, String)
+parseDoc :: String -> Either String ([CProd], String)
 parseDoc s = case runParser modP (s, Loc 0 0) of
     Left  (a, _)    -> Left a
     Right (a, s, _) -> Right (a, s)

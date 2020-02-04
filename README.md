@@ -65,7 +65,7 @@ codes with error reports.
 - `a`:  non-terminal rule
 - `a | b`: `a` or `b`
 - `[a b c]`: an optional block
-- `a b c`: a sequence of parsing symbols
+- `a b c`: a sequence of parsing Constructs
 - `!name=rule`: context-xsensitive feature, locally bind what produced by `rule` to `name`.
 - `?f(x)/?f/?(f(g(x))`: use locally-binded variables to do some predictions.
 - `{E: p}` : a syntactic sugar for `!tmp=p ?E(tmp)`, where `tmp` is a mangled name.

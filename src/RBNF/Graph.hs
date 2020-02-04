@@ -1,7 +1,7 @@
 module RBNF.Graph where
 
 import RBNF.Utils
-import RBNF.Symbols
+import RBNF.Constructs
 import RBNF.Grammar
 import RBNF.Semantics
 
@@ -14,7 +14,7 @@ import Control.Lens (over, view, Lens', makeLenses)
 
 data NodeKind =
       NEntity Entity
-    | NReturn SlotIdx
+    | NReturn Int
     | Stop
     | LeftRecur
     | Start

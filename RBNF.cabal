@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a3a6770d291e447ce30fbaebb4e8af2db4adc02fb32a85a012e4110708758e52
+-- hash: ad69c6d23ecd42d55ea85b98c9ef0a8675aa14fca64d0d068e422cca5bfd9098
 
 name:           RBNF
 version:        0.1.0.0
@@ -13,7 +13,7 @@ homepage:       https://github.com/thautwarm/RBNF#readme
 bug-reports:    https://github.com/thautwarm/RBNF/issues
 author:         thautwarm
 maintainer:     twshere@outlook.com
-copyright:      2019 thautwarm
+copyright:      2020 thautwarm
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -32,11 +32,11 @@ library
       RBNF.BackEnds.Pyrrha
       RBNF.BackEnds.TargetGen
       RBNF.CodeGen
+      RBNF.Constructs
       RBNF.FrontEnd
       RBNF.Grammar
       RBNF.Graph
       RBNF.Inline
-      RBNF.IRs.Cirno
       RBNF.IRs.Flandre
       RBNF.IRs.IRTrans
       RBNF.IRs.Marisa
@@ -46,7 +46,6 @@ library
       RBNF.Name
       RBNF.Semantics
       RBNF.Serialization
-      RBNF.Symbols
       RBNF.Utils
   other-modules:
       Paths_RBNF

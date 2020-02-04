@@ -7,7 +7,7 @@ module RBNF.LookAHead where
 
 import           RBNF.Graph
 import           RBNF.Semantics
-import           RBNF.Symbols
+import           RBNF.Constructs
 import           RBNF.Grammar
 import           RBNF.Utils
 

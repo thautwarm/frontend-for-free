@@ -4,7 +4,7 @@ import           System.Environment
 import           System.Exit
 import           Control.Monad
 import           RBNF.FrontEnd
-import           RBNF.Symbols (C(..), CGrammar(..))
+import           RBNF.Constructs (C(..), CProd)
 import qualified Data.Map                      as M
 import qualified Data.List                     as L
 
@@ -23,10 +23,10 @@ parseOptVal k m = \case
     []     -> Left k
 
 
-terminals :: CGrammar -> [String]
+terminals :: [CProd] -> [String]
 terminals g = L.nub $ productions >>= terminalsOf
     where
-        productions = flip map (getCGrammar g) $ \case (_, c, _) -> c
+        productions = flip map g $ \case (_, c, _) -> c
         terminalsOf :: C -> [String]
         terminalsOf = \case
             CTerm s    -> return s

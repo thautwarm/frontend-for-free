@@ -1,27 +1,27 @@
 -- | This module provides name representations for various IRs.
 module RBNF.Name where
-import GHC.Generics
-
--- | SVName is for IRs on a stack based parsing machine.
---   SVSlot i represents the parsing result of i-th symbol in a parsing rule.
-data SVName
-    = SVLocal String
-    | SVSlot  Int
-    deriving (Eq, Ord)
+import           RBNF.Utils
+import           GHC.Generics
 
 
-instance Show SVName where
-    show = \case
-        SVSlot i -> "slots["++ show i ++"]"
-        SVLocal s -> s
-
--- | Beside the normal name(by constructor 'MName'),
---  the type MName provides a sort of names that can be
---  distinguished from user defined names(by constructor `MBuiltin`)
-data MName = MName String | MBuiltin String
+data Name
+    = Lexical String
+    | Builtin String
+    | NamedTmp String
+    | Tmp Int
     deriving (Eq, Ord, Generic)
 
-instance Show MName where
+
+instance Show Name where
     show = \case
-        MName s -> s
-        MBuiltin s -> "%" ++ s
+        Lexical s -> printf "lexical_%s" s
+        Builtin s -> printf "builtin_%s" s
+        Tmp i | i < 0     -> printf "tmp_%d_" (-i)
+              | otherwise -> printf "tmp_%d" i
+        NamedTmp s ->
+            let rep '.' = '_'
+                rep '-' = '_'
+                rep a   = a
+            in  map rep $ printf "namedtmp_%s" s
+
+

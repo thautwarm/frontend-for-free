@@ -11,7 +11,7 @@ import           Data.Maybe                     ( listToMaybe )
 
 import           RBNF.Utils
 import           RBNF.Name
-import           RBNF.Symbols
+import           RBNF.Constructs
 import           RBNF.Semantics
 import           RBNF.Graph
 import           RBNF.LookAHead
@@ -36,9 +36,10 @@ data CompilationInfo
 
 slotToStr i = ".slot." ++ show i
 scopedStr scopes s = L.intercalate "." $ L.reverse (s : scopes)
-vNameToStr = \case
-  Local s -> s
-  Slot  i -> slotToStr i
+
+vNameToStr :: Name -> String
+vNameToStr = show
+
 
 -- every function holds it own CFG
 data CFG
@@ -98,9 +99,9 @@ produceLA :: Int -> String -> CFG -> CFG
 produceLA i s cfg@CFG { laCache } = cfg { laCache = M.insert i s laCache }
 
 build :: Monad m => a -> StateT [a] m ()
-build a = modify (a:)
+build a = modify (a :)
 
-tryElse :: MName -> MName -> Marisa -> Marisa -> Bool -> Marisa
+tryElse :: Name -> Name -> Marisa -> Marisa -> Bool -> Marisa
 tryElse dsl_off_n res clause1 clause2 withTrace = MKBlock
   [MKAssign res clause1, MKIf succeeded (MKVar res) (MKBlock [reset, clause2])]
  where
@@ -161,17 +162,15 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
   leaf@(NDLeaf xs) -> do
     cur_scope <- last . scopes <$> lift get
     error
-      $
-         "Found backtracing among nodes "
+      $  "Found backtracing among nodes "
       ++ show xs
       ++ " at rule "
       ++ cur_scope
       ++ ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
-  NDSplit k (states@(_:_:_)) xs -> do
+  NDSplit k (states@(_ : _ : _)) xs -> do
     cur_scope <- last . scopes <$> lift get
     error
-      $
-         "Found backtracing among nodes "
+      $  "Found backtracing among nodes "
       ++ show states
       ++ " at rule "
       ++ cur_scope
@@ -182,8 +181,8 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
     cfg      <- lift get
     let
       cur_scope     = last $ scopes cfg
-      dsl_tmp_res_n = MName $ ".tmp." ++ show hs_tmp_i ++ ".result"
-      dsl_off_n     = MName $ ".off." ++ show hs_tmp_i
+      dsl_tmp_res_n = NamedTmp $ ".tmp." ++ show hs_tmp_i ++ ".result"
+      dsl_off_n     = NamedTmp $ ".off." ++ show hs_tmp_i
       dsl_tokens    = MKVar dsl_tokens_n
 
       la_failed_msg = cur_scope ++ " lookahead failed"
@@ -227,212 +226,186 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
       cases         = fst switch'
       default'      = snd switch'
       switch_expr   = case preDecided branches of
-          Nothing -> MKIf dsl_la_cond (MKSwitch dsl_cur_int cases default') eof_err
-          Just a  -> a
+        Nothing ->
+          MKIf dsl_la_cond (MKSwitch dsl_cur_int cases default') eof_err
+        Just a -> a
 
     build $ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
     build switch_expr
 
 codeGen :: CompilationInfo -> Int -> StateT [Marisa] (State CFG) ()
-codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLeftRecur } i =
-  let
-    node = view nodes graph M.! i
-    getCont i cfg =
-      let node = view nodes graph M.! i
-      in  runToCode cfg $ case (i `M.lookup` decisions, view followed node) of
-            (Just decision, _) -> -- trace (dispID3Tree 0 decision) $
-              mkSwitch c decision
-            (_, [followI]) -> codeGen c followI
-  in
-    case kind node of
-      NEntity (ETerm t) -> do
-        cfg <- lift get
-        let dsl_tokens  = MKVar dsl_tokens_n
-            hs_slot     = slot cfg
-            dsl_sloti_n = MName $ slotToStr hs_slot
-        if hasLA t cfg then do
-          build $ MKAssign dsl_sloti_n (MKCall dsl_mv_forward [dsl_tokens])
-          cfg      <- lift $ modified (\a@CFG{slot} -> a { slot = slot + 1 })
-          build $ getCont i $ consumeLA cfg
-        else do
-          hs_tmp_i <- lift incTmp
-          cfg      <- lift $ modified (\a@CFG{slot} -> a { slot = slot + 1 })
-          let tokenId = MKCall dsl_s_to_i [MKStr t]
-          build $ MKAssign dsl_sloti_n (MKCall dsl_match_tk [dsl_tokens, tokenId])
-          let cont   = getCont i cfg
-              err_hd = MKTuple [MKAttr dsl_tokens tokenOff, MKStr $ t ++ " not match"]
-              errs   = mkErrors [err_hd]
-              ifErr | withTrace = MKTuple [dsl_false, errs]
-                    | otherwise = dsl_null
-          build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_n]) ifErr cont
+codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLeftRecur } i
+  = let
+      node = view nodes graph M.! i
+      getCont i cfg =
+        let node = view nodes graph M.! i
+        in  runToCode cfg $ case (i `M.lookup` decisions, view followed node) of
+              (Just decision, _) -> -- trace (dispID3Tree 0 decision) $
+                mkSwitch c decision
+              (_, [followI]) -> codeGen c followI
+    in
+      case kind node of
+        NEntity (ETerm t) -> do
+          cfg <- lift get
+          let dsl_tokens  = MKVar dsl_tokens_n
+              hs_slot     = slot cfg
+              dsl_sloti_n = NamedTmp $ slotToStr hs_slot
+          if hasLA t cfg
+            then do
+              build $ MKAssign dsl_sloti_n (MKCall dsl_mv_forward [dsl_tokens])
+              cfg <- lift $ modified (\a@CFG { slot } -> a { slot = slot + 1 })
+              build $ getCont i $ consumeLA cfg
+            else do
+              hs_tmp_i <- lift incTmp
+              cfg <- lift $ modified (\a@CFG { slot } -> a { slot = slot + 1 })
+              let tokenId = MKCall dsl_s_to_i [MKStr t]
+              build $ MKAssign dsl_sloti_n
+                               (MKCall dsl_match_tk [dsl_tokens, tokenId])
+              let
+                cont   = getCont i cfg
+                err_hd = MKTuple
+                  [MKAttr dsl_tokens tokenOff, MKStr $ t ++ " not match"]
+                errs = mkErrors [err_hd]
+                ifErr | withTrace = MKTuple [dsl_false, errs]
+                      | otherwise = dsl_null
+              build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_n]) ifErr cont
 
-      NEntity (ENonTerm n) -> do
-        cfg <- lift $ modified reLA
-        let dsl_tokens    = MKVar dsl_tokens_n
-            hs_slot       = slot cfg
-            dsl_sloti_chk = MName $ slotToStr hs_slot ++ ".check"
-            dsl_sloti_n   = MName $ slotToStr hs_slot
-        cfg <- lift $ modified $ \a -> a { slot = slot a + 1 }
-        -- build $ MKAssign dsl_off_n (MKAttr dsl_tokens tokenOff)
-        let theParser = MKVar . MName $ "parse." ++ n
-        build $ MKAssign dsl_sloti_chk
-                         (MKCall theParser [MKVar dsl_globST_n, dsl_tokens])
-        let cont = getCont i cfg
-            result
-              | withTrace = MKCall dsl_to_res [MKPrj (MKVar dsl_sloti_chk) 1]
-              | otherwise = MKVar dsl_sloti_chk
-            assSlot  = MKAssign dsl_sloti_n result
-            ifNotErr = consBlock assSlot cont
-        if withTrace
-          then do
-            let ifErr = MKVar dsl_sloti_chk
-            build $ MKIf
-              (MKCall dsl_eq [MKPrj (MKVar dsl_sloti_chk) 0, dsl_false])
-              ifErr
-              ifNotErr
-          else build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_chk])
-                            dsl_null
-                            ifNotErr
-      NEntity (EPredicate ir) -> do
-        expr <- lift $ irToCode ir
-        cfg <- lift get
-        let cont = getCont i cfg
-        build $ MKIf expr cont $ if withTrace
-          then MKTuple [dsl_false, MKCall dsl_to_any [dsl_nil]]
-          else dsl_null
-      NEntity (EModify ir) -> do
-        sideEffect <- lift $ irToCode ir
-        cfg        <- lift get
-        let cont = getCont i cfg
-        build $ consBlock sideEffect cont
-      NEntity (EBind name ir) -> do
-        bind <- lift $ irToCode (IRAss (Local name) ir)
-        cfg  <- lift get
-        let cont = getCont i cfg
-        build $ consBlock bind cont
-      NEntity (EProc irs) -> do
-        stmts <- lift $ mapM irToCode irs
-        cfg   <- lift get
-        let cont = getCont i cfg
-        build $ prependBlock stmts cont
-      NEntity (EPushScope s) -> do
-        cfg <- lift $ modified $ \cfg ->
-          let hd : tl = ctx cfg
-          in  cfg { scopes = s : scopes cfg, ctx = hd : hd : tl }
-        build $ getCont i cfg
-      NEntity (EPopScope s) -> do
-        cfg <- lift $ modified $ \cfg ->
-          let _ : tl_ctx   = ctx cfg
-              _ : tl_scope = scopes cfg
-          in  cfg { scopes = tl_scope, ctx = tl_ctx }
-        build $ getCont i cfg
-      NReturn slotId -> do
-        expr <- lift $ irToCode $ IRVar (Slot slotId)
-        cfg  <- lift $ modified $ \cfg -> cfg { ret = expr } :: CFG
-        build $ getCont i cfg
-      Stop -> do
-        cfg <- lift get
-        let CFG { ret } = cfg
-        -- if not left recursion, no need to check, must be a success
-        build $ mkSuccess withTrace $ ret
-      LeftRecur | not isLeftRec -> do
-        cfg <- lift get
-        if isLR cfg
-          then do
-            let CFG { ret } = cfg
-            build $ mkSuccess withTrace $ ret
-          else do
-            let CFG { ret } = cfg
-                name        = L.head $ scopes cfg
-                recn        = MName $ "lr.loop." ++ name
-            build $ MKCall (MKVar recn)
-                           [ret, MKVar dsl_globST_n, MKVar dsl_tokens_n]
-            
-      LeftRecur | isLeftRec -> do
-        cfg <- lift get
-        if isLR cfg
-          then do -- in `xxx.lr.step`, no need to check
-            let CFG { ret } = cfg
-            build $ mkSuccess withTrace $ ret
-          else do
-            hs_tmp_i <- lift incTmp
-            cfg      <- lift get
-            let dsl_off_n = MName $ ".off." ++ show hs_tmp_i
-            let name = L.head $ scopes cfg
-                cfg' = cfg { slot   = 1
-                           , tmp    = 0
-                           , scopes = [name]
-                           , ctx    = [M.empty]
-                           , ret    = dsl_int 0
-                           , isLR   = True
-                           }
-            let
-              cont    = getCont i cfg'
-              arg0    = MName $ slotToStr 0
-              rec1    = MName $ "lr.loop." ++ name
-              rec2    = MName $ "lr.step." ++ name
-              try     = MName $ "lr." ++ name ++ ".try"
-              reduced = MName $ "lr." ++ name ++ ".reduce"
-              cond    = if withTrace
-                then MKCall dsl_neq [MKPrj (MKVar try) 0, dsl_false]
-                else MKCall dsl_is_not_null [MKVar try]
-              -- fold left recursion:
-              -- arg0 <- arg0 a b c ...
-              fold = if withTrace
-                then MKCall dsl_to_res [MKPrj (MKVar try) 1]
-                else MKVar try
-              args3   = [arg0, dsl_globST_n, dsl_tokens_n]
-              params3 = map MKVar [reduced, dsl_globST_n, dsl_tokens_n]
-              step    = MKDef rec2 args3 cont
-              loop    = MKDef rec1 args3 $ MKBlock
-                [ MKAssign reduced   (MKVar arg0)
-                , MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
-                , MKAssign try $ MKCall (MKVar rec2) params3
-                , MKWhile cond $ MKBlock
-                  [ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
-                  , MKAssign reduced   fold
+        NEntity (ENonTerm n) -> do
+          cfg <- lift $ modified reLA
+          let dsl_tokens    = MKVar dsl_tokens_n
+              hs_slot       = slot cfg
+              dsl_sloti_chk = NamedTmp $ slotToStr hs_slot ++ ".check"
+              dsl_sloti_n   = NamedTmp $ slotToStr hs_slot
+          cfg <- lift $ modified $ \a -> a { slot = slot a + 1 }
+          -- build $ MKAssign dsl_off_n (MKAttr dsl_tokens tokenOff)
+          let theParser = MKVar . NamedTmp $ "parse." ++ n
+          build $ MKAssign dsl_sloti_chk
+                           (MKCall theParser [MKVar dsl_globST_n, dsl_tokens])
+          let cont = getCont i cfg
+              result
+                | withTrace = MKCall dsl_to_res [MKPrj (MKVar dsl_sloti_chk) 1]
+                | otherwise = MKVar dsl_sloti_chk
+              assSlot  = MKAssign dsl_sloti_n result
+              ifNotErr = consBlock assSlot cont
+          if withTrace
+            then do
+              let ifErr = MKVar dsl_sloti_chk
+              build $ MKIf
+                (MKCall dsl_eq [MKPrj (MKVar dsl_sloti_chk) 0, dsl_false])
+                ifErr
+                ifNotErr
+            else build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_chk])
+                              dsl_null
+                              ifNotErr
+
+        NEntity (EPred ir) -> do
+          let expr = irToCode ir
+          cfg <- lift get
+          let cont = getCont i cfg
+          build $ MKIf expr cont $ if withTrace
+            then MKTuple [dsl_false, MKCall dsl_to_any [dsl_nil]]
+            else dsl_null
+
+        NEntity (EProc irs) -> do
+          let stmts = map irToCode irs
+          cfg <- lift get
+          let cont = getCont i cfg
+          build $ prependBlock stmts cont
+
+        NReturn slotId -> do
+          let expr = irToCode $ SVar (Tmp slotId)
+          cfg <- lift $ modified $ \cfg -> cfg { ret = expr } :: CFG
+          build $ getCont i cfg
+        Stop -> do
+          cfg <- lift get
+          let CFG { ret } = cfg
+          -- if not left recursion, no need to check, must be a success
+          build $ mkSuccess withTrace $ ret
+        LeftRecur | not isLeftRec -> do
+          cfg <- lift get
+          if isLR cfg
+            then do
+              let CFG { ret } = cfg
+              build $ mkSuccess withTrace $ ret
+            else do
+              let CFG { ret } = cfg
+                  name        = L.head $ scopes cfg
+                  recn        = NamedTmp $ "lr.loop." ++ name
+              build $ MKCall (MKVar recn)
+                             [ret, MKVar dsl_globST_n, MKVar dsl_tokens_n]
+
+        LeftRecur | isLeftRec -> do
+          cfg <- lift get
+          if isLR cfg
+            then do -- in `xxx.lr.step`, no need to check
+              let CFG { ret } = cfg
+              build $ mkSuccess withTrace $ ret
+            else do
+              hs_tmp_i <- lift incTmp
+              cfg      <- lift get
+              let dsl_off_n = NamedTmp $ ".off." ++ show hs_tmp_i
+              let name = L.head $ scopes cfg
+                  cfg' = cfg { slot   = 1
+                             , tmp    = 0
+                             , scopes = [name]
+                             , ctx    = [M.empty]
+                             , ret    = dsl_int 0
+                             , isLR   = True
+                             }
+              let
+                cont    = getCont i cfg'
+                arg0    = NamedTmp $ slotToStr 0
+                rec1    = NamedTmp $ "lr.loop." ++ name
+                rec2    = NamedTmp $ "lr.step." ++ name
+                try     = NamedTmp $ "lr." ++ name ++ ".try"
+                reduced = NamedTmp $ "lr." ++ name ++ ".reduce"
+                cond    = if withTrace
+                  then MKCall dsl_neq [MKPrj (MKVar try) 0, dsl_false]
+                  else MKCall dsl_is_not_null [MKVar try]
+                -- fold left recursion:
+                -- arg0 <- arg0 a b c ...
+                fold = if withTrace
+                  then MKCall dsl_to_res [MKPrj (MKVar try) 1]
+                  else MKVar try
+                args3   = [arg0, dsl_globST_n, dsl_tokens_n]
+                params3 = map MKVar [reduced, dsl_globST_n, dsl_tokens_n]
+                step    = MKDef rec2 args3 cont
+                loop    = MKDef rec1 args3 $ MKBlock
+                  [ MKAssign reduced   (MKVar arg0)
+                  , MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
                   , MKAssign try $ MKCall (MKVar rec2) params3
-                  ]
-                -- following commented expr seems redundant
-                -- , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
-                , if stoppableLeftRecur then MKBlock
+                  , MKWhile cond $ MKBlock
+                    [ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)
+                    , MKAssign reduced   fold
+                    , MKAssign try $ MKCall (MKVar rec2) params3
+                    ]
+                  -- following commented expr seems redundant
+                  -- , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
+                  , if stoppableLeftRecur
+                    then MKBlock
                       [ MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
                       , MKTuple [MKBool True, MKVar reduced]
                       ]
-                  else
-                    let cur_off = (MKAttr (MKVar dsl_tokens_n) tokenOff)
-                    in  MKIf (MKCall dsl_eq [cur_off, MKVar dsl_off_n])
-                             (MKTuple [MKBool True, MKVar reduced])  -- left recursion branch exit correctly
-                             (MKVar try)
-                ]
-            build step
-            build loop
-      Start -> do
-        cfg <- lift get
-        let name   = L.head $ scopes cfg
-            fnName = MName $ "parse." ++ name
-            cont   = getCont i cfg
-        build $ MKDef fnName [dsl_globST_n, dsl_tokens_n] cont
+                    else
+                      let cur_off = (MKAttr (MKVar dsl_tokens_n) tokenOff)
+                      in  MKIf (MKCall dsl_eq [cur_off, MKVar dsl_off_n])
+                               (MKTuple [MKBool True, MKVar reduced])  -- left recursion branch exit correctly
+                               (MKVar try)
+                  ]
+              build step
+              build loop
+        Start -> do
+          cfg <- lift get
+          let name   = L.head $ scopes cfg
+              fnName = NamedTmp $ "parse." ++ name
+              cont   = getCont i cfg
+          build $ MKDef fnName [dsl_globST_n, dsl_tokens_n] cont
 
-irToCode :: IR -> State CFG Marisa
-irToCode ir = do
-  cfg <- get
-  let
-    hs_scopes        = scopes cfg
-    cur_ctx : ctx_tl = ctx cfg
-    frec             = \case
-      IRAss (Local s) ir -> do
-        i <- incTmp
-        let nameStr = scopedStr hs_scopes s ++ "." ++ show i
-        code <- MKAssign (MName nameStr) <$> irToCode ir
-        put $ cfg { ctx = M.insert s nameStr cur_ctx : ctx_tl }
-        return code
-      IRAss (Slot i) ir -> MKAssign (MName $ slotToStr i) <$> irToCode ir
-      IRTuple irs       -> MKTuple <$> mapM irToCode irs
-      IRMkSExp n ir     -> do
-        content <- irToCode ir
-        return $ MKCall dsl_mkast [MKStr n, content]
-      IRCall f args   -> MKCall <$> irToCode f <*> mapM irToCode args
-      IRVar (Local s) -> return $ MKVar $ MName $ M.findWithDefault s s cur_ctx
-      IRVar (Slot  i) -> return $ MKVar $ MName $ slotToStr i
-  frec ir
+irToCode :: S -> Marisa
+irToCode = \case
+  SAss n ir -> MKAssign n $ irToCode ir
+  STp irs   -> MKTuple $ map irToCode irs
+  SExp n ir ->
+    let content = irToCode ir in MKCall dsl_mkast [MKStr n, content]
+  SCall f args -> MKCall (irToCode f) (map irToCode args)
+  SVar n       -> MKVar n

@@ -5,7 +5,7 @@ import           RBNF.Name
 import           Control.Monad.State
 
 
-showMN :: MName -> String
+showMN :: Name -> String
 showMN n = concat ["var\"", show n, "\""]
 
 genJl quoted = align . \case

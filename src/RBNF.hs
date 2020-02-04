@@ -2,7 +2,7 @@ module RBNF
 where
 
 import RBNF.Utils
-import RBNF.Symbols
+import RBNF.Constructs
 import RBNF.Grammar
 import RBNF.LeftRecur
 import RBNF.Inline
@@ -21,7 +21,7 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
 
-parserGen :: Bool -> Bool -> Int -> Bool -> CGrammar -> Marisa
+parserGen :: Bool -> Bool -> Int -> Bool -> [CProd] -> Marisa
 parserGen stoppableLeftRecur doInline k withTrace cg = MKBlock $ lrCodes ++ nonLRCodes
     where
         graph      = parsingGraph doInline cg
@@ -46,13 +46,13 @@ parserGen stoppableLeftRecur doInline k withTrace cg = MKBlock $ lrCodes ++ nonL
                         in  runToCodeSuite cfg $ codeGen c {isLeftRec = True} i
                     _ -> []
 
-parsingGraph :: Bool -> CGrammar -> Graph
+parsingGraph :: Bool -> [CProd] -> Graph
 parsingGraph doInline =
     buildGraph .
     pGToSG .
     (if doInline then inline else id) .
     markedLeftRecur "START".
-    mkGrammar
+    unCombinatorial
 
 graphToJSON :: String -> Graph -> IO ()
 graphToJSON path ms = T.writeFile path (encodeToLazyText ms)

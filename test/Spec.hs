@@ -1,7 +1,7 @@
 {-# LANGUAGE MonadComprehensions #-}
 
 import RBNF.Grammar
-import RBNF.Symbols
+import RBNF.Constructs
 import RBNF.LeftRecur
 import RBNF.Semantics
 import RBNF.Graph

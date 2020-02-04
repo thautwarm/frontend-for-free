@@ -12,16 +12,16 @@ import           RBNF.Utils
 -- There's a punning case as the abbreviation of "make"
 -- is also MK and its meaning makes sense here.
 data Marisa
-    = MKAssign MName Marisa
+    = MKAssign Name Marisa
     | MKCall Marisa [Marisa]
     | MKAttr Marisa String
     | MKPrj    Marisa Int -- statically projections on tuples
     | MKIf     Marisa Marisa Marisa
     | MKWhile  Marisa Marisa
     | MKSwitch Marisa [(Marisa, Marisa)] Marisa
-    | MKDef    MName [MName] Marisa
+    | MKDef    Name [Name] Marisa
     | MKBlock  [Marisa]
-    | MKVar    MName
+    | MKVar    Name
     | MKInt    Int
     | MKStr    String
     | MKBool   Bool

@@ -13,11 +13,11 @@ import qualified Data.Set                      as S
 import qualified Data.List                     as L
 import qualified Data.Map                      as M
 
-showVar :: MName -> Text
-showVar = mangleOC . pack . show
+showVar :: Name -> Text
+showVar = pack . show
 
 mangleOC :: Text -> Text
-mangleOC = mangling "." "_" . mangling "%" "prim_" . mangling "-" "local_"
+mangleOC = id
 
 
 type PyName = Text

@@ -34,7 +34,6 @@ data CompilationInfo
       }
 
 
-slotToStr i = ".slot." ++ show i
 scopedStr scopes s = L.intercalate "." $ L.reverse (s : scopes)
 
 vNameToStr :: Name -> String
@@ -181,7 +180,6 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
     cfg      <- lift get
     let
       cur_scope     = last $ scopes cfg
-      dsl_tmp_res_n = NamedTmp $ ".tmp." ++ show hs_tmp_i ++ ".result"
       dsl_off_n     = NamedTmp $ ".off." ++ show hs_tmp_i
       dsl_tokens    = MKVar dsl_tokens_n
 
@@ -249,7 +247,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
           cfg <- lift get
           let dsl_tokens  = MKVar dsl_tokens_n
               hs_slot     = slot cfg
-              dsl_sloti_n = NamedTmp $ slotToStr hs_slot
+              dsl_sloti_n = Tmp hs_slot
           if hasLA t cfg
             then do
               build $ MKAssign dsl_sloti_n (MKCall dsl_mv_forward [dsl_tokens])
@@ -274,8 +272,8 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
           cfg <- lift $ modified reLA
           let dsl_tokens    = MKVar dsl_tokens_n
               hs_slot       = slot cfg
-              dsl_sloti_chk = NamedTmp $ slotToStr hs_slot ++ ".check"
-              dsl_sloti_n   = NamedTmp $ slotToStr hs_slot
+              dsl_sloti_chk = NamedTmp $ printf ".check.%d" hs_slot
+              dsl_sloti_n   = Tmp hs_slot
           cfg <- lift $ modified $ \a -> a { slot = slot a + 1 }
           -- build $ MKAssign dsl_off_n (MKAttr dsl_tokens tokenOff)
           let theParser = MKVar . NamedTmp $ "parse." ++ n
@@ -354,7 +352,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
                              }
               let
                 cont    = getCont i cfg'
-                arg0    = NamedTmp $ slotToStr 0
+                arg0    = Tmp 0
                 rec1    = NamedTmp $ "lr.loop." ++ name
                 rec2    = NamedTmp $ "lr.step." ++ name
                 try     = NamedTmp $ "lr." ++ name ++ ".try"

@@ -1,1 +1,4 @@
-B ::= <B> b | b;
+START : <BOF> b <EOF>;
+
+b ::= b "b" | c;
+c ::= "a" b | "c";

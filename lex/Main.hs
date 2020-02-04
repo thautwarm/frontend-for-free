@@ -3,8 +3,10 @@ import           System.IO
 import           System.Environment
 import           System.Exit
 import           Control.Monad
-import           RBNF.FrontEnd
-import           RBNF.Constructs (C(..), CProd)
+import           RBNF.Constructs                ( C(..)
+                                                , CProd
+                                                )
+import           Text.Read                      ( readMaybe )
 import qualified Data.Map                      as M
 import qualified Data.List                     as L
 
@@ -25,28 +27,29 @@ parseOptVal k m = \case
 
 terminals :: [CProd] -> [String]
 terminals g = L.nub $ productions >>= terminalsOf
-    where
-        productions = flip map g $ \case (_, c, _) -> c
-        terminalsOf :: C -> [String]
-        terminalsOf = \case
-            CTerm s    -> return s
-            CSeq xs    -> xs >>= terminalsOf
-            CAlt xs    -> xs >>= terminalsOf
-            COpt c     -> terminalsOf c
-            CBind n c  -> terminalsOf c
-            _          -> mzero
+  where
+    productions = flip map g $ \case
+        (_, c, _) -> c
+    terminalsOf :: C -> [String]
+    terminalsOf = \case
+        CTerm s   -> return s
+        CSeq  xs  -> xs >>= terminalsOf
+        CAlt  xs  -> xs >>= terminalsOf
+        COpt  c   -> terminalsOf c
+        CBind n c -> terminalsOf c
+        _         -> mzero
 
 wain xs = case parseOptsKey M.empty xs of
     Left  k -> putStrLn $ "Error in key " ++ k ++ "."
     Right m -> do
         may_print_help
         may_print_ver
-        outfn <- outfn
-        inStr <- inStr
-        combinatoric <- case parseDoc inStr of
-            Left err     -> putStrLn err >> exitFailure
-            Right (a, s) -> return a
-        outfn (unlines . terminals $  combinatoric)
+        outfn        <- outfn
+        inStr        <- inStr
+        combinatoric <- case readMaybe inStr :: Maybe [CProd] of
+            Nothing -> exitFailure
+            Just a  -> return a
+        outfn (unlines . terminals $ combinatoric)
       where
         may_print_help :: IO ()
         may_print_help | "h" `M.member` m = help >> exitSuccess
@@ -67,9 +70,8 @@ wain xs = case parseOptsKey M.empty xs of
         outfn :: IO (String -> IO ())
         outfn = do
             outf <- outf
-            let apply
-                  | outf == "stdout" = putStrLn
-                  | otherwise        = writeFile outf
+            let apply | outf == "stdout" = putStrLn
+                      | otherwise        = writeFile outf
             return apply
 version = putStrLn "2.0"
 help = putStrLn "Usage: [-v] [-h] [-in filename] [-out filename]\n"

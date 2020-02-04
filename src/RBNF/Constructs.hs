@@ -11,12 +11,12 @@ import           Control.Arrow
 
 data MiniLang
     = MTerm String
-    | MSlot Int
     | MBuiltin String
+    | MSlot Int
     | MInt Int
     | MTuple [MiniLang]
     | MApp MiniLang [MiniLang]
-    deriving (Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic, Read)
 
 -- Parsing Constructs
 -- Also can be regarded as instructions
@@ -52,7 +52,7 @@ data C
     | CPred    MiniLang
     -- advanced:
     | CBind    String C
-    deriving (Eq, Ord, Generic)
+    deriving (Eq, Ord, Generic, Read)
 
 type CProd = (String, C, Maybe MiniLang)
 

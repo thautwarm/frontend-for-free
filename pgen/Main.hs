@@ -6,11 +6,12 @@ import           RBNF.Graph                     ( Graph )
 import           RBNF.Serialization
 import           RBNF.IRs.Marisa
 import           RBNF.BackEnds.TargetGen
-import           RBNF.FrontEnd
+import           RBNF.Constructs               (CProd)
 import           System.IO
 import           System.Environment
 import           System.Exit
 import           Control.Lens
+import           Text.Read                      (readMaybe)
 
 import           Data.Text.Prettyprint.Doc      ( Doc
                                                 , layoutPretty
@@ -64,9 +65,9 @@ wain xs = case parseOptsKey M.empty xs of
         may_print_help
         may_print_ver
         inStr <- inStr
-        ast   <- case parseDoc inStr of
-            Left  err    -> putStrLn err >> exitFailure
-            Right (a, s) -> return a
+        ast   <- case readMaybe inStr :: Maybe [CProd] of
+            Nothing    -> exitFailure
+            Just a     -> return a
         many_dump_json $ parsingGraph doInline ast
         k     <- k
         let marisa = parserGen stoppableLeftRecur doInline k trace ast
@@ -117,7 +118,7 @@ wain xs = case parseOptsKey M.empty xs of
 usage =
     putStrLn
         $  "Usage: [-v] [-h] [-in filename] [-out filename]\n"
-        ++ "[-be python|ocaml|marisa(default)]\n"
+        ++ "[-be python|julia|marisa(default)]\n"
         ++ "[-k lookahead number] [--trace : codegen with tracebacks.]\n"
         ++ "[--noinline : might be useful when viewing generated code]\n"
         ++ "[--jsongraph : dump parsing graph to JSON format]\n"

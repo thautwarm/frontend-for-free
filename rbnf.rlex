@@ -1,7 +1,6 @@
 WS \s+
 QuotedStr "([^\\"]+|\\.)*?"|'([^\\']+|\\.)*?'
 Int \d+
-Fn [a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*\(
 Ident [a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*
 Term <.*?>
 %ignore WS
@@ -24,5 +23,8 @@ Term <.*?>
 %require maybeTuple
 %require Tuple
 %require Slot
+%require Call
+%require seq
+%require alt
 
 %require unesc

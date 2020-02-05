@@ -1,10 +1,9 @@
 import attr, sys
-sys.setrecursionlimit(100)
 from json import dumps
 from rbnf_rts.rts import Tokens, State
 from rbnf_rts.routine import DQString as unesc
 from rbnf_parser import mk_parser, run_lexer
-
+from io import StringIO
 @attr.s(hash=True)
 class Terminal:
     kind = attr.ib()
@@ -130,10 +129,13 @@ class Interpreter:
     @classmethod
     def build(cls, xs):
         top = cls()
+        io = StringIO()
+        print('[', file=io)
         for each in xs:
             top.eval(each)
-        for each in top.expanded_rules:
-            print(each)
+        print('\n, '.join(top.expanded_rules), file=io)
+        print(']', file=io)
+        return io.getvalue()
 
     def v_Terminal(self, x: Terminal):
         if x.kind is LITERAL:
@@ -148,7 +150,8 @@ class Interpreter:
     def v_NonTerminal(self, x: NonTerminal):
         if x.name in self.scope:
             return self.scope[x.name]
-        return f'CNomTerm {x.name}'
+        
+        return f'CNonTerm {dumps(x.name)}'
     dispatches[NonTerminal] = v_NonTerminal
 
     def v_Optional(self, x: Optional):
@@ -161,7 +164,7 @@ class Interpreter:
 
     def v_Rewrite(self, x: Rewrite):
         if x.action:
-            action = self.eval(x.action)
+            action = f'Just ({self.eval(x.action)})'
         else:
             action = 'Nothing'
         return self.eval(x.rule), action
@@ -178,7 +181,7 @@ class Interpreter:
             expr = x.alts
             expr = self.eval(expr)
             return self.expanded_rules.append(
-                f'({dumps(name)}, ({expr}), Just (MSlot 0))')
+                f'({dumps(name)}, ({expr}), Just (MSlot 1))')
         
         raise Exception
     dispatches[Def] = v_Def
@@ -209,7 +212,7 @@ class Interpreter:
     dispatches[Slot] = v_Slot
 
     def v_Var(self, x: Var):
-        return f'MTerm {x.name}'
+        return f'MTerm {dumps(x.name)}'
     dispatches[Var] = v_Var
 
     def v_Tuple(self, x: Tuple):
@@ -222,7 +225,7 @@ class Interpreter:
         r = 'MBuiltin "empty_list"'
         f = 'MBuiltin "push_list"'
         for a in args:
-            r = f'MApp {f} [{r}, {a}]'
+            r = f'MApp ({f}) [{r}, {a}]'
         return r
     dispatches[List] = v_List
 
@@ -236,14 +239,13 @@ class Interpreter:
         params = tuple(map(self.eval, x.args))
         assert len(params) == len(macro.args), f"filling macro {x.name}'s parameter incorrectly."
         ident = (macro, params)
-        n = self.macro_use_cache.get(ident)
-        if n:
-            return n
-        n = f'rbnfmacro_{len(self.macro_use_cache)}'
-        self.macro_use_cache[ident] = n
-        it = self.sub(**dict(zip(macro.args, params)))
-        it.eval(Def(n, macro.defmode, macro.alts))
-        return n
+        n = self.macro_use_cache.get(ident, None)
+        if n is None:
+            n = f'rbnfmacro_{len(self.macro_use_cache)}'
+            self.macro_use_cache[ident] = n
+            it = self.sub(**dict(zip(macro.args, params)))
+            it.eval(Def(n, macro.defmode, macro.alts))
+        return f'CNonTerm {dumps(n)}'
     
     dispatches[MacroUse] = v_MacroUse
 
@@ -295,10 +297,12 @@ def parse(text: str, filename: str = "unknown"):
     e.text = text[:text.find('\n', off)]
     raise e
 
-def build(filename: str):
+def build(filename: str, out: str):
     with open(filename) as f:
         text = f.read()
-    Interpreter.build(parse(text, filename=filename))
+    readable = Interpreter.build(parse(text, filename=filename))
+    with open(out, 'w') as f:
+        f.write(readable)
 
 if __name__ == '__main__':
     from argser import call

@@ -2,8 +2,12 @@ START := a b c;
 
 d <=> a b c;
 
+a <=> "a";
+b <=> "b";
+c <=> "c";
+
 list!(a) := a           { [$1] }
-          | list!(a) a  { append ($0, $1) }
+          | list!(a) a  { append ($1, $2) }
           ;
 
 g :=  list!("a");

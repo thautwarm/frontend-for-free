@@ -1,0 +1,10 @@
+[
+("START", (CSeq [(CNonTerm "a"), (CNonTerm "b"), (CNonTerm "c")]), Nothing)
+, ("d", (CSeq [(CNonTerm "a"), (CNonTerm "b"), (CNonTerm "c")]), Just (MSlot 1))
+, ("a", (CTerm "quote a"), Just (MSlot 1))
+, ("b", (CTerm "quote b"), Just (MSlot 1))
+, ("c", (CTerm "quote c"), Just (MSlot 1))
+, ("rbnfmacro_0", (CTerm "quote a"), Just (MApp (MBuiltin "push_list") [MBuiltin "empty_list", (MSlot 1)]))
+, ("rbnfmacro_0", (CSeq [(CNonTerm "rbnfmacro_0"), (CTerm "quote a")]), Just (MApp (MTerm "append") [(MSlot 1), (MSlot 2)]))
+, ("g", (CNonTerm "rbnfmacro_0"), Nothing)
+]

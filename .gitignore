@@ -26,3 +26,5 @@ stack.yaml.lock
 # python generated
 Digraph.gv
 Digraph.gv.pdf
+
+**__pycache__

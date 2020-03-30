@@ -18,6 +18,7 @@ import           RBNF.Utils
 
 import           Control.Monad.State
 import           Control.Monad.Reader
+import           Debug.Trace (trace)
 
 -- Stack VM
 data S
@@ -68,7 +69,7 @@ instance Show Seman where
                 ++ show ret
                 ++ "\n"
 
-newtype StackObj = SObj Int
+newtype StackObj = SObj Int deriving (Show)
 
 data CFG = CFG {
       _pos       :: Int -- >= 0
@@ -131,9 +132,17 @@ irOfObj (SObj i) = SVar $ Tmp i
 refObj (SObj iL) = SAss (Tmp iL)
 
 
+listIndexMaybe :: Int -> [a] -> a
+listIndexMaybe 0 (x:xs) = x
+listIndexMaybe n [] = error $ "out of bound: " ++ show n
+listIndexMaybe n (_:xs) = listIndexMaybe (n-1) xs
+
+
 mToS :: MiniLang -> State CFG S
 
-mToS (MSlot n) = gets $ irOfObj . (!! (n - 1)) . L.reverse . view stack
+mToS (MSlot n) =
+    let i = n - 1
+    in gets $ irOfObj . listIndexMaybe i . L.reverse . view stack
 
 mToS (MBuiltin n) = return $ SVar $ Builtin n
 
@@ -175,7 +184,7 @@ analyse = \case
 
 
     PPushScope s : xs -> do
-        pushScope s $ M.empty
+        pushScope s M.empty
         analyse xs
 
     PPopScope s : xs -> do
@@ -187,10 +196,10 @@ analyse = \case
         analyse xs
 
     PReduce m n : xs -> do
+        app <- mToS m
         replicateM_ n pop
         obj <- newObj
         push obj
-        app <- mToS m
         let prog = EProc [refObj obj app]
         over route (prog :) <$> analyse xs
 
@@ -212,8 +221,8 @@ analyse = \case
 pGToSG :: Grammar [P] -> Grammar Seman
 pGToSG g =
     let transf lens =
-                let f = map (flip evalState emptyCFG . analyse)
-                in  M.map f $ view lens g
+            let f = map (flip evalState emptyCFG . analyse)
+            in  M.map f $ view lens g
         prods' = transf prods
         leftR' = transf leftR
     in  Grammar prods' leftR'

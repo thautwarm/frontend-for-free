@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 771f16b5a1da6d982ebfb86663a67929d88df10f469db9b0f35a2252c5d33362
+-- hash: 4370a9df0af9ef63d598b2c960df8a056d6c5c8a61d6a2a20042442234ce06d5
 
 name:           RBNF
 version:        0.1.0.0
@@ -66,7 +66,7 @@ library
     , vector
   default-language: Haskell2010
 
-executable rbnf-lex
+executable fff-lex
   main-is: Main.hs
   other-modules:
       Paths_RBNF
@@ -89,7 +89,7 @@ executable rbnf-lex
     , vector
   default-language: Haskell2010
 
-executable rbnf-pgen
+executable fff-pgen
   main-is: Main.hs
   other-modules:
       Paths_RBNF

@@ -21,6 +21,8 @@ import qualified Data.Set as S
 import qualified Data.Map as M
 import qualified Data.List as L
 
+import Control.Lens (_1, over, view)
+
 parserGen :: Bool -> Bool -> Int -> Bool -> [CProd] -> Marisa
 parserGen stoppableLeftRecur doInline k withTrace cg = MKBlock $ lrCodes ++ nonLRCodes
     where

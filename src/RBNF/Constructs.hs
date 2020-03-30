@@ -16,7 +16,7 @@ data MiniLang
     | MInt Int
     | MTuple [MiniLang]
     | MApp MiniLang [MiniLang]
-    deriving (Eq, Ord, Generic, Read)
+    deriving (Eq, Ord, Generic, Read, Show)
 
 -- Parsing Constructs
 -- Also can be regarded as instructions
@@ -85,9 +85,3 @@ instance Show P where
         PMkSExp tag n -> "s-exp<" ++ tag ++ ", " ++ show n ++ ">"
         PPushScope s  -> "pushscope " ++ s
         PPopScope  s  -> "popscope " ++ s
-
-instance Show MiniLang where
-    show = \case
-        MTerm s -> s
-        MApp f args ->
-            show f ++ "(" ++ L.intercalate ", " (map show args) ++ ")"

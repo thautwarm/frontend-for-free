@@ -53,7 +53,7 @@ ghc-options:
   - -fno-warn-partial-type-signatures
 
 executables:
-  rbnf-pgen:
+  fff-pgen:
     main:                Main.hs
     source-dirs:         pgen
     ghc-options:
@@ -63,7 +63,7 @@ executables:
     dependencies:
     - RBNF
     - base >=4.7 && <5
-  rbnf-lex:
+  fff-lex:
     main:                Main.hs
     source-dirs:         lex
     ghc-options:

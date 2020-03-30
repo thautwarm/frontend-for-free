@@ -65,7 +65,7 @@ unCombinatorial cs = L.nub $ L.nub cs >>= \(sym, c, action) ->
     let packer | Just apply <- action = reduceStack apply
                | otherwise            = mkSExpStack sym
     in  do
-            ps <- standardizeRule c
+            ps <- standardizeRoot c
             return (sym, packer ps)
 
 data Grammar rhs

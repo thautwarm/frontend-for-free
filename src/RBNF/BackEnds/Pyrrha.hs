@@ -224,7 +224,7 @@ cgPy = \case
         return lhs
 
 mk_indent :: Int -> Text
-mk_indent = flip T.replicate $ "    "
+mk_indent = flip T.replicate "    "
 
 pyGen :: Marisa -> Text
 pyGen marisa = T.unlines [T.concat [mk_indent i, c] | (i, c) <- reverse codes]

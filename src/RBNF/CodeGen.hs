@@ -144,7 +144,7 @@ mkError :: Marisa -> Marisa -> Marisa
 mkError offset error = MKTuple [offset, error]
 
 mkErrors :: [Marisa] -> Marisa
-mkErrors xs = MKCall dsl_to_any $ [mkErrors' xs]
+mkErrors xs = MKCall dsl_to_any [mkErrors' xs]
  where
   mkErrors' []       = dsl_nil
   mkErrors' (x : xs) = MKCall dsl_cons [x, mkErrors' xs]
@@ -166,7 +166,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
       ++ " at rule "
       ++ cur_scope
       ++ ". Backtracing not supported yet. Try to enlarge K to resolve ambiguities."
-  NDSplit k (states@(_ : _ : _)) xs -> do
+  NDSplit k states@(_ : _ : _) xs -> do
     cur_scope <- last . scopes <$> lift get
     error
       $  "Found backtracing among nodes "
@@ -318,13 +318,13 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
           cfg <- lift get
           let CFG { ret } = cfg
           -- if not left recursion, no need to check, must be a success
-          build $ mkSuccess withTrace $ ret
+          build $ mkSuccess withTrace ret
         LeftRecur | not isLeftRec -> do
           cfg <- lift get
           if isLR cfg
             then do
               let CFG { ret } = cfg
-              build $ mkSuccess withTrace $ ret
+              build $ mkSuccess withTrace ret
             else do
               let CFG { ret } = cfg
                   name        = L.head $ scopes cfg
@@ -337,7 +337,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
           if isLR cfg
             then do -- in `xxx.lr.step`, no need to check
               let CFG { ret } = cfg
-              build $ mkSuccess withTrace $ ret
+              build $ mkSuccess withTrace ret
             else do
               hs_tmp_i <- lift incTmp
               cfg      <- lift get
@@ -385,7 +385,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
                       , MKTuple [MKBool True, MKVar reduced]
                       ]
                     else
-                      let cur_off = (MKAttr (MKVar dsl_tokens_n) tokenOff)
+                      let cur_off = MKAttr (MKVar dsl_tokens_n) tokenOff
                       in  MKIf (MKCall dsl_eq [cur_off, MKVar dsl_off_n])
                                (MKTuple [MKBool True, MKVar reduced])  -- left recursion branch exit correctly
                                (MKVar try)

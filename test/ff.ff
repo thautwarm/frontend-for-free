@@ -1,5 +1,5 @@
 [
-("START", (CSeq [(CNonTerm "a"), (CNonTerm "b"), (CNonTerm "c")]), Nothing)
+("START", (CNonTerm "g"), Nothing)
 , ("d", (CSeq [(CNonTerm "a"), (CNonTerm "b"), (CNonTerm "c")]), Just (MSlot 1))
 , ("a", (CTerm "quote a"), Just (MSlot 1))
 , ("b", (CTerm "quote b"), Just (MSlot 1))

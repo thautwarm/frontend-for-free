@@ -6,10 +6,7 @@ import           Control.Monad.State
 
 
 showMN :: Name -> String
-showMN n =
-    let n' = show n in
-    if isJavaName n' then n'
-    else concat ["var\"", n', "\""]
+showMN = show
 
 genJl quoted = align . \case
     MKAssign n (MKBlock codes) -> vsep
@@ -40,15 +37,16 @@ genJl quoted = align . \case
         , nest 2 $ align $ vsep
             [ nest 2
                   $ vsep
-                        [ pretty "@case" <+> (genJl False i)
+                        [ pretty "@case" <+> genJl False i
                         , genJl True case'
                         ]
             | (i, case') <- cases
             ]
-        , nest 2 $ align $ vsep
+        , align $  nest 2 $ vsep
                 [ pretty "@default"
                 , nest 4 (genJl True default')
                 ]
+        , pretty "end"
         ]
     MKDef fname args body ->
         let

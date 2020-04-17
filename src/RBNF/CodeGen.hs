@@ -7,7 +7,7 @@ module RBNF.CodeGen where
 
 import           Control.Monad.State
 import           Control.Monad.Reader
-import           Data.Maybe                     ( listToMaybe )
+import           Data.Maybe                     ( listToMaybe, fromJust )
 
 import           RBNF.Utils
 import           RBNF.Name
@@ -30,7 +30,7 @@ data CompilationInfo
         , decisions  :: Map Int (Decision LAEdge Int)
         , withTrace  :: Bool
         , isLeftRec  :: Bool
-        , stoppableLeftRecur :: Bool
+        , terminalIds :: [String]
       }
 
 
@@ -100,14 +100,6 @@ produceLA i s cfg@CFG { laCache } = cfg { laCache = M.insert i s laCache }
 build :: Monad m => a -> StateT [a] m ()
 build a = modify (a :)
 
-tryElse :: Name -> Name -> Marisa -> Marisa -> Bool -> Marisa
-tryElse dsl_off_n res clause1 clause2 withTrace = MKBlock
-  [MKAssign res clause1, MKIf succeeded (MKVar res) (MKBlock [reset, clause2])]
- where
-  succeeded | withTrace = MKCall dsl_is_not_null [MKVar res]
-            | otherwise = MKCall dsl_eq [MKBool True, MKPrj (MKVar res) 0]
-  reset = MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
-
 
 consBlock a (MKBlock xs) = MKBlock (a : xs)
 consBlock a x            = MKBlock [a, x]
@@ -149,13 +141,9 @@ mkErrors xs = MKCall dsl_to_any [mkErrors' xs]
   mkErrors' []       = dsl_nil
   mkErrors' (x : xs) = MKCall dsl_cons [x, mkErrors' xs]
 
--- `any` type to type of errors
-toErrors :: Marisa -> Marisa
-toErrors sup = MKCall dsl_to_errs [sup]
-
 mkSwitch
   :: CompilationInfo -> Decision LAEdge Int -> StateT [Marisa] (State CFG) ()
-mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
+mkSwitch c@CompilationInfo { decisions, graph, withTrace, terminalIds } = \case
   NDLeaf []        -> error "TODO" -- TODO ?
   NDLeaf [a]       -> codeGen c a
   leaf@(NDLeaf xs) -> do
@@ -205,7 +193,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
       switchImpl cases default' = \case
         [] -> (cases, default')
         (t, subDecision) : xs ->
-          let idx   = MKCall dsl_s_to_i [MKStr t]
+          let idx   = MKInt $ 2 + fromJust (t `L.elemIndex` terminalIds)
               cont  = runToCode (produceLA k t cfg) $ mkSwitch c subDecision
               case' = (idx, cont)
           in  switchImpl (case' : cases) default' xs
@@ -232,7 +220,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace } = \case
     build switch_expr
 
 codeGen :: CompilationInfo -> Int -> StateT [Marisa] (State CFG) ()
-codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLeftRecur } i
+codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds } i
   = let
       node = view nodes graph M.! i
       getCont i cfg =
@@ -243,6 +231,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
               (_, [followI]) -> codeGen c followI
     in
       case kind node of
+        DoNothing -> error "node compile error"
         NEntity (ETerm t) -> do
           cfg <- lift get
           let dsl_tokens  = MKVar dsl_tokens_n
@@ -256,7 +245,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
             else do
               hs_tmp_i <- lift incTmp
               cfg <- lift $ modified (\a@CFG { slot } -> a { slot = slot + 1 })
-              let tokenId = MKCall dsl_s_to_i [MKStr t]
+              let tokenId = MKInt $ 2 + fromJust (t `L.elemIndex` terminalIds)
               build $ MKAssign dsl_sloti_n
                                (MKCall dsl_match_tk [dsl_tokens, tokenId])
               let
@@ -379,13 +368,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, stoppableLef
                     ]
                   -- following commented expr seems redundant
                   -- , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
-                  , if stoppableLeftRecur
-                    then MKBlock
-                      [ MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
-                      , MKTuple [MKBool True, MKVar reduced]
-                      ]
-                    else
-                      let cur_off = MKAttr (MKVar dsl_tokens_n) tokenOff
+                  ,   let cur_off = MKAttr (MKVar dsl_tokens_n) tokenOff
                       in  MKIf (MKCall dsl_eq [cur_off, MKVar dsl_off_n])
                                (MKTuple [MKBool True, MKVar reduced])  -- left recursion branch exit correctly
                                (MKVar try)
@@ -407,3 +390,4 @@ irToCode = \case
     let content = irToCode ir in MKCall dsl_mkast [MKStr n, content]
   SCall f args -> MKCall (irToCode f) (map irToCode args)
   SVar n       -> MKVar n
+  SInt i       -> MKInt i

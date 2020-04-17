@@ -1,8 +1,12 @@
 -- | The Python back end
 {-# LANGUAGE OverloadedStrings #-}
 module RBNF.BackEnds.Python where
-
+-- Interfaces that you need to implement in Python
+-- mv_forward
+-- peekable
+-- peek
 import           RBNF.IRs.Marisa
+import           RBNF.IRs.MarisaLibrary
 import           RBNF.Name
 import           RBNF.Utils
 import           Control.Monad.State
@@ -13,12 +17,12 @@ import qualified Data.Set                      as S
 import qualified Data.List                     as L
 import qualified Data.Map                      as M
 
+
 showVar :: Name -> Text
 showVar = pack . show
 
 mangleOC :: Text -> Text
 mangleOC = id
-
 
 type PyName = Text
 gensym :: Int -> PyName
@@ -95,14 +99,56 @@ within_py_scope m = do
     modify $ over rus (const reusable)
     return r
 
+isCPySInt :: Marisa -> Bool
+isCPySInt = \case
+    MKInt i | -5 <= i && i < 256 -> True
+    _ -> False
+
 cgPy :: Marisa -> State CFG Text
 cgPy = \case
+    -- dsl_eq_n
+    MKCall (MKVar intrinsic) [a, b]
+        | intrinsic == dsl_eq_n -> do
+            let op | isCPySInt a || isCPySInt b = "is"
+                   | otherwise = "=="
+            a <- cgPy a
+            b <- cgPy b
+            forM_ [a, b] py_release
+            lhs <- py_alloc
+            py_assign lhs [a, op, b]
+            return lhs
+        | intrinsic == dsl_eq_n -> do
+            let op | isCPySInt a || isCPySInt b = "is not"
+                   | otherwise = "!="
+            a <- cgPy a
+            b <- cgPy b
+            forM_ [a, b] py_release
+            lhs <- py_alloc
+            py_assign lhs [a, op, b]
+            return lhs
+    MKCall (MKVar intrinsic) [a]
+        | intrinsic == dsl_to_any_n -> cgPy a
+        | intrinsic == dsl_to_res_n -> cgPy a
+        | intrinsic == dsl_is_not_null_n -> do
+          a <- cgPy a
+          py_release a
+          lhs <- py_alloc
+          py_assign lhs [a, "is not None"]
+          return lhs
+        | intrinsic == dsl_is_null_n -> do
+          a <- cgPy a
+          py_release a
+          lhs <- py_alloc
+          py_assign lhs [a, "is None"]
+          return lhs
+
     MKAssign name ir -> do
         let lhs = showVar name
         rhs <- cgPy ir
         py_release rhs
         py_build $ T.concat [lhs, " = ", rhs]
         return lhs
+        
     MKCall f args -> do
         f <- cgPy f
         args <- mapM cgPy args
@@ -111,6 +157,7 @@ cgPy = \case
         lhs <- py_alloc
         py_assign lhs [f, "(", T.intercalate ", " args, ")"]
         return lhs
+
     MKAttr v attr -> do
         v <- cgPy v
         py_release v
@@ -161,9 +208,8 @@ cgPy = \case
         py_build $ "# switch"
         lhs <- py_alloc
         test <- cgPy test
-        let genif token ((MKCall (MKVar dsl_s_to_i) [MKStr t]), e) = do
-                let c = T.concat [showVar dsl_s_to_i, "(", T.pack $ show t, ")"]
-                py_build $ T.concat [token, test, " == ", c, ":"]
+        let genif token (MKInt c, e) = do
+                py_build $ T.concat [token, test, " == ", pack (show c), ":"]
                 within_py_indent $ do
                     e <- cgPy e
                     py_release e
@@ -202,7 +248,7 @@ cgPy = \case
         forM_ elts py_release
         lhs <- py_alloc
         let el = case elts of
-                [x] -> ","
+                [_] -> ","
                 _   -> ""
         py_assign lhs ["(", T.intercalate ", " elts, el, ")"]
         return lhs

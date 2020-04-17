@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 729bcf649fe94b7b279a1fa60d2e34ba449b4c12c757881ba3596a7d7bb1e8cd
+-- hash: a91292d8202fc200bfae790377885d46dad5b87e398e5876040f7732fae2ee25
 
 name:           RBNF
 version:        0.1.0.0
@@ -52,7 +52,7 @@ library
   hs-source-dirs:
       src
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
-  ghc-options: -fno-warn-partial-type-signatures
+  ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -74,7 +74,7 @@ executable fff-lex
   hs-source-dirs:
       lex
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
-  ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
     , aeson
@@ -97,7 +97,7 @@ executable fff-pgen
   hs-source-dirs:
       pgen
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
-  ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
     , aeson
@@ -121,7 +121,7 @@ test-suite RBNF-test
   hs-source-dirs:
       test
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
-  ghc-options: -fno-warn-partial-type-signatures -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
     , aeson

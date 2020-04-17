@@ -85,3 +85,17 @@ instance Show P where
         PMkSExp tag n -> "s-exp<" ++ tag ++ ", " ++ show n ++ ">"
         PPushScope s  -> "pushscope " ++ s
         PPopScope  s  -> "popscope " ++ s
+
+terminals :: [CProd] -> [String]
+terminals g = L.nub $ productions >>= terminalsOf
+  where
+    productions = flip map g $ \case
+        (_, c, _) -> c
+    terminalsOf :: C -> [String]
+    terminalsOf = \case
+        CTerm s   -> return s
+        CSeq  xs  -> xs >>= terminalsOf
+        CAlt  xs  -> xs >>= terminalsOf
+        COpt  c   -> terminalsOf c
+        CBind n c -> terminalsOf c
+        _         -> mzero

@@ -32,7 +32,7 @@ parserGen stoppableLeftRecur doInline k withTrace cg = MKBlock $ lrCodes ++ nonL
             graph     = graph
             , decisions = decisions
             , withTrace = withTrace
-            , stoppableLeftRecur = stoppableLeftRecur
+            , terminalIds = terminals cg
             , isLeftRec = False
             }
         startNodeIds = M.toList . view starts $ graph

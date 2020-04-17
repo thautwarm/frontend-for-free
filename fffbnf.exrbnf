@@ -2,17 +2,20 @@ expr_lst : separated_list(',', expr) { $0 };
 
 Ident : <Ident> { *$0 };
 
+
 atom : <QuotedStr>          { Terminal(LITERAL, unesc(*$0)) }
-     | '<' Ident '>'        { Terminal(SYMBOL, 1) }
+     | '<' Ident '>'        { Terminal(SYMBOL, $1) }
      | Ident                { NonTerminal($0) }
-     | '(' expr ')'         { $1 }
-     | '[' expr ']'         { Optional($1) }
-     | Ident ':' '(' expr_lst ')'  { MacroUse($0, $3) }
-     | Ident '=' atom       { Bind($0, $2) }
+     | '(' expr ')'            { $1 }
+     | Ident '[' expr_lst ']'  { MacroUse($0, $2) }
+     | Ident '=' atomExpr      { Bind($0, $2) }
      ;
 
 
-seq : list(atom) { $0 };
+atomExpr : atom               { $0 }
+         | atom '?'           { Optional($0) }
+         ;
+seq : list(atomExpr) { $0 };
 cseq : seq { seq($0) };
 expr : separated_list('|', cseq) { alt($0) };
 
@@ -27,12 +30,12 @@ alts : separated_list('|', rewrite) { $0 };
 IdentList : separated_list(',', Ident) { $0 };
 
 prod : Ident ':=' alts ';'                       { Def($0, Define, $2) }
-     | Ident ':' '(' IdentList ')' ':=' alts ';' { MacroDef($0, $3, Define, $6)}
-     | Ident ':' '(' ')' ':=' alts ';'           { MacroDef($0, [], Define, $5)}
+     | Ident '[' IdentList ']' ':=' alts ';'     { MacroDef($0, $2, Define, $5)}
+     | Ident '[' ']' ':=' alts ';'               { MacroDef($0, [], Define, $4)}
      
      | Ident '<=>' expr ';'                       { Def($0, Alias, $2) }
-     | Ident ':' '(' IdentList ')' '<=>' alts ';' { MacroDef($0, $3, Alias, $6)}
-     | Ident ':' '(' ')' '<=>' alts ';'           { MacroDef($0, [], Alias, $5)}
+     | Ident '[' IdentList ']' '<=>' expr ';'     { MacroDef($0, $2, Alias, $5)}
+     | Ident '[' ']' '<=>' expr ';'               { MacroDef($0, [], Alias, $4)}
      ;
 
 lang_lst : separated_list(',', lang) { $0 };
@@ -53,4 +56,12 @@ lang_atom :
      | '$' <Int>             { Slot(int(*$1)) }
      ;
 
-START : <BOF> list(prod) <EOF> { $1 };
+filename : <QuotedStr> { unesc(*$0) }
+         ;
+
+pragma : '%include' Ident separated_list(",", filename) { Include($0, $1) }
+       | '%include' separated_list(",", filename) { Include(None, $1) }
+       ;
+
+START : <BOF> list(prod|pragma) <EOF> { $1 }
+      ;

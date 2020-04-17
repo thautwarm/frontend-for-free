@@ -51,7 +51,8 @@ library:
 
 ghc-options:
   - -fno-warn-partial-type-signatures
-
+  - -Wall
+  - -Wno-name-shadowing
 executables:
   fff-pgen:
     main:                Main.hs

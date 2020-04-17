@@ -5,6 +5,7 @@ import           System.Exit
 import           Control.Monad
 import           RBNF.Constructs                ( C(..)
                                                 , CProd
+                                                , terminals
                                                 )
 import           Text.Read                      ( readMaybe )
 import qualified Data.Map                      as M
@@ -23,21 +24,6 @@ parseOptsKey m = \case
 parseOptVal k m = \case
     v : xs -> parseOptsKey (M.insert k v m) xs
     []     -> Left k
-
-
-terminals :: [CProd] -> [String]
-terminals g = L.nub $ productions >>= terminalsOf
-  where
-    productions = flip map g $ \case
-        (_, c, _) -> c
-    terminalsOf :: C -> [String]
-    terminalsOf = \case
-        CTerm s   -> return s
-        CSeq  xs  -> xs >>= terminalsOf
-        CAlt  xs  -> xs >>= terminalsOf
-        COpt  c   -> terminalsOf c
-        CBind n c -> terminalsOf c
-        _         -> mzero
 
 wain xs = case parseOptsKey M.empty xs of
     Left  k -> putStrLn $ "Error in key " ++ k ++ "."

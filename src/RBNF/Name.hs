@@ -11,12 +11,19 @@ data Name
     | Tmp Int
     deriving (Eq, Ord, Generic)
 
+isJavaName :: forall t. Foldable t => t Char -> Bool
+isJavaName = all isJavaChar where
+  isJavaChar c | c `elem` ['a' .. 'z'] ||
+                 c `elem` ['A' .. 'Z'] ||
+                 c `elem` ['0' .. '9'] ||
+                 c == '_' = True
+               | otherwise = False
 
 instance Show Name where
     show = \case
         Lexical s
-            | "rbnf_tmp_" `isPrefixOf` s || "rbnf_namedtmp_" `isPrefixOf` s
-            -> error $ printf "name %s break name mangling" s
+            | "rbnf_tmp_" `isPrefixOf` s || "rbnf_named_" `isPrefixOf` s
+            -> error $ printf "name %s break name mangling system" s
             | otherwise
             -> printf "%s" s
         Builtin s -> printf "builtin_%s" s
@@ -26,6 +33,6 @@ instance Show Name where
             let rep '.' = '_'
                 rep '-' = '_'
                 rep a   = a
-            in  map rep $ printf "rbnf_namedtmp_%s" s
+            in  map rep $ printf "rbnf_named_%s" s
 
 

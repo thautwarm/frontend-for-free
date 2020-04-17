@@ -1,6 +1,6 @@
 -- | The Python back end
 {-# LANGUAGE OverloadedStrings #-}
-module RBNF.BackEnds.Pyrrha where
+module RBNF.BackEnds.Python where
 
 import           RBNF.IRs.Marisa
 import           RBNF.Name

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4370a9df0af9ef63d598b2c960df8a056d6c5c8a61d6a2a20042442234ce06d5
+-- hash: 729bcf649fe94b7b279a1fa60d2e34ba449b4c12c757881ba3596a7d7bb1e8cd
 
 name:           RBNF
 version:        0.1.0.0
@@ -28,8 +28,9 @@ source-repository head
 library
   exposed-modules:
       RBNF
-      RBNF.BackEnds.Josta
-      RBNF.BackEnds.Pyrrha
+      RBNF.BackEnds.Java
+      RBNF.BackEnds.Julia
+      RBNF.BackEnds.Python
       RBNF.BackEnds.TargetGen
       RBNF.CodeGen
       RBNF.Constructs

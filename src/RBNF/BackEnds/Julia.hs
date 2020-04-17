@@ -1,4 +1,4 @@
-module RBNF.BackEnds.Josta where
+module RBNF.BackEnds.Julia where
 import           Data.Text.Prettyprint.Doc
 import           RBNF.IRs.Marisa
 import           RBNF.Name
@@ -6,7 +6,10 @@ import           Control.Monad.State
 
 
 showMN :: Name -> String
-showMN n = concat ["var\"", show n, "\""]
+showMN n =
+    let n' = show n in
+    if isJavaName n' then n'
+    else concat ["var\"", n', "\""]
 
 genJl quoted = align . \case
     MKAssign n (MKBlock codes) -> vsep
@@ -50,19 +53,19 @@ genJl quoted = align . \case
     MKDef fname args body ->
         let
             fnName = pretty $ showMN fname
-            argDef = sep $ punctuate comma $ map (pretty . showMN) args
+            argDef = align . sep $ punctuate comma $ map (pretty . showMN) args
         in vsep
             [ pretty "function" <+> fnName <> parens argDef
-            , align $ nest 4 $ genJl True body
+            , indent 2 . align $ genJl True body
             , pretty "end"
             ]
     MKBlock suite  ->
+        align . vsep $
         if quoted then
-            vsep $ map (genJl True) suite
-        else
-            vsep [ nest 2 $ vsep $ pretty "begin" : map (genJl True) suite
-                 , pretty "end"
-                 ]
+             map (genJl True) suite
+        else [ nest 2 $ vsep $ pretty "begin" : map (genJl True) suite
+             , pretty "end"
+             ]
     MKVar   n      -> pretty $ showMN n
     MKInt   i      -> viaShow i
     MKStr   s      -> viaShow s

@@ -1,6 +1,6 @@
 module RBNF.BackEnds.TargetGen where
-import RBNF.BackEnds.Pyrrha
-import RBNF.BackEnds.Josta
+import RBNF.BackEnds.Python
+import RBNF.BackEnds.Julia
 import RBNF.IRs.IRTrans
 import RBNF.IRs.Marisa
 import Data.Text.Prettyprint.Doc

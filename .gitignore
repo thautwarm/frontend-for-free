@@ -28,3 +28,6 @@ Digraph.gv
 Digraph.gv.pdf
 
 **__pycache__
+
+RBNF.iml
+.idea/

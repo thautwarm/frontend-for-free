@@ -8,7 +8,7 @@ import typing as t
 import pathlib
 import io
 
-lex_template = (pathlib.Path(__file__).parent / "lex_template.py").open().read()
+lex_template = (pathlib.Path(__file__).parent / "ffflex_template.py").open().read()
 def literal(x):
     return "quote " + unesc(x)
 
@@ -150,5 +150,5 @@ def python_be(
     buf.write(mk_lexer)
     return buf.getvalue()
 
-if __name__ == "__main__":
+def entry():
     wise(main)()

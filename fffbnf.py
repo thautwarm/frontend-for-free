@@ -376,8 +376,6 @@ def build(filename: str, out: str, *, lang:str):
     
     
 
-
-if __name__ == "__main__":
+def entry():
     from wisepy2 import wise
-
     wise(build)()

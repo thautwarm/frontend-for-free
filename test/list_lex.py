@@ -3,13 +3,6 @@ import re
 import abc
 import typing as t
 
-
-class Numbering(dict):
-    def __missing__(self, key):
-        v = self[key] = len(self)
-        return v
-
-
 class Token:
     offset: int
     lineno: int
@@ -310,4 +303,4 @@ def mk_lexer(
                 yield Token(0, 0, 0, filename, EOF, "")
 
     return numbering, run_lexer
-numbering, lexer = mk_lexer(*[reg_rule(2, 'AA', '\\d+'), lit_rule(5, 'quote K', 'K'), lit_rule(6, 'quote a', 'a'), lit_rule(4, 'quote c', 'c'), lit_rule(3, 'quote b', 'b')], ignores=(), reserved_map={})
+numbering, lexer = mk_lexer(*[reg_rule(2, 'AA', '\\d+'), lit_rule(3, 'quote b', 'b'), lit_rule(5, 'quote K', 'K'), lit_rule(6, 'quote a', 'a'), lit_rule(4, 'quote c', 'c')], ignores=(), reserved_map={})

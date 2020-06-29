@@ -1,6 +1,6 @@
 from setuptools import setup
 
-with open('./README.rst', encoding='utf-8') as f:
+with open('./README.md', encoding='utf-8') as f:
     readme = f.read()
 
 setup(
@@ -9,6 +9,7 @@ setup(
     keywords='parsing, context-free',
     description="solution to context-free parsing",
     long_description=readme,
+    long_description_content_type="text/markdown",
     license='MIT',
     url='https://github.com/thautwarm/frontend-for-free',
     author='thautwarm',

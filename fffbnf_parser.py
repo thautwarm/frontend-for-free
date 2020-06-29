@@ -2137,8 +2137,8 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                             lcl_6 = _slot_2_check[1]
                             lcl_6 = lcl_6
                             _slot_2 = lcl_6
-                            lcl_6 = _slot_0
-                            lcl_7 = _slot_1
+                            lcl_6 = _slot_1
+                            lcl_7 = _slot_2
                             lcl_6 = Include(lcl_6, lcl_7)
                             _slot_local__1 = lcl_6
                             lcl_6 = (True, _slot_local__1)

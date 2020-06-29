@@ -59,7 +59,7 @@ lang_atom :
 filename : <QuotedStr> { unesc(*$0) }
          ;
 
-pragma : '%include' Ident separated_list(",", filename) { Include($0, $1) }
+pragma : '%include' Ident separated_list(",", filename) { Include($1, $2) }
        | '%include' separated_list(",", filename) { Include(None, $1) }
        ;
 

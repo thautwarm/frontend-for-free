@@ -5,8 +5,10 @@ from ffflex_parser import mk_parser, run_lexer
 from wisepy2 import wise
 from warnings import warn
 import typing as t
+import pathlib
+import io
 
-
+lex_template = (pathlib.Path(__file__).parent / "lex_template.py").open().read()
 def literal(x):
     return "quote " + unesc(x)
 
@@ -47,45 +49,38 @@ def parse(text: str, filename: str = "unknown"):
     e.text = text[: text.find("\n", off)]
     raise e
 
+def main(filename_terminal, filename_lex, out, *, be: str="python"):
 
-def python_be(
-    rules: t.List[t.Tuple[str, str, str, int]],
-    code: t.Dict[str, t.List[str]],
-    require: t.List[str],
-    ignore: t.List[str],
-):
-    raise NotImplemented
-
-
-def main(filename_terminal, filename_lex, out, be):
+    parent_dir = pathlib.Path(filename_lex).parent
+    regex_rules = OrderedDict()
+    pragmas = dict(ignore=[], code=[], reserved_map={})
 
     with open(filename_lex) as lex_f:
         lines = lex_f.readlines()
-        l = None
-        for l in reversed(range(len(lines))):
-            if lines[l].startswith(r"%regex"):
-                break
-        regex_rules = OrderedDict()
-        pragmas = dict(ignore=[], require=[], code=defaultdict(list))
-
-        for tag, a in parse("".join(lines[:l]), filename_lex):
-            if tag == r"%ignore":
-                pragmas["ignore"].extend(a)
-            elif tag == r"%require":
-                pragmas["require"].extend(a)
-            elif tag == r"%code":
-                lang, files = a
-                pragmas["code"][lang].extend(files)
-            else:
-                raise ValueError("unknown tag {}".format(tag))
-
-        if l is not None:
-            for each in lines[l + 1 :]:
-                i = each.index(" ")
-                regex_rules[each[:i]] = each[i + 1 :]
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith(r"%"):
+                tag, a = parse(line, filename_lex)
+                if tag == r"%ignore":
+                    pragmas["ignore"].extend(a)
+                elif tag == r"%require":
+                    pass
+                elif tag == r"%code":
+                    lang, files = a
+                    pragmas["code"].append((lang, files))
+                elif tag == r"%reserve":
+                    a1, a2 = a
+                    pragmas["reserved_map"][a1] = a2
+                else:
+                    raise ValueError("unknown tag {}".format(tag))    
+                continue
+            i = line.index(" ")
+            regex_rules[line[:i]] = line[i + 1 :]
 
     with open(filename_terminal) as f:
-        terminal_ids = {each: i for i, each in enumerate(map(str.strip, f.readlines()))}
+        terminal_ids = {each: i + 2 for i, each in enumerate(map(str.strip, f.readlines()))}
 
     rules = []
     for n, rule in regex_rules.items():
@@ -107,7 +102,53 @@ def main(filename_terminal, filename_lex, out, be):
         rules.append((n, "literal", n[len("quote ") :], terminal_ids[n]))
 
     # TODO: dispatch by back end
+    
     if be == "python":
-        python_be(rules, **pragmas)
-    # FIXME: how to achieve extensible back ends?
-    # without modifying native code.
+        code = python_be(parent_dir, rules, **pragmas)
+    else:
+        # FIXME: how to achieve extensible back ends?
+        # without modifying native code.
+        raise ValueError
+    
+    with open(out, 'w') as f:
+        f.write(lex_template)
+        f.write(code)
+    
+def python_be(
+    parent : pathlib.Path,
+    rules: t.List[t.Tuple[str, str, str, int]],
+    code: t.List[t.Tuple[str, t.List[str]]],
+    ignore: t.List[str],
+    reserved_map : t.Dict[str, str]
+):  
+
+    ignore = tuple(ignore)
+    
+    rules = [
+        kind == "literal" and
+        f"lit_rule({id}, {n!r}, {rule!r})" or
+        f"reg_rule({id}, {n!r}, {rule!r})"
+        for (n, kind, rule, id) in rules
+    ]
+
+    rules = "[" + ", ".join(rules) + "]"
+    mk_lexer = f"numbering, lexer = mk_lexer(*{rules}, ignores={ignore!r}, reserved_map={reserved_map!r})"
+    buf = io.StringIO()
+
+    for lang, includes in code:
+        if lang is None or lang == "python":
+            pass
+        else:
+            continue
+        for include in includes:
+            include = parent / include
+            try:
+                with include.open() as r:
+                    buf.write(r.read())
+            except FileNotFoundError:
+                print(f"{include} not found")
+    buf.write(mk_lexer)
+    return buf.getvalue()
+
+if __name__ == "__main__":
+    wise(main)()

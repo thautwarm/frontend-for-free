@@ -5,7 +5,8 @@ from rbnf_rts.rts import Tokens, State
 from rbnf_rts.routine import DQString as unesc
 from fffbnf_parser import mk_parser, run_lexer
 from io import StringIO
-
+import warnings
+import pathlib
 
 @attr.s(hash=True)
 class Include:
@@ -143,7 +144,7 @@ class Interpreter:
         self.macros = {}
         self.macro_use_cache = {}
         self.expanded_rules = []
-        self.includes = defaultdict(list)
+        self.includes = []
 
     def sub(self, **scope):
         it = Interpreter(**scope)
@@ -168,7 +169,7 @@ class Interpreter:
         return io.getvalue(), top.includes
 
     def v_Include(self, x: Include):
-        self.includes[x.lang].extend(x.files)
+        self.includes.append((x.lang, x.files))
 
     dispatches[Include] = v_Include
 
@@ -351,16 +352,32 @@ def parse(text: str, filename: str = "unknown"):
     raise e
 
 
-def build(filename: str, out: str):
+def build(filename: str, out: str, *, lang:str):
     with open(filename) as f:
         text = f.read()
     readable, includes = Interpreter.build(parse(text, filename=filename))
+    parent_dir = pathlib.Path(filename).parent
     with open(out, "w") as f:
+        for required_lang, files in includes:
+            if required_lang is None or required_lang == lang:
+                pass
+            else:
+                continue    
+
+        for include in files:
+            include = (parent_dir / include)
+            try:
+                with include.open() as r:
+                    f.write(r.read())
+            except FileNotFoundError:
+                warnings.warn(f"{include} not found")
+
         f.write(readable)
-    # TODO: do something with 'includes'
+    
+    
 
 
 if __name__ == "__main__":
-    from argser import call
+    from wisepy2 import wise
 
-    call(build)
+    wise(build)()

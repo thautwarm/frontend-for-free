@@ -1,10 +1,12 @@
-START : <BOF> list(stmt) <EOF> ;
+START : <BOF> stmt <EOF> { $1 };
 
 ignorable : <QuotedStr> { literal(*$0) }
           | <Ident>     { *$0 }
           ;
 
 ignore ::= '%ignore' separated_list(',', ignorable) { (*$0, $1) };
+
+reserve : '%reserve' <Ident> <Ident> { (*$0, (*$1, *$2)) };
 
 require_able : <Ident> { *$0 }
              ;
@@ -15,11 +17,13 @@ require : '%require' separated_list(',', require_able) { (*$0, $1) }
 filename : <QuotedStr> { unesc(*$0) }
          ;
 
-include : "%include" <Ident> separated_list(',', filename) { (*$0, ($1, $2)) }
+include :
+       "%include" <Ident> separated_list(',', filename) { (*$0, ($1, $2)) }
      | "%include" separated_list(',', filename)         { (*$0, (None, $1)) }
      ;
 
 stmt : ignore  { $0 }
      | require { $0 }
      | include { $0 }
+     | reserve { $0 }
      ;

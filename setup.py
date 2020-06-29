@@ -24,7 +24,7 @@ setup(
     entry_points = {
          "console_scripts": [
              "ffflex=ffflex:entry",
-             "fffbnf=fffbnf:main"
+             "fffbnf=fffbnf:entry"
          ]
     },
     platforms='any',

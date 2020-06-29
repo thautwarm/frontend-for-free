@@ -271,7 +271,7 @@ class Interpreter:
 
     def v_List(self, x: List):
         args = list(f"({self.eval(a)})" for a in x.elts)
-        r = 'MBuiltin "empty_list"'
+        r = 'MApp (MBuiltin "empty_list") []'
         f = 'MBuiltin "push_list"'
         for a in args:
             r = f"MApp ({f}) [{r}, {a}]"

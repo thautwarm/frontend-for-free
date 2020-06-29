@@ -78,7 +78,7 @@ py_dedent = modify $ over lyt (\x -> x - 1)
 
 py_assign :: PyName -> [Text] -> State CFG ()
 py_assign lhs rhs =
-    let rhs' = T.concat rhs
+    let rhs' = T.intercalate " " rhs
     in if lhs /= rhs'
        then py_build $ T.concat [lhs, " = ", rhs']
        else pure ()

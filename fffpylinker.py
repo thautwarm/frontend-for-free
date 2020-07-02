@@ -1,7 +1,8 @@
 from typing import TypeVar, Dict, Optional, Iterable
-import ast
 import ast_compat as astc
+import pathlib
 import copy
+import ast
 
 T = TypeVar('T')
 
@@ -157,14 +158,16 @@ tokens.offset = _rbnf_old_offset + 1
         return subst(x=x)
 
     genast: ast.Module = opt.visit(genast)
+    parser_template = (pathlib.Path(__file__).parent / "fffparser_template.py").open().read()
     imp: ast.Module = ast.parse(f"""
+{parser_template}
 builtin_cons = Cons
 builtin_nil = _nil
 builtin_mk_ast = AST
-def mk_parser({', '.join(requires)}):
+def mk_parser():
     pass
 """)
-    fn: ast.FunctionDef = imp.body[0]
+    fn: ast.FunctionDef = imp.body[-1]
     fn.body.extend(genast.body)
     fn.body.append(ast.Return(ast.Name("rbnf_named_parse_START", ast.Load())))
     ast.fix_missing_locations(fn)
@@ -173,10 +176,9 @@ def mk_parser({', '.join(requires)}):
 
 class Optimizer(ast.NodeTransformer):
 
-    def __init__(self, requires):
+    def __init__(self):
         self.exprs = {}
         self.stmts = {}
-        self.requires = requires
 
     def register(self, macro: Macro):
         if macro.is_stmt:

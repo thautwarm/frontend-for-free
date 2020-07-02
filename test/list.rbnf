@@ -1,4 +1,4 @@
-START := g;
+START := <BOF> g <EOF>;
 
 %include python "a.py"
 

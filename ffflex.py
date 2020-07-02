@@ -9,6 +9,8 @@ import pathlib
 import io
 
 lex_template = (pathlib.Path(__file__).parent / "ffflex_template.py").open().read()
+
+
 def literal(x):
     return "quote " + unesc(x)
 
@@ -49,7 +51,8 @@ def parse(text: str, filename: str = "unknown"):
     e.text = text[: text.find("\n", off)]
     raise e
 
-def main(filename_terminal, filename_lex, out, *, be: str="python"):
+
+def main(filename_terminal, filename_lex, out, *, be: str = "python"):
 
     parent_dir = pathlib.Path(filename_lex).parent
     regex_rules = OrderedDict()
@@ -74,13 +77,13 @@ def main(filename_terminal, filename_lex, out, *, be: str="python"):
                     a1, a2 = a
                     pragmas["reserved_map"][a1] = a2
                 else:
-                    raise ValueError("unknown tag {}".format(tag))    
+                    raise ValueError("unknown tag {}".format(tag))
                 continue
             i = line.index(" ")
             regex_rules[line[:i]] = line[i + 1 :]
 
     with open(filename_terminal) as f:
-        terminal_ids = {each: i + 2 for i, each in enumerate(map(str.strip, f.readlines()))}
+        terminal_ids = {each: i for i, each in enumerate(map(str.strip, f.readlines()))}
 
     rules = []
     for n, rule in regex_rules.items():
@@ -102,37 +105,46 @@ def main(filename_terminal, filename_lex, out, *, be: str="python"):
         rules.append((n, "literal", n[len("quote ") :], terminal_ids[n]))
 
     # TODO: dispatch by back end
-    
+
     if be == "python":
-        code = python_be(parent_dir, rules, **pragmas)
+        code = python_be(
+            parent_dir,
+            rules,
+            **pragmas,
+            BOF=terminal_ids["BOF"],
+            EOF=terminal_ids["EOF"],
+        )
     else:
         # FIXME: how to achieve extensible back ends?
         # without modifying native code.
         raise ValueError
-    
-    with open(out, 'w') as f:
+
+    with open(out, "w") as f:
         f.write(lex_template)
         f.write(code)
-    
+
+
 def python_be(
-    parent : pathlib.Path,
+    parent: pathlib.Path,
     rules: t.List[t.Tuple[str, str, str, int]],
     code: t.List[t.Tuple[str, t.List[str]]],
     ignore: t.List[str],
-    reserved_map : t.Dict[str, str]
-):  
+    reserved_map: t.Dict[str, str],
+    BOF: int,
+    EOF: int
+):
 
     ignore = tuple(ignore)
-    
+
     rules = [
-        kind == "literal" and
-        f"lit_rule({id}, {n!r}, {rule!r})" or
-        f"reg_rule({id}, {n!r}, {rule!r})"
+        kind == "literal"
+        and f"lit_rule({id}, {n!r}, {rule!r})"
+        or f"reg_rule({id}, {n!r}, {rule!r})"
         for (n, kind, rule, id) in rules
     ]
 
     rules = "[" + ", ".join(rules) + "]"
-    mk_lexer = f"numbering, lexer = mk_lexer(*{rules}, ignores={ignore!r}, reserved_map={reserved_map!r})"
+    mk_lexer = f"numbering, lexer = mk_lexer(*{rules}, ignores={ignore!r}, reserved_map={reserved_map!r}, EOF={EOF}, BOF={BOF})"
     buf = io.StringIO()
 
     for lang, includes in code:
@@ -149,6 +161,7 @@ def python_be(
                 print(f"{include} not found")
     buf.write(mk_lexer)
     return buf.getvalue()
+
 
 def entry():
     wise(main)()

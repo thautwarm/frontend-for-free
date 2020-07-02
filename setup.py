@@ -15,16 +15,20 @@ setup(
     author='thautwarm',
     author_email='twshere@outlook.com',
     py_modules=[
+        "fffparser_template",
         "ffflex_template",
         "ffflex_parser",
         "ffflex",
         "fffbnf_parser",
-        "fffbnf"
+        "fffbnf",
+        "fffpylinker",
+
     ],
     entry_points = {
          "console_scripts": [
              "ffflex=ffflex:entry",
-             "fffbnf=fffbnf:entry"
+             "fffbnf=fffbnf:entry",
+             "fffpylinker=fffpylinker:entry"
          ]
     },
     platforms='any',

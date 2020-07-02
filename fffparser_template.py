@@ -1,4 +1,3 @@
-from prettyprinter import pformat
 from typing import Generic, TypeVar
 T = TypeVar('T')
 
@@ -22,9 +21,6 @@ class AST(Generic[T]):
     def __init__(self, tag: str, contents: T):
         self.tag = tag
         self.contents = contents
-
-    def __repr__(self):
-        return pformat(self)
 
 
 class Nil:
@@ -108,3 +104,5 @@ try:
     del mk_pretty
 except ImportError:
     pass
+
+del T, Generic, TypeVar

@@ -1,5 +1,5 @@
 from list_lex import lexer
-from list_opt import *
+from list_parser import *
 from prettyprinter import pprint
 tokens = lexer("a.txt", "aaaaa")
 tokens = Tokens(list(tokens))

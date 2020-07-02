@@ -1,4 +1,4 @@
-START := <BOF> g <EOF>;
+START := <BOF> g <EOF> { $2 };
 
 %include python "a.py"
 
@@ -13,4 +13,5 @@ list[A] := A           { [$1] }
           | list[A] A  { append($1, $2) }
           ;
 
-g :=  "K" | list["a"];
+g :=  "K"
+  | list["a"] { $1 };

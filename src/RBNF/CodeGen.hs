@@ -370,7 +370,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds 
                   -- , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
                   ,   let cur_off = MKAttr (MKVar dsl_tokens_n) tokenOff in
                       let exitRight | withTrace = MKTuple [MKBool True, MKVar reduced]
-                                    | otherwise = dsl_null
+                                    | otherwise = MKVar reduced
                       in
                         MKIf (MKCall dsl_eq [cur_off, MKVar dsl_off_n])
                              exitRight  -- left recursion branch exit correctly

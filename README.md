@@ -2,6 +2,16 @@
 
 A bootstrap of RBNF.hs for generating **standalone** parsers targeting multiple programming languages, where the generated code needs no runtime system.
 
+## Usage
+
+```shell
+sh> python setup.py install
+sh> stack install .
+sh> fff <parser_file>.rbnf <lexer_file>.rlex
+```
+
+See examples at `test/list_parser.rbnf` and `test/list_lex.rlex`.
+
 ## What is this?
 
 A work-in-progress framework for generating context-free parsers with following properties:
@@ -9,7 +19,7 @@ A work-in-progress framework for generating context-free parsers with following 
 - [x] **LL(k)** capability 
 - [x] efficient left recursions
 - [ ] cross-language
-- [ ] **standalone**
+- [x] **standalone**
 - [x] defined with a most intuitive and expressive BNF derivative
     - action/rewrite:
 

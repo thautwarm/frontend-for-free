@@ -8,13 +8,12 @@ def main(
     *,
     lexer_out="",
     parser_out="",
-    parser_suffix=".rbnf",
-    lexer_suffix=".rlex",
-    lookahead: int = 1
+    lookahead: int = 1,
+    trace: bool = False
 ):
     lang = "python"
-    parser_file = Path(parser + parser_suffix)
-    lex_file = Path(lex + lexer_suffix)
+    parser_file = Path(parser)
+    lex_file = Path(lex)
     
     lexer_out = lexer_out and Path(lexer_out) or lex_file.with_suffix(".py")
     parser_out = parser_out and Path(parser_out) or parser_file.with_suffix(".py")
@@ -47,7 +46,7 @@ def main(
             "-be",
             "python",
             "--noinline",
-            "--trace",
+            *(["--trace"] if trace else [])
         ]
     )
 
@@ -67,7 +66,9 @@ def main(
         str(parser_out)
     ])
 
+    for each in (parser_requires, parser_py, parser_fff, lex_terminals):
+        each.unlink()
 
 def entry():
     from wisepy2 import wise
-    wise(main())
+    wise(main)()

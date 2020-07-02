@@ -61,6 +61,7 @@ filename : <QuotedStr> { unesc(*$0) }
 
 pragma : '%include' Ident separated_list(",", filename) { Include($1, $2) }
        | '%include' separated_list(",", filename) { Include(None, $1) }
+       | '%require' separated_list(',', Ident) { Require($1) }
        ;
 
 START : <BOF> list(prod|pragma) <EOF> { $1 }

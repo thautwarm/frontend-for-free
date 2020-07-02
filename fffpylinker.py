@@ -1,13 +1,9 @@
 from typing import TypeVar, Dict, Optional, Iterable
 import ast
+import ast_compat as astc
 import copy
 
 T = TypeVar('T')
-
-
-def mangle(x: str):
-    return x.replace('_', '__')
-
 
 class Substitute(ast.NodeTransformer):
 
@@ -78,12 +74,7 @@ def macro_stmt(template: str, ret: Optional[str]):
     return stor
 
 
-def link(lexicals: Dict[str, int],
-         genast: ast.Module,
-         requires: Optional[Iterable[str]] = None):
-    requires = requires or ()
-    if max(lexicals.values()) > 254:
-        raise ValueError("Too many lexical names!(exceed 254)")
+def link(genast: ast.Module):
     opt = Optimizer()
 
     @opt.register
@@ -102,136 +93,90 @@ _rbnf_immediate_lst.append(b)
         return subst(a=a, b=b)
 
     @opt.register
-    @macro_exp("a.append(b) or a")
-    def builtin_push_list(a, b):
-        assert isinstance(n, ast.Name)
-        assert n.id.startswith("RBNFint")
-        n.id = "_slot_{}".format(int(n.id[7:]))
-        return subst(a=n)
-
-    @opt.register
-    @macro_exp("lcl")
-    def RBNFelt(n):
-        assert isinstance(n, ast.Name)
-        assert n.id.startswith("RBNFint")
-        n.id = "_slot_{}".format(int(n.id[7:]))
-        return subst(lcl=n)
-
-    @opt.register
-    @macro_stmt("""
-_py_local_t = a
-_py_local_t.append(b)
-        """,
-                ret="_py_local_t")
-    def RBNFappend(a, b):
-        return subst(a=a, b=b)
-
-    @opt.register
-    @macro_exp("n")
-    def RBNFtuple(*args):
-        return subst(n=ast.Tuple(elts=list(args), ctx=ast.Load()))
-
-    @opt.register
-    @macro_exp("n")
-    def RBNFlist(*args):
-        return subst(n=ast.List(elts=list(args), ctx=ast.Load()))
-
-    @opt.register
     @macro_exp("a is b")
-    def prim__eq(a, b):
+    def builtin_eq(a, b):
         return subst(a=a, b=b)
 
     @opt.register
     @macro_exp("a is not b")
-    def prim__not__eq(a, b):
+    def builtin_not_eq(a, b):
         return subst(a=a, b=b)
+    
+    @opt.register
+    @macro_stmt("""
+try:
+    _rbnf_cur_token = tokens.array[tokens.offset]
+    if _rbnf_cur_token.idint is idint:
+        tokens.offset += 1
+    else:
+        _rbnf_cur_token  = None
+except IndexError:
+    _rbnf_cur_token = None
+""", "_rbnf_cur_token")
+    def builtin_match_tk(tokens, idint):
+        return subst(tokens=tokens, idint=idint)
 
     @opt.register
     @macro_exp("len(tokens.array) > tokens.offset + i")
-    def prim__peekable(tokens, i):
+    def builtin_peekable(tokens, i):
         return subst(tokens=tokens, i=i)
 
     @opt.register
     @macro_stmt("""
-_py_local_i = tokens.offset
-_py_local_t = tokens.array[_py_local_i]
-tokens.offset = _py_local_i + 1
+_rbnf_old_offset = tokens.offset
+_rbnf_cur_token = tokens.array[_rbnf_old_offset]
+tokens.offset = _rbnf_old_offset + 1
     """,
-                ret="_py_local_t")
-    def prim__mv__forward(tokens):
+                ret="_rbnf_cur_token")
+    def builtin_mv_forward(tokens):
         return subst(tokens=tokens)
 
     @opt.register
     @macro_exp("tokens.array[tokens.offset + i]")
-    def prim__peek(tokens, i):
-        return subst(tokens=tokens, i=i)
-
-    @opt.register
-    @macro_stmt("""
-try:
-    _py_local_tk = tokens.array[tokens.offset]
-    if _py_local_tk.idint is idint:
-        tokens.offset += 1
-    else:
-        _py_local_tk  = None
-except IndexError:
-    _py_local_tk = None
-""", "_py_local_tk")
-    def prim__match__tk(tokens, idint):
-        # print(tokens.offset)
-        return subst(tokens=tokens, idint=idint)
-
-    # should specialize
-    @opt.register
-    @macro_exp("idint")
-    def prim__tk__id(s: ast.Str):
-        assert isinstance(s, ast.Str)
-        return subst(idint=ast.Constant(lexicals[s.s]))
-
-    @opt.register
-    @macro_stmt("tokens.offset = i", None)
-    def prim__reset(tokens, i):
+    def builtin_peek(tokens, i):
         return subst(tokens=tokens, i=i)
 
     @opt.register
     @macro_exp("x")
-    def prim__to__result(x):
+    def builtin_to_result(x):
         return subst(x=x)
 
     @opt.register
     @macro_exp("x")
-    def prim__to__any(x):
+    def builtin_to_any(x):
         return subst(x=x)
-
+    
     @opt.register
     @macro_exp("x is None")
-    def prim__is__null(x):
+    def builtin_is_null(x):
         return subst(x=x)
 
     @opt.register
     @macro_exp("x is not None")
-    def prim__is__not__null(x):
+    def builtin_is_not_null(x):
         return subst(x=x)
 
     genast: ast.Module = opt.visit(genast)
-    mangling = '\n    '.join('{} = {}'.format(mangle(req), req) for req in requires if mangle(req) != req)
     imp: ast.Module = ast.parse(f"""
+builtin_cons = Cons
+builtin_nil = _nil
+builtin_mk_ast = AST
 def mk_parser({', '.join(requires)}):
-    from rbnf_rts.rts import AST as prim__mk__ast, Cons as prim__cons, _nil as prim__nil
-    {mangling}
+    pass
 """)
     fn: ast.FunctionDef = imp.body[0]
     fn.body.extend(genast.body)
-    fn.body.append(ast.Return(ast.Name("parse_START", ast.Load())))
+    fn.body.append(ast.Return(ast.Name("rbnf_named_parse_START", ast.Load())))
     ast.fix_missing_locations(fn)
     return imp
 
 
 class Optimizer(ast.NodeTransformer):
 
-    def __init__(self):
+    def __init__(self, requires):
         self.exprs = {}
         self.stmts = {}
+        self.requires = requires
 
     def register(self, macro: Macro):
         if macro.is_stmt:
@@ -248,6 +193,13 @@ class Optimizer(ast.NodeTransformer):
                 macro = self.stmts[rhs.func.id]
                 return macro.f(lhs, *rhs.args)
         return self.generic_visit(node)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef):
+        if node.name.startswith("rbnf_named"):
+            # it's a function generated by rbnf
+            return self.generic_visit(node)
+        
+        return node
 
     def visit_Expr(self, node: ast.Expr):
         if isinstance(node.value, ast.Call):
@@ -267,6 +219,17 @@ class Optimizer(ast.NodeTransformer):
         return self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name):
-        if node.id == "prim__null":
+        if node.id == "builtin_null":
             return ast.Constant(None)
         return node
+
+def main(filename, out):
+    with open(filename) as f:
+        genast = ast.parse(f.read())
+    
+    with open(out, 'w') as f:
+        f.write(astc.unparse(link(genast)))
+
+def entry():
+    from wisepy2 import wise
+    wise(main)()

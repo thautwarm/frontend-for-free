@@ -13,7 +13,6 @@ class Include:
     lang = attr.ib()
     files = attr.ib()
 
-
 @attr.s(hash=True)
 class Terminal:
     kind = attr.ib()

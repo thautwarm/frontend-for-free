@@ -11,9 +11,6 @@ reserve : '%reserve' <Ident> <Ident> { (*$0, (*$1, *$2)) };
 require_able : <Ident> { *$0 }
              ;
 
-require : '%require' separated_list(',', require_able) { (*$0, $1) }
-        ;
-
 filename : <QuotedStr> { unesc(*$0) }
          ;
 
@@ -23,7 +20,6 @@ include :
      ;
 
 stmt : ignore  { $0 }
-     | require { $0 }
      | include { $0 }
      | reserve { $0 }
      ;

@@ -193,7 +193,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace, terminalIds } = \case
       switchImpl cases default' = \case
         [] -> (cases, default')
         (t, subDecision) : xs ->
-          let idx   = MKInt $ 2 + fromJust (t `L.elemIndex` terminalIds)
+          let idx   = MKInt $ fromJust (t `L.elemIndex` terminalIds)
               cont  = runToCode (produceLA k t cfg) $ mkSwitch c subDecision
               case' = (idx, cont)
           in  switchImpl (case' : cases) default' xs
@@ -245,7 +245,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds 
             else do
               hs_tmp_i <- lift incTmp
               cfg <- lift $ modified (\a@CFG { slot } -> a { slot = slot + 1 })
-              let tokenId = MKInt $ 2 + fromJust (t `L.elemIndex` terminalIds)
+              let tokenId = MKInt $ fromJust (t `L.elemIndex` terminalIds)
               build $ MKAssign dsl_sloti_n
                                (MKCall dsl_match_tk [dsl_tokens, tokenId])
               let

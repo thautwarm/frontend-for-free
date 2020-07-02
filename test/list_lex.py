@@ -238,13 +238,13 @@ def mk():
 
     def mk_lexer(
         *subrules: t.Tuple[int, str, t.Union[re.Pattern, str]],
-        ignores=(),
-        reserved_map: dict = None,
+        ignores: tuple,
+        reserved_map: dict,
+        BOF: int,
+        EOF: int
     ):
 
         reserved_map = reserved_map or {}
-        BOF = 0
-        EOF = 1
         numbering = {"BOF": BOF, "EOF": EOF}
         sublexers = []
 
@@ -307,4 +307,4 @@ def mk():
     return mk_lexer, reg_rule, lit_rule
 
 mk_lexer, reg_rule, lit_rule = mk()
-numbering, lexer = mk_lexer(*[reg_rule(2, 'AA', '\\d+'), lit_rule(6, 'quote a', 'a'), lit_rule(5, 'quote K', 'K'), lit_rule(3, 'quote b', 'b'), lit_rule(4, 'quote c', 'c')], ignores=(), reserved_map={})
+numbering, lexer = mk_lexer(*[reg_rule(2, 'AA', '\\d+'), lit_rule(3, 'quote b', 'b'), lit_rule(6, 'quote a', 'a'), lit_rule(5, 'quote K', 'K'), lit_rule(4, 'quote c', 'c')], ignores=(), reserved_map={}, EOF=1, BOF=0)

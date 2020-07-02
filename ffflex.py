@@ -96,6 +96,8 @@ def main(filename_terminal, filename_lex, out, *, be: str = "python"):
         rules.append((n, "regex", rule, terminal_ids[n]))
 
     for n in set(terminal_ids).difference(regex_rules):
+        if n in ("EOF", "BOF"):
+            continue
         if not n.startswith("quote "):
             raise NameError(
                 "{} referenced in grammar but not presented in lexer definitions.".format(

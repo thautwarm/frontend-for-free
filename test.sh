@@ -1,1 +1,1 @@
-fff test/list_parser.rbnf test/list_lex.rlex
+fff test/list.rbnf

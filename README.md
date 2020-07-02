@@ -7,7 +7,7 @@ A bootstrap of RBNF.hs for generating **standalone** parsers targeting multiple 
 ```shell
 sh> python setup.py install
 sh> stack install .
-sh> fff <parser_file>.rbnf <lexer_file>.rlex
+sh> fff <parser_file>.rbnf
 ```
 
 See examples at `test/list_parser.rbnf` and `test/list_lex.rlex`.

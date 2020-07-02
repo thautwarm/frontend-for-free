@@ -4,19 +4,32 @@ from pathlib import Path
 
 def main(
     parser,
-    lex,
     *,
+    lexer_in="",
     lexer_out="",
     parser_out="",
     lookahead: int = 1,
     trace: bool = False
 ):
     lang = "python"
+
     parser_file = Path(parser)
-    lex_file = Path(lex)
+    lex_file = lexer_in and Path(lexer_in) or parser_file.with_suffix(".rlex")
     
-    lexer_out = lexer_out and Path(lexer_out) or lex_file.with_suffix(".py")
-    parser_out = parser_out and Path(parser_out) or parser_file.with_suffix(".py")
+
+    if lexer_out:
+        lexer_out = Path(lexer_out)
+    else:
+        lexer_out = lex_file.with_name(
+            lex_file.with_suffix("").name + "_lex.py"
+        )
+
+    if parser_out:
+        parser_out = Path(parser_out)
+    else:
+        parser_out = parser_file.with_name(
+            parser_file.with_suffix("").name + "_parser.py"
+        )
 
     parser_requires = parser_file.with_suffix(".out.requires")
     parser_fff = parser_file.with_suffix(".out.fff")

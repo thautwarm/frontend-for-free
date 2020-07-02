@@ -2,7 +2,9 @@ WS \s+
 QuotedStr "([^\\"]+|\\.)*?"|'([^\\']+|\\.)*?'
 Int \d+
 Ident [a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*
+comment \#[\w|\W]*?\n
 %ignore WS
+%ignore comment
 
 %require Include
 %require Terminal

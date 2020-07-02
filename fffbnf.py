@@ -1,4 +1,3 @@
-import attr, sys
 from json import dumps
 from collections import defaultdict
 from rbnf_rts.rts import Tokens, State
@@ -7,11 +6,15 @@ from fffbnf_parser import mk_parser, run_lexer
 from io import StringIO
 import warnings
 import pathlib
+import re
+import sys
+import attr
 
 @attr.s(hash=True)
 class Include:
     lang = attr.ib()
     files = attr.ib()
+
 
 @attr.s(hash=True)
 class Terminal:
@@ -351,7 +354,7 @@ def parse(text: str, filename: str = "unknown"):
     raise e
 
 
-def build(filename: str, out_req: str, out_ff: str, *, lang:str):
+def build(filename: str, out_req: str, out_ff: str, *, lang: str):
     with open(filename) as f:
         text = f.read()
     readable, includes = Interpreter.build(parse(text, filename=filename))
@@ -361,22 +364,21 @@ def build(filename: str, out_req: str, out_ff: str, *, lang:str):
             if required_lang is None or required_lang == lang:
                 pass
             else:
-                continue    
+                continue
+            for include in files:
+                include = parent_dir / include
+                try:
+                    with include.open() as r:
+                        f.write(r.read())
+                        f.write("\n")
+                except FileNotFoundError:
+                    warnings.warn(f"{include} not found")
 
-        for include in files:
-            include = (parent_dir / include)
-            try:
-                with include.open() as r:
-                    f.write(r.read())
-                    f.write('\n')
-            except FileNotFoundError:
-                warnings.warn(f"{include} not found")
-
-    with open(out_ff, 'w') as f:
+    with open(out_ff, "w") as f:
         f.write(readable)
-    
-    
+
 
 def entry():
     from wisepy2 import wise
+
     wise(build)()

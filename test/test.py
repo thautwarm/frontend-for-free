@@ -1,8 +1,10 @@
-from list_lex import lexer
-from list_parser import *
+from arith_lex import lexer
+from arith_parser import *
 from prettyprinter import pprint
-tokens = lexer("a.txt", "aaaaa")
+tokens = lexer("a.txt", "1 + ")
 tokens = Tokens(list(tokens))
 
-p = mk_parser()
-pprint(p(None, tokens))
+tokens = list(lexer("<current file>", "1 * -2 + 3 * 4"))
+parse = mk_parser()
+got = parse(None, Tokens(tokens))
+print(got)

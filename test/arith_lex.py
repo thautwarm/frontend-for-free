@@ -307,4 +307,4 @@ def mk():
     return mk_lexer, reg_rule, lit_rule
 
 mk_lexer, reg_rule, lit_rule = mk()
-numbering, lexer = mk_lexer(*[reg_rule(2, 'AA', '\\d+'), lit_rule(3, 'quote b', 'b'), lit_rule(5, 'quote K', 'K'), lit_rule(4, 'quote c', 'c'), lit_rule(6, 'quote a', 'a')], ignores=(), reserved_map={}, EOF=1, BOF=0)
+numbering, lexer = mk_lexer(*[reg_rule(2, 'number', '[+-]?\\d+'), reg_rule(9, 'space', '\\s+'), lit_rule(4, 'quote )', ')'), lit_rule(6, 'quote -', '-'), lit_rule(7, 'quote *', '*'), lit_rule(5, 'quote +', '+'), lit_rule(8, 'quote /', '/'), lit_rule(3, 'quote (', '(')], ignores=('space',), reserved_map={}, EOF=1, BOF=0)

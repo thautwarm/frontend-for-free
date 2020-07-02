@@ -1,1 +1,2 @@
-fff test/list.rbnf
+fff test/arith.rbnf
+python test/test.py

@@ -1,0 +1,25 @@
+%include "a.py"
+
+START := <BOF> arith <EOF> { $2 } ;
+
+# parametric
+Arith[operator, tl] := Arith[operator, tl] operator tl  { arith($2, $1, $3) }
+                    |  tl { $1 }
+                    ;
+
+
+atom := <number>     { unwrap($1) }
+     | "(" arith ")" { $2 }
+     ;
+
+arith <=>
+    Arith[
+        ("*" | "/"),
+        Arith[
+            ("+" | "-"),
+            atom
+        ]
+    ]
+    ;
+
+unused := <space>;

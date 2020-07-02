@@ -1,0 +1,3 @@
+%ignore space
+number [+-]?\d+
+space \s+

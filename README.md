@@ -19,7 +19,7 @@ A work-in-progress framework for generating context-free parsers with following 
 - [x] **LL(k)** capability 
 - [x] efficient left recursions
 - [ ] cross-language
-- [x] **standalone**
+- [x] **standalone**(while the generator requires Python3.6+ with a few dependencies)
 - [x] defined with a most intuitive and expressive BNF derivative
     - action/rewrite:
 

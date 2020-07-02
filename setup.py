@@ -22,13 +22,15 @@ setup(
         "fffbnf_parser",
         "fffbnf",
         "fffpylinker",
+        "fffmain",
 
     ],
     entry_points = {
          "console_scripts": [
              "ffflex=ffflex:entry",
              "fffbnf=fffbnf:entry",
-             "fffpylinker=fffpylinker:entry"
+             "fffpylinker=fffpylinker:entry",
+             "fff=fffmain:entry",
          ]
     },
     platforms='any',

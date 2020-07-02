@@ -351,12 +351,12 @@ def parse(text: str, filename: str = "unknown"):
     raise e
 
 
-def build(filename: str, out: str, *, lang:str):
+def build(filename: str, out_req: str, out_ff: str, *, lang:str):
     with open(filename) as f:
         text = f.read()
     readable, includes = Interpreter.build(parse(text, filename=filename))
     parent_dir = pathlib.Path(filename).parent
-    with open(out, "w") as f:
+    with open(out_req, "w") as f:
         for required_lang, files in includes:
             if required_lang is None or required_lang == lang:
                 pass
@@ -368,9 +368,11 @@ def build(filename: str, out: str, *, lang:str):
             try:
                 with include.open() as r:
                     f.write(r.read())
+                    f.write('\n')
             except FileNotFoundError:
                 warnings.warn(f"{include} not found")
 
+    with open(out_ff, 'w') as f:
         f.write(readable)
     
     

@@ -1,8 +1,8 @@
 from list_lex import lexer
 from list_opt import *
-
-tokens = lexer("a.txt", "K")
+from prettyprinter import pprint
+tokens = lexer("a.txt", "aaaaa")
 tokens = Tokens(list(tokens))
 
 p = mk_parser()
-print(p(None, tokens))
+pprint(p(None, tokens))

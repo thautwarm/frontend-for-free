@@ -7,6 +7,8 @@ from warnings import warn
 import typing as t
 import pathlib
 import io
+import re
+import itertools
 
 lex_template = (pathlib.Path(__file__).parent / "ffflex_template.py").open().read()
 
@@ -55,8 +57,9 @@ def parse(text: str, filename: str = "unknown"):
 def main(filename_terminal, filename_lex, out, *, be: str = "python"):
 
     parent_dir = pathlib.Path(filename_lex).parent
-    regex_rules = OrderedDict()
-    pragmas = dict(ignore=[], code=[], reserved_map={})
+    regex_lexers = OrderedDict()
+    reserved_map = defaultdict(dict)
+    ignores=[]
 
     with open(filename_lex) as lex_f:
         lines = lex_f.readlines()
@@ -67,35 +70,29 @@ def main(filename_terminal, filename_lex, out, *, be: str = "python"):
             if line.startswith(r"%"):
                 tag, a = parse(line, filename_lex)
                 if tag == r"%ignore":
-                    pragmas["ignore"].extend(a)
-                elif tag == r"%require":
-                    pass
-                elif tag == r"%code":
-                    lang, files = a
-                    pragmas["code"].append((lang, files))
-                elif tag == r"%reserve":
-                    a1, a2 = a
-                    pragmas["reserved_map"][a1] = a2
+                    ignores.extend(a)
                 else:
                     raise ValueError("unknown tag {}".format(tag))
                 continue
             i = line.index(" ")
-            regex_rules[line[:i]] = line[i + 1 :]
+            regex_lexers[line[:i]] = line[i + 1 :]
 
     with open(filename_terminal) as f:
         terminal_ids = {each: i for i, each in enumerate(map(str.strip, f.readlines()))}
 
-    rules = []
-    for n, rule in regex_rules.items():
+    regex_rules = []
+    for n, rule in regex_lexers.items():
         if n not in terminal_ids:
             warn(
                 "{} presented in lexer definitions but not referenced in grammar.".format(
                     n
                 )
             )
-        rules.append((n, "regex", rule, terminal_ids[n]))
+            terminal_ids[n] = len(terminal_ids)
+        regex_rules.append((n, rule, terminal_ids[n]))
 
-    for n in set(terminal_ids).difference(regex_rules):
+    literal_rules = []
+    for n in set(terminal_ids).difference(regex_lexers):
         if n in ("EOF", "BOF"):
             continue
         if not n.startswith("quote "):
@@ -104,66 +101,62 @@ def main(filename_terminal, filename_lex, out, *, be: str = "python"):
                     n
                 )
             )
-        rules.append((n, "literal", n[len("quote ") :], terminal_ids[n]))
 
-    # TODO: dispatch by back end
+        my_id = terminal_ids[n]
+        literal = n[len("quote ") :]
+        for (_, rule, regex_id) in regex_rules:
+            tmp = re.match(rule, literal)
+            if tmp:
+                if tmp.group() == literal:
+                    # extract match
+                    reserved_map[regex_id][literal] = my_id
+                    break
+                else:
+                    raise ValueError(
+                        "literal {} cannot be fully matched by regex {}".format(
+                            literal, rule
+                        )
+                    )
+        else: # no break
+            literal_rules.append((n, literal, my_id))
+    
+    reserved_map = dict(reserved_map)
+    unionall_rule = []
+    unionall_cast = [None]
+    unionall_typeid = [None]
+    for n, regex, my_id in regex_rules:
+        
+        n_group = re.compile(regex).groups
+        unionall_rule.append('(' + regex + ')')
+        unionall_typeid.append(my_id)    
+        unionall_cast.append(reserved_map.get(my_id))
+    
+        padding = (None, ) * n_group
+        unionall_typeid.extend(padding)
+        unionall_cast.extend(padding)
 
-    if be == "python":
-        code = python_be(
-            parent_dir,
-            rules,
-            **pragmas,
-            BOF=terminal_ids["BOF"],
-            EOF=terminal_ids["EOF"],
-        )
-    else:
-        # FIXME: how to achieve extensible back ends?
-        # without modifying native code.
-        raise ValueError
+    literal_rules.sort(key=lambda _: _[1], reverse=True)
+    for n, literal, my_id in literal_rules:
+        unionall_rule.append('(' + re.escape(literal) + ')')
+        unionall_typeid.append(my_id)
+        unionall_cast.append(None)
+    
+    lexer = '|'.join(unionall_rule)
+    ignores = tuple(terminal_ids[n] for n in ignores)
+    
+    
+    unionall_info = tuple(zip(unionall_typeid, unionall_cast))
 
+    
     with open(out, "w") as f:
         f.write(lex_template)
-        f.write(code)
-
-
-def python_be(
-    parent: pathlib.Path,
-    rules: t.List[t.Tuple[str, str, str, int]],
-    code: t.List[t.Tuple[str, t.List[str]]],
-    ignore: t.List[str],
-    reserved_map: t.Dict[str, str],
-    BOF: int,
-    EOF: int
-):
-
-    ignore = tuple(ignore)
-
-    rules = [
-        kind == "literal"
-        and f"lit_rule({id}, {n!r}, {rule!r})"
-        or f"reg_rule({id}, {n!r}, {rule!r})"
-        for (n, kind, rule, id) in rules
-    ]
-
-    rules = "[" + ", ".join(rules) + "]"
-    mk_lexer = f"numbering, lexer = mk_lexer(*{rules}, ignores={ignore!r}, reserved_map={reserved_map!r}, EOF={EOF}, BOF={BOF})"
-    buf = io.StringIO()
-
-    for lang, includes in code:
-        if lang is None or lang == "python":
-            pass
-        else:
-            continue
-        for include in includes:
-            include = parent / include
-            try:
-                with include.open() as r:
-                    buf.write(r.read())
-            except FileNotFoundError:
-                print(f"{include} not found")
-    buf.write(mk_lexer)
-    return buf.getvalue()
-
+        f.write("\n")
+        f.write(f"EOF = {terminal_ids['EOF']!r}\n")
+        f.write(f"BOF = {terminal_ids['BOF']!r}\n")
+        f.write(f"REGEX = __import__('re').compile({lexer!r})\n")
+        f.write(f"IGNORES = {ignores!r}\n")
+        f.write(f"UNIONALL_INFO = {unionall_info!r}\n")
+        f.write(f"numbering = {terminal_ids!r}\n")
 
 def entry():
     wise(main)()

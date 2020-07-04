@@ -1,0 +1,9 @@
+%ignore whitespace
+float [-+]?[0-9]+\.([eE][-+]?\d+)
+int \d+
+globalIdent @[-a-zA-Z$._][-a-zA-Z$._0-9]*
+localIdent %[-a-zA-Z$._][-a-zA-Z$._0-9]*
+identifier [-a-zA-Z$._][-a-zA-Z$._0-9]*
+str "([^\\"]+|\\.)*?"
+whitespace \s+
+attr_group_id \#\d+

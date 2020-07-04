@@ -106,3 +106,9 @@ def lexer(filename, text):
 
     append(Token(0, 0, 0, filename, EOF, ""))
     return tokens
+EOF = 1
+BOF = 0
+REGEX = __import__('re').compile('(\\s+)|("([^\\\\"]+|\\\\.)*?")|([-+]?[0-9]+\\.\\d+([eE][-+]?\\d+)?|[-+]?[0-9]+[eE][-+]?\\d+)|([-+]?[0-9]+)|(\\})|(\\{)|(true)|(null)|(false)|(\\])|(\\[)|(:)|(,)')
+IGNORES = (14,)
+UNIONALL_INFO = ((None, None), (14, None), (2, None), (None, None), (4, None), (None, None), (3, None), (12, None), (11, None), (5, None), (6, None), (7, None), (9, None), (8, None), (13, None), (10, None))
+numbering = {'BOF': 0, 'EOF': 1, 'ESCAPED_STRING': 2, 'SIGNED_INT': 3, 'SIGNED_FLOAT': 4, 'quote true': 5, 'quote null': 6, 'quote false': 7, 'quote [': 8, 'quote ]': 9, 'quote ,': 10, 'quote {': 11, 'quote }': 12, 'quote :': 13, 'WS': 14}

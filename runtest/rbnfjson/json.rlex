@@ -1,0 +1,5 @@
+WS \s+
+ESCAPED_STRING "([^\\"]+|\\.)*?"
+SIGNED_FLOAT [-+]?[0-9]+\.\d+([eE][-+]?\d+)?|[-+]?[0-9]+[eE][-+]?\d+
+SIGNED_INT [-+]?[0-9]+
+%ignore WS

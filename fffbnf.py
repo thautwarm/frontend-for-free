@@ -1,7 +1,6 @@
 from json import dumps
 from collections import defaultdict
 from rbnf_rts.rts import Tokens, State
-from rbnf_rts.routine import DQString as unesc
 from fffbnf_parser import mk_parser, run_lexer
 from io import StringIO
 import warnings
@@ -9,6 +8,9 @@ import pathlib
 import re
 import sys
 import attr
+
+def unesc(s):
+    return eval(s)
 
 @attr.s(hash=True)
 class Include:

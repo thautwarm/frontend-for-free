@@ -32,3 +32,5 @@ Digraph.gv.pdf
 RBNF.iml
 .idea/
 .vscode/
+hsbin-dist/
+*.zip

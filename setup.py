@@ -4,10 +4,10 @@ with open('./README.md', encoding='utf-8') as f:
     readme = f.read()
 
 setup(
-    name='fff',
+    name='frontend-for-free',
     version="0.1",
-    keywords='parsing, context-free',
-    description="solution to context-free parsing",
+    keywords='parser, lexer, context-free',
+    description="Statically generating standablone regex-based lexers and highly optimized LL(k) parsers",
     long_description=readme,
     long_description_content_type="text/markdown",
     license='MIT',

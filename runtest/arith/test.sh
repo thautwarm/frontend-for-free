@@ -1,2 +1,2 @@
-rbnf-pygen arith.rbnf arith.rlex arith.py --k 1 --traceback
+fff arith.rbnf
 python test.py

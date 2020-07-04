@@ -1,2 +1,2 @@
-rbnf-pygen llvmir.rbnf llvmir.rlex llvmir.py --k 1 --traceback
+fff llvmir.rbnf
 python test.py

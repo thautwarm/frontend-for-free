@@ -103,6 +103,9 @@ pop = do
     modify $ over stack $ const tl
     return hd
 
+peek0 :: State CFG StackObj
+peek0 = gets $ (head . view stack)
+
 popScope :: State CFG (String, Map String StackObj)
 popScope = do
     ret <- gets $ L.head . view scopes
@@ -178,7 +181,7 @@ analyse = \case
         over route (x :) <$> analyse xs
 
     PBind s : xs -> do
-        o <- pop
+        o <- peek0
         enter s o
         analyse xs
 

@@ -7,10 +7,12 @@ A bootstrap of RBNF.hs for generating **standalone** parsers targeting multiple 
 ```shell
 sh> python setup.py install
 sh> stack install .
-sh> fff <parser_file>.rbnf
+sh> fff <xxx>.rbnf # note that you should also provide a <xxx>.rlex
+sh> ls | grep <xxx>
+<xxx>_parser.py <xxx>_lex.py
 ```
 
-See examples at `test/list_parser.rbnf` and `test/list_lex.rlex`.
+See examples at [runtest](https://github.com/thautwarm/frontend-for-free/tree/cfg/runtest).
 
 ## What is this?
 
@@ -35,7 +37,7 @@ This framework also provided you with a cross-language lexer generator, still WI
 
 Currently, 
 - the parser generator support for a programming language is hard coded in `src/RBNF/BackEnds/<LanguageName>.hs`.
-- the lexer generator support for a programming language is hard coded in `ffflex.py`, any this shall be a function named `<lang>_be`.
+- the lexer generator support for a programming language is hard coded in `ffflex.py`.
 
    
        

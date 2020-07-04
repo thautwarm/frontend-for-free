@@ -33,6 +33,22 @@ default-extensions:
 - NamedFieldPuns
 - PartialTypeSignatures
 - FlexibleInstances
+
+when:
+  - condition: os(darwin)
+    then:
+      ghc-options: -Wall -O2
+      ld-options:
+      - -pthread
+      - -Wall
+    else:
+      ghc-options: -Wall -O2 -static
+      cc-options: -static
+      ld-options:
+      - -static
+      - -pthread
+      - -Wall
+
 dependencies:
 - base >= 4.7 && < 5
 - mtl

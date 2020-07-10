@@ -1,7 +1,7 @@
 import warnings
 warnings.filterwarnings('ignore', category=SyntaxWarning, message='"is" with a literal')
 
-from arith_lex import lexer
+from arith_lex import lexer, lexer_lazy_bytes
 from arith_parser import mk_parser, Tokens
 
 

@@ -50,13 +50,13 @@ class Token:
             )
         )
 
-def lexer(filename, text):
+def lexer(filename, text: str):
     text_length = len(text)
     colno = 0
     lineno = 0
     pos = 0
     newline = "\n"
-    match = REGEX.match
+    match = REGEX_STR.match
     ignores = IGNORES
     unionall_info = UNIONALL_INFO
     _Token = Token
@@ -106,9 +106,67 @@ def lexer(filename, text):
 
     append(Token(0, 0, 0, filename, EOF, ""))
     return tokens
+
+def lexer_lazy_bytes(filename, text: bytes):
+    text_length = len(text)
+    colno = 0
+    lineno = 0
+    pos = 0
+    match = REGEX_BYTES.match
+    ignores = IGNORES
+    unionall_info = UNIONALL_INFO_BYTES
+    _Token = Token
+    yield _Token(0, 0, 0, filename, BOF, b"")
+    
+    while True:
+        if text_length <= pos:
+            break
+        
+        res = match(text, pos)
+        if not res:
+            warn(f"No handler for character `{str(text[pos]).__repr__()}`.")
+            ch = text[pos]
+            yield _Token(pos, lineno, colno, filename, -1, ch)
+            if ch == b'\n':
+                lineno += 1
+                colno = 0
+            pos += 1
+            continue
+        pat = res.group()
+        typeid, cast_map = unionall_info[res.lastindex]
+        if typeid in ignores:
+            n = len(pat)
+            line_inc = pat.count(b'\n')
+            if line_inc:
+                latest_newline_idx = pat.rindex(b'\n')
+                colno = n - latest_newline_idx
+                lineno += line_inc
+            else:
+                colno += n
+            pos += n
+            continue
+
+        if cast_map:
+            typeid = cast_map.get(pat, typeid)
+        
+        yield _Token(pos, lineno, colno, filename, typeid, pat)
+        n = len(pat)
+        line_inc = pat.count(b'\n')
+        if line_inc:
+            latest_newline_idx = pat.rindex(b'\n')
+            colno = n - latest_newline_idx
+            lineno += line_inc
+        else:
+            colno += n
+        pos += n
+
+    yield _Token(0, 0, 0, filename, EOF, "")
 EOF = 1
 BOF = 0
-REGEX = __import__('re').compile('(\\s+)|("([^\\\\"]+|\\\\.)*?")|([-+]?[0-9]+\\.\\d+([eE][-+]?\\d+)?|[-+]?[0-9]+[eE][-+]?\\d+)|([-+]?[0-9]+)|(\\})|(\\{)|(true)|(null)|(false)|(\\])|(\\[)|(:)|(,)')
+REGEX = '(\\s+)|("([^\\\\"]+|\\\\.)*?")|([-+]?[0-9]+\\.\\d+([eE][-+]?\\d+)?|[-+]?[0-9]+[eE][-+]?\\d+)|([-+]?[0-9]+)|(\\})|(\\{)|(true)|(null)|(false)|(\\])|(\\[)|(:)|(,)'
+REGEX_STR = __import__('re').compile(REGEX)
+REGEX_BYTES = __import__('re').compile(REGEX.encode())
 IGNORES = (14,)
 UNIONALL_INFO = ((None, None), (14, None), (2, None), (None, None), (4, None), (None, None), (3, None), (12, None), (11, None), (5, None), (6, None), (7, None), (9, None), (8, None), (13, None), (10, None))
+UNIONALL_INFO_BYTES = ((None, None), (14, None), (2, None), (None, None), (4, None), (None, None), (3, None), (12, None), (11, None), (5, None), (6, None), (7, None), (9, None), (8, None), (13, None), (10, None))
 numbering = {'BOF': 0, 'EOF': 1, 'ESCAPED_STRING': 2, 'SIGNED_INT': 3, 'SIGNED_FLOAT': 4, 'quote true': 5, 'quote null': 6, 'quote false': 7, 'quote [': 8, 'quote ]': 9, 'quote ,': 10, 'quote {': 11, 'quote }': 12, 'quote :': 13, 'WS': 14}

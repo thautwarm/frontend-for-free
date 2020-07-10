@@ -50,13 +50,13 @@ class Token:
             )
         )
 
-def lexer(filename, text):
+def lexer(filename, text: str):
     text_length = len(text)
     colno = 0
     lineno = 0
     pos = 0
     newline = "\n"
-    match = REGEX.match
+    match = REGEX_STR.match
     ignores = IGNORES
     unionall_info = UNIONALL_INFO
     _Token = Token
@@ -106,3 +106,58 @@ def lexer(filename, text):
 
     append(Token(0, 0, 0, filename, EOF, ""))
     return tokens
+
+def lexer_lazy_bytes(filename, text: bytes):
+    text_length = len(text)
+    colno = 0
+    lineno = 0
+    pos = 0
+    match = REGEX_BYTES.match
+    ignores = IGNORES
+    unionall_info = UNIONALL_INFO_BYTES
+    _Token = Token
+    yield _Token(0, 0, 0, filename, BOF, b"")
+    
+    while True:
+        if text_length <= pos:
+            break
+        
+        res = match(text, pos)
+        if not res:
+            warn(f"No handler for character `{str(text[pos]).__repr__()}`.")
+            ch = text[pos]
+            yield _Token(pos, lineno, colno, filename, -1, ch)
+            if ch == b'\n':
+                lineno += 1
+                colno = 0
+            pos += 1
+            continue
+        pat = res.group()
+        typeid, cast_map = unionall_info[res.lastindex]
+        if typeid in ignores:
+            n = len(pat)
+            line_inc = pat.count(b'\n')
+            if line_inc:
+                latest_newline_idx = pat.rindex(b'\n')
+                colno = n - latest_newline_idx
+                lineno += line_inc
+            else:
+                colno += n
+            pos += n
+            continue
+
+        if cast_map:
+            typeid = cast_map.get(pat, typeid)
+        
+        yield _Token(pos, lineno, colno, filename, typeid, pat)
+        n = len(pat)
+        line_inc = pat.count(b'\n')
+        if line_inc:
+            latest_newline_idx = pat.rindex(b'\n')
+            colno = n - latest_newline_idx
+            lineno += line_inc
+        else:
+            colno += n
+        pos += n
+
+    yield _Token(0, 0, 0, filename, EOF, "")

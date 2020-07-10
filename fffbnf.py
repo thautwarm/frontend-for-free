@@ -368,6 +368,11 @@ def build(filename: str, out_req: str, out_ff: str, *, lang: str):
             else:
                 continue
             for include in files:
+                if isinstance(include, tuple):
+                    [include] = include
+                    f.write(include[len("%%inline"):-len("%%")])
+                    continue
+
                 include = parent_dir / include
                 try:
                     with include.open() as r:

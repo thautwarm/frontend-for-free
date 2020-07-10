@@ -59,7 +59,7 @@ def main(filename_terminal, filename_lex, out, *, be: str = "python"):
     parent_dir = pathlib.Path(filename_lex).parent
     regex_lexers = OrderedDict()
     reserved_map = defaultdict(dict)
-    ignores=[]
+    ignores = []
 
     with open(filename_lex) as lex_f:
         lines = lex_f.readlines()
@@ -117,46 +117,57 @@ def main(filename_terminal, filename_lex, out, *, be: str = "python"):
                             literal, rule
                         )
                     )
-        else: # no break
+        else:  # no break
             literal_rules.append((n, literal, my_id))
-    
+
     reserved_map = dict(reserved_map)
     unionall_rule = []
     unionall_cast = [None]
     unionall_typeid = [None]
     for n, regex, my_id in regex_rules:
-        
+
         n_group = re.compile(regex).groups
-        unionall_rule.append('(' + regex + ')')
-        unionall_typeid.append(my_id)    
+        unionall_rule.append("(" + regex + ")")
+        unionall_typeid.append(my_id)
         unionall_cast.append(reserved_map.get(my_id))
-    
-        padding = (None, ) * n_group
+
+        padding = (None,) * n_group
         unionall_typeid.extend(padding)
         unionall_cast.extend(padding)
 
     literal_rules.sort(key=lambda _: _[1], reverse=True)
     for n, literal, my_id in literal_rules:
-        unionall_rule.append('(' + re.escape(literal) + ')')
+        unionall_rule.append("(" + re.escape(literal) + ")")
         unionall_typeid.append(my_id)
         unionall_cast.append(None)
-    
-    lexer = '|'.join(unionall_rule)
-    ignores = tuple(terminal_ids[n] for n in ignores)
-    
-    
-    unionall_info = tuple(zip(unionall_typeid, unionall_cast))
 
-    
+    lexer = "|".join(unionall_rule)
+    ignores = tuple(terminal_ids[n] for n in ignores)
+
+    unionall_info = tuple(zip(unionall_typeid, unionall_cast))
+    unionall_info_bytes = tuple(
+        zip(
+            unionall_typeid,
+            [
+                cast and {k.encode("utf-8"): v for k, v in cast.items()}
+                for cast in unionall_cast
+            ],
+        )
+    )
+
     with open(out, "w") as f:
         f.write(lex_template)
         f.write("\n")
         f.write(f"EOF = {terminal_ids['EOF']!r}\n")
         f.write(f"BOF = {terminal_ids['BOF']!r}\n")
-        f.write(f"REGEX = __import__('re').compile({lexer!r})\n")
+        f.write(f"REGEX = {lexer!r}\n")
+        f.write(f"REGEX_STR = __import__('re').compile(REGEX)\n")
+        f.write(f"REGEX_BYTES = __import__('re').compile(REGEX.encode())\n")
         f.write(f"IGNORES = {ignores!r}\n")
         f.write(f"UNIONALL_INFO = {unionall_info!r}\n")
+        f.write(f"UNIONALL_INFO_BYTES = {unionall_info_bytes!r}\n")
         f.write(f"numbering = {terminal_ids!r}\n")
+
 
 def entry():
     wise(main)()

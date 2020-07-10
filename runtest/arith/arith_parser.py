@@ -154,7 +154,12 @@ def mk_parser():
     def rbnf_named_lr_step_rbnfmacro_0(rbnf_tmp_0, builtin_state, builtin_tokens):
         lcl_0 = builtin_tokens.offset
         rbnf_named__off_0 = lcl_0
-        lcl_0 = (len(builtin_tokens.array) > (builtin_tokens.offset + 0))
+        try:
+            builtin_tokens.array[(builtin_tokens.offset + 0)]
+            _rbnf_peek_tmp = True
+        except IndexError:
+            _rbnf_peek_tmp = False
+        lcl_0 = _rbnf_peek_tmp
         if lcl_0:
             lcl_2 = builtin_tokens.array[(builtin_tokens.offset + 0)]
             lcl_2 = lcl_2.idint
@@ -225,7 +230,12 @@ def mk_parser():
     def rbnf_named_lr_step_rbnfmacro_1(rbnf_tmp_0, builtin_state, builtin_tokens):
         lcl_0 = builtin_tokens.offset
         rbnf_named__off_0 = lcl_0
-        lcl_0 = (len(builtin_tokens.array) > (builtin_tokens.offset + 0))
+        try:
+            builtin_tokens.array[(builtin_tokens.offset + 0)]
+            _rbnf_peek_tmp = True
+        except IndexError:
+            _rbnf_peek_tmp = False
+        lcl_0 = _rbnf_peek_tmp
         if lcl_0:
             lcl_2 = builtin_tokens.array[(builtin_tokens.offset + 0)]
             lcl_2 = lcl_2.idint
@@ -350,7 +360,12 @@ def mk_parser():
     def rbnf_named_parse_atom(builtin_state, builtin_tokens):
         lcl_0 = builtin_tokens.offset
         rbnf_named__off_0 = lcl_0
-        lcl_0 = (len(builtin_tokens.array) > (builtin_tokens.offset + 0))
+        try:
+            builtin_tokens.array[(builtin_tokens.offset + 0)]
+            _rbnf_peek_tmp = True
+        except IndexError:
+            _rbnf_peek_tmp = False
+        lcl_0 = _rbnf_peek_tmp
         if lcl_0:
             lcl_2 = builtin_tokens.array[(builtin_tokens.offset + 0)]
             lcl_2 = lcl_2.idint

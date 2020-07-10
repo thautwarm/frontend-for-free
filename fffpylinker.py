@@ -153,7 +153,14 @@ except IndexError:
         return subst(tokens=tokens, idint=idint)
 
     @opt.register
-    @macro_exp("len(tokens.array) > tokens.offset + i")
+    @macro_stmt("""
+try:
+    tokens.array[tokens.offset + i]
+    _rbnf_peek_tmp = True
+except IndexError:
+    _rbnf_peek_tmp = False
+    """,
+                ret="_rbnf_peek_tmp")
     def builtin_peekable(tokens, i):
         return subst(tokens=tokens, i=i)
 

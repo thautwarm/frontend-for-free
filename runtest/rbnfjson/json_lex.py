@@ -50,11 +50,10 @@ class Token:
             )
         )
 
-def lexer(filename, text: str):
+def lexer(filename, text: str, pos=0):
     text_length = len(text)
     colno = 0
     lineno = 0
-    pos = 0
     newline = "\n"
     match = REGEX_STR.match
     ignores = IGNORES
@@ -104,14 +103,13 @@ def lexer(filename, text: str):
             colno += n
         pos += n
 
-    append(Token(0, 0, 0, filename, EOF, ""))
+    append(Token(pos, lineno, colno, filename, EOF, ""))
     return tokens
 
-def lexer_lazy_bytes(filename, text: bytes):
+def lexer_lazy_bytes(filename, text: bytes, pos=0):
     text_length = len(text)
     colno = 0
     lineno = 0
-    pos = 0
     match = REGEX_BYTES.match
     ignores = IGNORES
     unionall_info = UNIONALL_INFO_BYTES
@@ -160,7 +158,7 @@ def lexer_lazy_bytes(filename, text: bytes):
             colno += n
         pos += n
 
-    yield _Token(0, 0, 0, filename, EOF, "")
+    yield _Token(pos, lineno, colno, filename, EOF, "")
 EOF = 1
 BOF = 0
 REGEX = '(\\s+)|("([^\\\\"]+|\\\\.)*?")|([-+]?[0-9]+\\.\\d+([eE][-+]?\\d+)?|[-+]?[0-9]+[eE][-+]?\\d+)|([-+]?[0-9]+)|(\\})|(\\{)|(true)|(null)|(false)|(\\])|(\\[)|(:)|(,)'

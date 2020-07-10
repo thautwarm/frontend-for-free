@@ -57,7 +57,7 @@ json_parser = Lark(
 lark_parse = json_parser.parse
 
 ## RBNF.hs
-from runtest.rbnfjson.parser_wrap import parse
+from parser_wrap import parse
 
 ## Python JSON
 from json import loads

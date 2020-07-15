@@ -110,7 +110,7 @@ def macro_stmt(template: str, ret: Optional[str]):
     return stor
 
 
-def link(genast: ast.Module):
+def link(genast: ast.Module, params: str):
     opt = Optimizer()
 
     @opt.register
@@ -206,7 +206,7 @@ tokens.offset = _rbnf_old_offset + 1
 builtin_cons = Cons
 builtin_nil = _nil
 builtin_mk_ast = AST
-def mk_parser():
+def mk_parser({params}):
     pass
 """)
     fn: ast.FunctionDef = imp.body[-1]
@@ -267,14 +267,14 @@ class Optimizer(ast.NodeTransformer):
             return ast.Constant(None)
         return node
 
-def main(require_file, filename, out):
+def main(require_file, filename, out, *, params:str=''):
     with open(filename) as f:
         genast = ast.parse(f.read())
     
     with open(out, 'w') as f, open(require_file) as r:
         f.write(LICENSE)
         f.write(r.read())
-        f.write(astc.unparse(link(genast)))
+        f.write(astc.unparse(link(genast, params)))
 
 def entry():
     from wisepy2 import wise

@@ -1,5 +1,6 @@
 from subprocess import call
 from pathlib import Path
+from fffbnf import build as bnf_build
 
 
 def main(
@@ -36,15 +37,11 @@ def main(
     parser_py = parser_file.with_suffix(".out.py")
     lex_terminals = lex_file.with_suffix(".out.terminals")
 
-    call(
-        [
-            "fffbnf",
-            str(parser_file),
-            str(parser_requires),
-            str(parser_fff),
-            "--lang",
-            lang,
-        ]
+    params = bnf_build(
+        str(parser_file),
+        str(parser_requires),
+        str(parser_fff),
+        lang=lang
     )
 
     call(
@@ -76,7 +73,8 @@ def main(
         "fffpylinker",
         str(parser_requires),
         str(parser_py),
-        str(parser_out)
+        str(parser_out),
+        '--params', ','.join(params)
     ])
 
     for each in (parser_requires, parser_py, parser_fff, lex_terminals):

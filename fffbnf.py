@@ -17,6 +17,9 @@ class Include:
     lang = attr.ib()
     files = attr.ib()
 
+@attr.s(hash=True)
+class Params:
+    params = attr.ib(converter=tuple)
 
 @attr.s(hash=True)
 class Terminal:
@@ -149,6 +152,7 @@ class Interpreter:
         self.macro_use_cache = {}
         self.expanded_rules = []
         self.includes = []
+        self.params = []
 
     def sub(self, **scope):
         it = Interpreter(**scope)
@@ -170,12 +174,18 @@ class Interpreter:
             top.eval(each)
         print("\n, ".join(top.expanded_rules), file=io)
         print("]", file=io)
-        return io.getvalue(), top.includes
+        return io.getvalue(), top.includes, top.params
 
     def v_Include(self, x: Include):
         self.includes.append((x.lang, x.files))
 
     dispatches[Include] = v_Include
+
+    def v_Params(self, x: Params):
+        self.params = x.params
+
+    dispatches[Params] = v_Params
+
 
     def v_Terminal(self, x: Terminal):
         if x.kind is LITERAL:
@@ -359,7 +369,7 @@ def parse(text: str, filename: str = "unknown"):
 def build(filename: str, out_req: str, out_ff: str, *, lang: str):
     with open(filename) as f:
         text = f.read()
-    readable, includes = Interpreter.build(parse(text, filename=filename))
+    readable, includes, params = Interpreter.build(parse(text, filename=filename))
     parent_dir = pathlib.Path(filename).parent
     with open(out_req, "w") as f:
         for required_lang, files in includes:
@@ -383,6 +393,8 @@ def build(filename: str, out_req: str, out_ff: str, *, lang: str):
 
     with open(out_ff, "w") as f:
         f.write(readable)
+    
+    return params
 
 
 def entry():

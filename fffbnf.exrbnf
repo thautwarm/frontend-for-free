@@ -61,6 +61,7 @@ filename : <QuotedStr> { unesc(*$0) }
 
 pragma : '%include' Ident separated_list(",", filename) { Include($1, $2) }
        | '%include' separated_list(",", filename) { Include(None, $1) }
+       | '%parametric' separated_list(',', Ident) { Params($1) }
        | <Code> { Include(None, [(*$0, )]) }
        | <Ident> <Code> { Include(*$0, [(*$1, )]) }
        ;

@@ -4,11 +4,11 @@ from rbnf_rts.rbnf_linker import link
 from rbnf_rts.utils import ImmutableMap
 from rbnf_rts.lexical import *
 __all__ = ['lexicals', 'run_lexer', 'mk_parser']
-(lexicals, run_lexer) = lexer(r(WS='\\s+'), r(QuotedStr='"([^\\\\"]+|\\\\.)*?"|\'([^\\\\\']+|\\\\.)*?\''), r(Int='\\d+'), r(Ident='[a-zA-Z_\\u4e00-\\u9fa5][a-zA-Z0-9_\\u4e00-\\u9fa5]*'), r(comment='\\#[\\w|\\W]*?\\n'), r(Code='%%inline[\\w|\\W]*?%%'), l['}'], l['|'], l['{'], l[']'], l['['], l['?'], l['>'], l['='], l['<=>'], l['<'], l[';'], l[':='], l[','], l[')'], l['('], l['%include'], l['$'], ignores=['WS', 'comment'], reserved_map=ImmutableMap.from_dict({',': 'quote ,', '<': 'quote <', '>': 'quote >', '(': 'quote (', ')': 'quote )', '[': 'quote [', ']': 'quote ]', '=': 'quote =', '?': 'quote ?', '|': 'quote |', '{': 'quote {', '}': 'quote }', ':=': 'quote :=', ';': 'quote ;', '<=>': 'quote <=>', '$': 'quote $', '%include': 'quote %include'}), numbering={'BOF': 0, 'EOF': 1, 'quote ,': 2, 'quote <': 3, 'quote >': 4, 'quote (': 5, 'quote )': 6, 'quote [': 7, 'quote ]': 8, 'quote =': 9, 'quote ?': 10, 'quote |': 11, 'quote {': 12, 'quote }': 13, 'quote :=': 14, 'quote ;': 15, 'quote <=>': 16, 'quote $': 17, 'quote %include': 18, 'WS': 19, 'QuotedStr': 20, 'Int': 21, 'Ident': 22, 'comment': 23, 'Code': 24})
+(lexicals, run_lexer) = lexer(r(WS='\\s+'), r(QuotedStr='"([^\\\\"]+|\\\\.)*?"|\'([^\\\\\']+|\\\\.)*?\''), r(Int='\\d+'), r(Ident='[a-zA-Z_\\u4e00-\\u9fa5][a-zA-Z0-9_\\u4e00-\\u9fa5]*'), r(comment='\\#[\\w|\\W]*?\\n'), r(Code='%%inline[\\w|\\W]*?%%'), l['}'], l['|'], l['{'], l[']'], l['['], l['?'], l['>'], l['='], l['<=>'], l['<'], l[';'], l[':='], l[','], l[')'], l['('], l['%parametric'], l['%include'], l['$'], ignores=['WS', 'comment'], reserved_map=ImmutableMap.from_dict({',': 'quote ,', '<': 'quote <', '>': 'quote >', '(': 'quote (', ')': 'quote )', '[': 'quote [', ']': 'quote ]', '=': 'quote =', '?': 'quote ?', '|': 'quote |', '{': 'quote {', '}': 'quote }', ':=': 'quote :=', ';': 'quote ;', '<=>': 'quote <=>', '$': 'quote $', '%include': 'quote %include', '%parametric': 'quote %parametric'}), numbering={'BOF': 0, 'EOF': 1, 'quote ,': 2, 'quote <': 3, 'quote >': 4, 'quote (': 5, 'quote )': 6, 'quote [': 7, 'quote ]': 8, 'quote =': 9, 'quote ?': 10, 'quote |': 11, 'quote {': 12, 'quote }': 13, 'quote :=': 14, 'quote ;': 15, 'quote <=>': 16, 'quote $': 17, 'quote %include': 18, 'quote %parametric': 19, 'WS': 20, 'QuotedStr': 21, 'Int': 22, 'Ident': 23, 'comment': 24, 'Code': 25})
 
 
 
-def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUse, Bind, Rewrite, Define, Alias, Def, MacroDef, Var, Int, List, maybeTuple, Tuple, Slot, Call, seq, alt, unesc):
+def mk_parser(Include, Params, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUse, Bind, Rewrite, Define, Alias, Def, MacroDef, Var, Int, List, maybeTuple, Tuple, Slot, Call, seq, alt, unesc):
     from rbnf_rts.rts import AST as prim__mk__ast, Cons as prim__cons, _nil as prim__nil
 
     def lr_step_lang(_slot_0, prim__state, prim__tokens):
@@ -167,7 +167,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                             lcl_5 = lcl_6
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
-                elif (lcl_3 == 21):
+                elif (lcl_3 == 22):
                     lcl_4 = parse_lang__lst(prim__state, prim__tokens)
                     _slot_2_check = lcl_4
                     lcl_4 = _slot_2_check[0]
@@ -206,7 +206,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                             lcl_5 = lcl_6
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
-                elif (lcl_3 == 22):
+                elif (lcl_3 == 23):
                     lcl_4 = parse_lang__lst(prim__state, prim__tokens)
                     _slot_2_check = lcl_4
                     lcl_4 = _slot_2_check[0]
@@ -345,7 +345,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
         if lcl_0:
             lcl_2 = prim__tokens.array[(prim__tokens.offset + 0)]
             lcl_2 = lcl_2.idint
-            if (lcl_2 == 18):
+            if (lcl_2 == 19):
                 lcl_3 = parse_pragma(prim__state, prim__tokens)
                 _slot_1_check = lcl_3
                 lcl_3 = _slot_1_check[0]
@@ -365,7 +365,27 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                     lcl_4 = (True, _slot_local__1)
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 22):
+            elif (lcl_2 == 18):
+                lcl_3 = parse_pragma(prim__state, prim__tokens)
+                _slot_1_check = lcl_3
+                lcl_3 = _slot_1_check[0]
+                lcl_3 = (lcl_3 is False)
+                if lcl_3:
+                    lcl_3 = _slot_1_check
+                else:
+                    lcl_4 = _slot_1_check[1]
+                    lcl_4 = lcl_4
+                    _slot_1 = lcl_4
+                    lcl_4 = _slot_0
+                    lcl_5 = _slot_1
+                    _py_local_t = lcl_4
+                    _py_local_t.append(lcl_5)
+                    lcl_4 = _py_local_t
+                    _slot_local__1 = lcl_4
+                    lcl_4 = (True, _slot_local__1)
+                    lcl_3 = lcl_4
+                lcl_1 = lcl_3
+            elif (lcl_2 == 23):
                 lcl_3 = prim__tokens.offset
                 _off_1 = lcl_3
                 lcl_3 = (len(prim__tokens.array) > (prim__tokens.offset + 1))
@@ -432,7 +452,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                             lcl_7 = (True, _slot_local__1)
                             lcl_6 = lcl_7
                         lcl_4 = lcl_6
-                    elif (lcl_5 == 24):
+                    elif (lcl_5 == 25):
                         lcl_6 = parse_pragma(prim__state, prim__tokens)
                         _slot_1_check = lcl_6
                         lcl_6 = _slot_1_check[0]
@@ -480,7 +500,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                     lcl_4 = (False, lcl_4)
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 24):
+            elif (lcl_2 == 25):
                 lcl_3 = parse_pragma(prim__state, prim__tokens)
                 _slot_1_check = lcl_3
                 lcl_3 = _slot_1_check[0]
@@ -964,7 +984,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
         return lcl_0
 
     def parse_Ident(prim__state, prim__tokens):
-        lcl_0 = 22
+        lcl_0 = 23
         try:
             _py_local_tk = prim__tokens.array[prim__tokens.offset]
             if (_py_local_tk.idint is lcl_0):
@@ -1176,7 +1196,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                         lcl_4 = lcl_5
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 20):
+            elif (lcl_2 == 21):
                 _py_local_i = prim__tokens.offset
                 _py_local_t = prim__tokens.array[_py_local_i]
                 prim__tokens.offset = (_py_local_i + 1)
@@ -1189,7 +1209,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                 _slot_local__1 = lcl_3
                 lcl_3 = (True, _slot_local__1)
                 lcl_1 = lcl_3
-            elif (lcl_2 == 22):
+            elif (lcl_2 == 23):
                 lcl_3 = parse_Ident(prim__state, prim__tokens)
                 _slot_0_check = lcl_3
                 lcl_3 = _slot_0_check[0]
@@ -1400,7 +1420,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
         return lcl_0
 
     def parse_filename(prim__state, prim__tokens):
-        lcl_0 = 20
+        lcl_0 = 21
         try:
             _py_local_tk = prim__tokens.array[prim__tokens.offset]
             if (_py_local_tk.idint is lcl_0):
@@ -1589,7 +1609,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                                 lcl_7 = lcl_8
                             lcl_6 = lcl_7
                         lcl_4 = lcl_6
-                    elif (lcl_5 == 21):
+                    elif (lcl_5 == 22):
                         lcl_6 = parse_lang__lst(prim__state, prim__tokens)
                         _slot_1_check = lcl_6
                         lcl_6 = _slot_1_check[0]
@@ -1627,7 +1647,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                                 lcl_7 = lcl_8
                             lcl_6 = lcl_7
                         lcl_4 = lcl_6
-                    elif (lcl_5 == 22):
+                    elif (lcl_5 == 23):
                         lcl_6 = parse_lang__lst(prim__state, prim__tokens)
                         _slot_1_check = lcl_6
                         lcl_6 = _slot_1_check[0]
@@ -1927,7 +1947,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                                 lcl_11 = lcl_6
                             lcl_10 = lcl_11
                         lcl_4 = lcl_10
-                    elif (lcl_5 == 21):
+                    elif (lcl_5 == 22):
                         lcl_10 = parse_lang__lst(prim__state, prim__tokens)
                         _slot_1_check = lcl_10
                         lcl_10 = _slot_1_check[0]
@@ -2002,7 +2022,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                                 lcl_11 = lcl_6
                             lcl_10 = lcl_11
                         lcl_4 = lcl_10
-                    elif (lcl_5 == 22):
+                    elif (lcl_5 == 23):
                         lcl_10 = parse_lang__lst(prim__state, prim__tokens)
                         _slot_1_check = lcl_10
                         lcl_10 = _slot_1_check[0]
@@ -2097,7 +2117,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                 prim__tokens.offset = (_py_local_i + 1)
                 lcl_10 = _py_local_t
                 _slot_0 = lcl_10
-                lcl_10 = 21
+                lcl_10 = 22
                 try:
                     _py_local_tk = prim__tokens.array[prim__tokens.offset]
                     if (_py_local_tk.idint is lcl_10):
@@ -2125,7 +2145,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                     lcl_11 = (True, _slot_local__1)
                     lcl_10 = lcl_11
                 lcl_1 = lcl_10
-            elif (lcl_2 == 21):
+            elif (lcl_2 == 22):
                 _py_local_i = prim__tokens.offset
                 _py_local_t = prim__tokens.array[_py_local_i]
                 prim__tokens.offset = (_py_local_i + 1)
@@ -2138,7 +2158,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                 _slot_local__1 = lcl_10
                 lcl_10 = (True, _slot_local__1)
                 lcl_1 = lcl_10
-            elif (lcl_2 == 22):
+            elif (lcl_2 == 23):
                 lcl_10 = parse_Ident(prim__state, prim__tokens)
                 _slot_0_check = lcl_10
                 lcl_10 = _slot_0_check[0]
@@ -2194,7 +2214,29 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
         if lcl_0:
             lcl_2 = prim__tokens.array[(prim__tokens.offset + 0)]
             lcl_2 = lcl_2.idint
-            if (lcl_2 == 18):
+            if (lcl_2 == 19):
+                _py_local_i = prim__tokens.offset
+                _py_local_t = prim__tokens.array[_py_local_i]
+                prim__tokens.offset = (_py_local_i + 1)
+                lcl_3 = _py_local_t
+                _slot_0 = lcl_3
+                lcl_3 = parse_rbnf__sep__list__4(prim__state, prim__tokens)
+                _slot_1_check = lcl_3
+                lcl_3 = _slot_1_check[0]
+                lcl_3 = (lcl_3 is False)
+                if lcl_3:
+                    lcl_3 = _slot_1_check
+                else:
+                    lcl_4 = _slot_1_check[1]
+                    lcl_4 = lcl_4
+                    _slot_1 = lcl_4
+                    lcl_4 = _slot_1
+                    lcl_4 = Params(lcl_4)
+                    _slot_local__1 = lcl_4
+                    lcl_4 = (True, _slot_local__1)
+                    lcl_3 = lcl_4
+                lcl_1 = lcl_3
+            elif (lcl_2 == 18):
                 _py_local_i = prim__tokens.offset
                 _py_local_t = prim__tokens.array[_py_local_i]
                 prim__tokens.offset = (_py_local_i + 1)
@@ -2206,7 +2248,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                 if lcl_3:
                     lcl_5 = prim__tokens.array[(prim__tokens.offset + 0)]
                     lcl_5 = lcl_5.idint
-                    if (lcl_5 == 20):
+                    if (lcl_5 == 21):
                         lcl_6 = parse_rbnf__sep__list__6(prim__state, prim__tokens)
                         _slot_1_check = lcl_6
                         lcl_6 = _slot_1_check[0]
@@ -2223,7 +2265,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                             lcl_7 = (True, _slot_local__1)
                             lcl_6 = lcl_7
                         lcl_4 = lcl_6
-                    elif (lcl_5 == 22):
+                    elif (lcl_5 == 23):
                         lcl_6 = parse_Ident(prim__state, prim__tokens)
                         _slot_1_check = lcl_6
                         lcl_6 = _slot_1_check[0]
@@ -2266,13 +2308,13 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                     lcl_4 = (False, lcl_4)
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 22):
+            elif (lcl_2 == 23):
                 _py_local_i = prim__tokens.offset
                 _py_local_t = prim__tokens.array[_py_local_i]
                 prim__tokens.offset = (_py_local_i + 1)
                 lcl_3 = _py_local_t
                 _slot_0 = lcl_3
-                lcl_3 = 24
+                lcl_3 = 25
                 try:
                     _py_local_tk = prim__tokens.array[prim__tokens.offset]
                     if (_py_local_tk.idint is lcl_3):
@@ -2303,7 +2345,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                     lcl_4 = (True, _slot_local__1)
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 24):
+            elif (lcl_2 == 25):
                 _py_local_i = prim__tokens.offset
                 _py_local_t = prim__tokens.array[_py_local_i]
                 prim__tokens.offset = (_py_local_i + 1)
@@ -2477,7 +2519,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                                 lcl_10 = (False, lcl_10)
                                 lcl_7 = lcl_10
                             lcl_5 = lcl_7
-                        elif (lcl_6 == 22):
+                        elif (lcl_6 == 23):
                             lcl_10 = parse_IdentList(prim__state, prim__tokens)
                             _slot_2_check = lcl_10
                             lcl_10 = _slot_2_check[0]
@@ -2763,7 +2805,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
         if lcl_0:
             lcl_2 = prim__tokens.array[(prim__tokens.offset + 0)]
             lcl_2 = lcl_2.idint
-            if (lcl_2 == 18):
+            if (lcl_2 == 19):
                 lcl_3 = parse_pragma(prim__state, prim__tokens)
                 _slot_0_check = lcl_3
                 lcl_3 = _slot_0_check[0]
@@ -2780,7 +2822,24 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                     lcl_4 = lr_loop_rbnf__list__7(_slot_local__1, prim__state, prim__tokens)
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 22):
+            elif (lcl_2 == 18):
+                lcl_3 = parse_pragma(prim__state, prim__tokens)
+                _slot_0_check = lcl_3
+                lcl_3 = _slot_0_check[0]
+                lcl_3 = (lcl_3 is False)
+                if lcl_3:
+                    lcl_3 = _slot_0_check
+                else:
+                    lcl_4 = _slot_0_check[1]
+                    lcl_4 = lcl_4
+                    _slot_0 = lcl_4
+                    lcl_4 = _slot_0
+                    lcl_4 = [lcl_4]
+                    _slot_local__1 = lcl_4
+                    lcl_4 = lr_loop_rbnf__list__7(_slot_local__1, prim__state, prim__tokens)
+                    lcl_3 = lcl_4
+                lcl_1 = lcl_3
+            elif (lcl_2 == 23):
                 lcl_3 = prim__tokens.offset
                 _off_1 = lcl_3
                 lcl_3 = (len(prim__tokens.array) > (prim__tokens.offset + 1))
@@ -2838,7 +2897,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                             lcl_7 = lr_loop_rbnf__list__7(_slot_local__1, prim__state, prim__tokens)
                             lcl_6 = lcl_7
                         lcl_4 = lcl_6
-                    elif (lcl_5 == 24):
+                    elif (lcl_5 == 25):
                         lcl_6 = parse_pragma(prim__state, prim__tokens)
                         _slot_0_check = lcl_6
                         lcl_6 = _slot_0_check[0]
@@ -2880,7 +2939,7 @@ def mk_parser(Include, Terminal, LITERAL, SYMBOL, NonTerminal, Optional, MacroUs
                     lcl_4 = (False, lcl_4)
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 24):
+            elif (lcl_2 == 25):
                 lcl_3 = parse_pragma(prim__state, prim__tokens)
                 _slot_0_check = lcl_3
                 lcl_3 = _slot_0_check[0]

@@ -29,6 +29,7 @@ data S
   | SInt Int
   | SCall S [S]
   | SCombine [S]
+  | SAttr S String
   deriving (Eq, Ord, Show)
 
 type ParsingRoute = [Entity]
@@ -164,6 +165,7 @@ mToS (MApp f args) = do
     return $ SCall f args
 
 mToS (MCombine suite) = SCombine <$> mapM mToS suite
+mToS (MAttr subject attr) = flip SAttr attr <$> mToS subject
 
 analyse :: [P] -> State CFG Seman
 analyse = \case

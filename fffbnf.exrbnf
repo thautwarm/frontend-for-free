@@ -21,7 +21,7 @@ expr : separated_list('|', cseq) { alt($0) };
 
 
 rewrite : seq               { Rewrite(seq($0), None) }
-        | seq '{' lang '}'  { Rewrite(seq($0), $2) }
+        | seq '{' lang_stmts '}'  { Rewrite(seq($0), $2) }
         ;
 
 alts : separated_list('|', rewrite) { $0 };
@@ -37,7 +37,7 @@ prod : Ident ':' alts ';'                       { Def($0, Define, $2) }
      | Ident '[' ']' '<=>' expr ';'               { MacroDef($0, [], Alias, $4)}
      ;
 
-lang_stmts : separated_list(';', lang) { Stmts($0) };
+lang_stmts : separated_list(';', lang) { maybeStmts($0) };
 
 lang_lst : separated_list(',', lang) { $0 };
 
@@ -55,6 +55,7 @@ lang_atom :
      | '(' lang_lst ',' ')'  { Tuple($1) }
      | '[' lang_lst ']'      { List($1) }
      | '$' <Int>             { Slot(int(*$1)) }
+     | lang_atom '.' Ident   { Attr($0, $2) }
      ;
 
 filename : <QuotedStr> { unesc(*$0) }

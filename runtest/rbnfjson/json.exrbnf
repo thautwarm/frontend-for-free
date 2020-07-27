@@ -20,7 +20,7 @@ START : <BOF> value <EOF> { $2 };
 separated_list[comma, p] :
       p { [$1] }
     | separated_list[comma, p] comma p
-      { append($1, $3) }
+      { $1.append($3); $1 }
     ;
 
 value: <ESCAPED_STRING> { unesc(S($1)) }

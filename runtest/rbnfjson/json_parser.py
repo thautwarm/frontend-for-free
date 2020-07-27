@@ -177,10 +177,11 @@ def mk_parser():
             else:
                 lcl_2 = rbnf_named__check_2[1]
                 rbnf_tmp_2 = lcl_2
-                lcl_2 = append(rbnf_tmp_0, rbnf_tmp_2)
-                rbnf_tmp_1_ = lcl_2
-                lcl_2 = (True, rbnf_tmp_1_)
-                lcl_1 = lcl_2
+                lcl_2 = rbnf_tmp_0.append
+                lcl_2 = lcl_2(rbnf_tmp_2)
+                rbnf_tmp_1_ = rbnf_tmp_0
+                lcl_3 = (True, rbnf_tmp_1_)
+                lcl_1 = lcl_3
             lcl_0 = lcl_1
         return lcl_0
 
@@ -239,10 +240,11 @@ def mk_parser():
             else:
                 lcl_2 = rbnf_named__check_2[1]
                 rbnf_tmp_2 = lcl_2
-                lcl_2 = append(rbnf_tmp_0, rbnf_tmp_2)
-                rbnf_tmp_1_ = lcl_2
-                lcl_2 = (True, rbnf_tmp_1_)
-                lcl_1 = lcl_2
+                lcl_2 = rbnf_tmp_0.append
+                lcl_2 = lcl_2(rbnf_tmp_2)
+                rbnf_tmp_1_ = rbnf_tmp_0
+                lcl_3 = (True, rbnf_tmp_1_)
+                lcl_1 = lcl_3
             lcl_0 = lcl_1
         return lcl_0
 

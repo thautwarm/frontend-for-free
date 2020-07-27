@@ -17,6 +17,7 @@ data MiniLang
     | MTuple [MiniLang]
     | MApp MiniLang [MiniLang]
     | MCombine [MiniLang]
+    | MAttr MiniLang String
     deriving (Eq, Ord, Generic, Read, Show)
 
 -- Parsing Constructs

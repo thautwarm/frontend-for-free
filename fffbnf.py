@@ -105,8 +105,18 @@ class List:
     elts = attr.ib(converter=tuple)
 
 @attr.s(hash=True)
+class Attr:
+    subject = attr.ib()
+    attr = attr.ib()
+
+@attr.s(hash=True)
 class Stmts:
     suite = attr.ib(converter=tuple)
+
+def maybeStmts(suite):
+    if len(suite) == 1:
+        return suite[0]
+    return Stmts(suite)
 
 @attr.s(hash=True)
 class Tuple:
@@ -295,6 +305,11 @@ class Interpreter:
         return r
 
     dispatches[List] = v_List
+
+    def v_Attr(self, x: Attr):
+        return 'MAttr ({}) {}'.format(self.eval(x.subject), dumps(x.attr))
+
+    dispatches[Attr] = v_Attr
 
     def v_Stmts(self, x: Stmts):
         args = list(f"({self.eval(a)})" for a in x.suite)

@@ -49,7 +49,7 @@ A framework for generating context-free parsers with following properties:
         
     - parameterised polymorphisms for productions:
   
-        `nonEmpty[A] := A { [$1] } | hd=A tl=nonEmpty[A] { append(hd, tl) }`
+        `nonEmpty[A] := A { [$1] } | hd=A tl=nonEmpty[A] { tl.append(hd); tl }`
         
         where `append` shall be provided by the user code.
 

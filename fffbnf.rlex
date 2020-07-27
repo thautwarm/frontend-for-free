@@ -25,7 +25,8 @@ Code %%inline[\w|\W]*?%%
 %require Var
 %require Int
 %require List
-%require Stmts
+%require Attr
+%require maybeStmts
 %require maybeTuple
 %require Tuple
 %require Slot

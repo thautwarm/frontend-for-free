@@ -394,4 +394,5 @@ irToCode = \case
   SCall f args   -> MKCall (irToCode f) (map irToCode args)
   SVar n         -> MKVar n
   SInt i         -> MKInt i
+  SAttr s attr   -> MKAttr (irToCode s) attr
   SCombine args  -> MKBlock (map irToCode args)

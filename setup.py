@@ -5,7 +5,7 @@ with open('./README.md', encoding='utf-8') as f:
 
 setup(
     name='frontend-for-free',
-    version="0.3",
+    version="0.4",
     keywords='parser, lexer, context-free',
     description="Statically generating standablone regex-based lexers and highly optimized LL(k) parsers",
     long_description=readme,

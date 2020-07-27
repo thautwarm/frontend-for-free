@@ -391,6 +391,7 @@ irToCode = \case
   STp irs   -> MKTuple $ map irToCode irs
   SExp n ir ->
     let content = irToCode ir in MKCall dsl_mkast [MKStr n, content]
-  SCall f args -> MKCall (irToCode f) (map irToCode args)
-  SVar n       -> MKVar n
-  SInt i       -> MKInt i
+  SCall f args   -> MKCall (irToCode f) (map irToCode args)
+  SVar n         -> MKVar n
+  SInt i         -> MKInt i
+  SCombine args  -> MKBlock (map irToCode args)

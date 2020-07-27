@@ -37,6 +37,8 @@ prod : Ident ':' alts ';'                       { Def($0, Define, $2) }
      | Ident '[' ']' '<=>' expr ';'               { MacroDef($0, [], Alias, $4)}
      ;
 
+lang_stmts : separated_list(';', lang) { Stmts($0) };
+
 lang_lst : separated_list(',', lang) { $0 };
 
 lang : lang_atom                     { $0 }

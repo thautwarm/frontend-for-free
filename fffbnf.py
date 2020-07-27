@@ -104,6 +104,9 @@ class Int:
 class List:
     elts = attr.ib(converter=tuple)
 
+@attr.s(hash=True)
+class Stmts:
+    suite = attr.ib(converter=tuple)
 
 @attr.s(hash=True)
 class Tuple:
@@ -292,6 +295,14 @@ class Interpreter:
         return r
 
     dispatches[List] = v_List
+
+    def v_Stmts(self, x: Stmts):
+        args = list(f"({self.eval(a)})" for a in x.suite)
+        if len(args) == 1:
+            return args[0]
+        return "MCombine [%s]" % (', '.join(args))
+
+    dispatches[Stmts] = v_Stmts
 
     def v_MacroDef(self, x: MacroDef):
         self.macros[x.name] = x

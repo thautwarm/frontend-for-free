@@ -37,7 +37,7 @@ genJl quoted = align . \case
         , nest 2 $ align $ vsep
             [ nest 2
                   $ vsep
-                        [ pretty "@case" <+> genJl False i
+                        [ pretty "@case" <+> pretty i
                         , genJl True case'
                         ]
             | (i, case') <- cases

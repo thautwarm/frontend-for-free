@@ -18,7 +18,7 @@ data Marisa
     | MKPrj    Marisa Int -- statically projections on tuples
     | MKIf     Marisa Marisa Marisa
     | MKWhile  Marisa Marisa
-    | MKSwitch Marisa [(Marisa, Marisa)] Marisa
+    | MKSwitch Marisa [(Int, Marisa)] Marisa
     | MKDef    Name [Name] Marisa
     | MKBlock  [Marisa]
     | MKVar    Name
@@ -68,7 +68,7 @@ seeMarisa = align . \case
         , nest 2 $ align $ vsep
             [ nest 2
                   $ vsep
-                        [ pretty "case" <+> (seeMarisa i) <+> pretty ":"
+                        [ pretty "case" <+>  pretty i <+> pretty ":"
                         , seeMarisa case'
                         ]
             | (i, case') <- cases

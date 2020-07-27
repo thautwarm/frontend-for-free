@@ -208,7 +208,7 @@ cgPy = \case
         py_build $ "# switch"
         lhs <- py_alloc
         test <- cgPy test
-        let genif token (MKInt c, e) = do
+        let genif token (c, e) = do
                 py_build $ T.concat [token, test, " == ", pack (show c), ":"]
                 within_py_indent $ do
                     e <- cgPy e

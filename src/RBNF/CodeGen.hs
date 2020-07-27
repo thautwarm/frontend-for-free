@@ -188,12 +188,12 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace, terminalIds } = \case
           else dsl_null
         Just a -> runToCode cfg $ codeGen c a
 
-      switch :: [(LAEdge, Decision LAEdge Int)] -> ([(Marisa, Marisa)], Marisa)
+      switch :: [(LAEdge, Decision LAEdge Int)] -> ([(Int, Marisa)], Marisa)
       switch = switchImpl [] la_failed
       switchImpl cases default' = \case
         [] -> (cases, default')
         (t, subDecision) : xs ->
-          let idx   = MKInt $ fromJust (t `L.elemIndex` terminalIds)
+          let idx   = fromJust (t `L.elemIndex` terminalIds)
               cont  = runToCode (produceLA k t cfg) $ mkSwitch c subDecision
               case' = (idx, cont)
           in  switchImpl (case' : cases) default' xs

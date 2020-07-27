@@ -5,43 +5,43 @@
 # named token: identifier, float, int, whitespace, quoteStr
 # "_"
 
-START    := <BOF> TopLevelEntityList <EOF>
+START    : <BOF> TopLevelEntityList <EOF>
 ;
 
-TopLevelEntityList := TopLevelEntityList? TopLevelEntity
+TopLevelEntityList : TopLevelEntityList? TopLevelEntity
 ;
 
-decimals         := <int>
+decimals         : <int>
 ;
 
-name             := <identifier>
+name             : <identifier>
 ;
 
 # "%" "@"
-LocalName        := <localIdent>
+LocalName        : <localIdent>
 ;
 
-GlobalName       := <globalIdent>
+GlobalName       : <globalIdent>
 ;
 
 # "+" "-"
-Sign             := '+' | '-'
+Sign             : '+' | '-'
 ;
 
-StrLit           := <str>
+StrLit           : <str>
 ;
 
-IntLit           := <int>
+IntLit           : <int>
 ;
 
 # "E" "."
-Sci              := 'E' ('+' | '-')? decimals
+Sci              : 'E' ('+' | '-')? decimals
 ;
 
-FloatLit         := <float>
+FloatLit         : <float>
 ;
 
-TopLevelEntity   := SourceFilename
+TopLevelEntity   : SourceFilename
                    | TypeDef
                    | Global
                    | FunctionDecl
@@ -49,77 +49,77 @@ TopLevelEntity   := SourceFilename
                    ;
 
 # "="
-SourceFilename := "source_filename" "=" StrLit
+SourceFilename : "source_filename" "=" StrLit
 ;
-OpaqueType     := "opaque"
+OpaqueType     : "opaque"
 ;
-TypeDef        := LocalName "=" "type" (OpaqueType | Type)
+TypeDef        : LocalName "=" "type" (OpaqueType | Type)
 ;
 
-    Type           := VoidType
+    Type           : VoidType
     ;
-        VoidType       := "void"
+        VoidType       : "void"
         ;
 
-    Type           := FuncType
+    Type           : FuncType
     ;
-        FuncType   := Type '(' Params? ')'
+        FuncType   : Type '(' Params? ')'
         ;
-        Params     := "..."
+        Params     : "..."
                        | ParamList (',' '...')?
         ;
-        ParamList  := ParamList? Param
+        ParamList  : ParamList? Param
         ;
-        Param      := Type ParamAttrs? LocalName?
+        Param      : Type ParamAttrs? LocalName?
         ;
 
-        Alignment       := "align" IntLit
+        Alignment       : "align" IntLit
         ;
-        Dereferenceable := "dereferenceable" "(" IntLit ")"
+        Dereferenceable : "dereferenceable" "(" IntLit ")"
                         | "dereferenceable_or_null" "(" IntLit ")"
         ;
 
 
-    Type           := FirstClassType
+    Type           : FirstClassType
     ;
-        IntType        := 'i1' | 'i8' | 'i16' | 'i32' | 'i64'
+        IntType        : 'i1' | 'i8' | 'i16' | 'i32' | 'i64'
         ;
-        FirstClassType := IntType
-        ;
-
-        FloatType      := 'f32' | 'f64'
-        ;
-        FirstClassType := FloatType
-        ;
-        PtrType        := Type ((AddrSpace)? '*')
-        ;
-        AddrSpace   := 'addrspace' '(' IntLit ')'
-        ;
-        FirstClassType := PtrType
-        ;
-        LabelType      := "label"
-        ;
-        FirstClassType := LabelType
-        ;
-        ArrayType      := '[' IntLit 'x' Type ']'
-        ;
-        FirstClassType := ArrayType
-        ;
-        StructType     := '{' '}'
-        ;
-        StructType     := '{' TypeList '}'
-        ;
-        TypeList       := Type | TypeList ',' Type
-        ;
-        FirstClassType := StructType
-        ;
-        NamedType      := LocalName
-        ;
-        FirstClassType := NamedType
+        FirstClassType : IntType
         ;
 
+        FloatType      : 'f32' | 'f64'
+        ;
+        FirstClassType : FloatType
+        ;
+        PtrType        : Type ((AddrSpace)? '*')
+        ;
+        AddrSpace   : 'addrspace' '(' IntLit ')'
+        ;
+        FirstClassType : PtrType
+        ;
+        LabelType      : "label"
+        ;
+        FirstClassType : LabelType
+        ;
+        ArrayType      : '[' IntLit 'x' Type ']'
+        ;
+        FirstClassType : ArrayType
+        ;
+        StructType     : '{' '}'
+        ;
+        StructType     : '{' TypeList '}'
+        ;
+        TypeList       : Type | TypeList ',' Type
+        ;
+        FirstClassType : StructType
+        ;
+        NamedType      : LocalName
+        ;
+        FirstClassType : NamedType
+        ;
 
-Global := GlobalName "=" (GlobalDef | GlobalDecl)
+
+Global : GlobalName "=" (GlobalDef | GlobalDecl)
 ;
 
 #    (PreemptionSpecifier)?
@@ -127,7 +127,7 @@ Global := GlobalName "=" (GlobalDef | GlobalDecl)
 #    [UnnamedAddr]
 #    [AddrSpace]
 
-GlobalDecl :=
+GlobalDecl :
     ExternLinkage
     (PreemptionSpecifier)?
     (UnnamedAddr)?
@@ -145,7 +145,7 @@ GlobalDecl :=
 #    [AddrSpace]
 #    [ExternallyInitialized]
 
-GlobalDef :=
+GlobalDef :
     (PreemptionSpecifier)?
     (UnnamedAddr)?
     Immutable
@@ -158,7 +158,7 @@ GlobalDef :=
 
 
 Constant
-	:= BoolConst
+	: BoolConst
 	| IntConst
 	| FloatConst
 	| NullConst
@@ -173,61 +173,61 @@ Constant
 	| ConstantExpr
 ;
 
-BoolConst := BoolLit
+BoolConst : BoolLit
 ;
-BoolLit    := 'true' | 'false'
+BoolLit    : 'true' | 'false'
 ;
-IntConst    := IntLit
+IntConst    : IntLit
 ;
-FloatConst  := FloatLit
+FloatConst  : FloatLit
 ;
-NullConst	:= "null"
+NullConst	: "null"
 ;
-NoneConst   := "none"
+NoneConst   : "none"
 ;
 
 StructConst
-	:= "{" "}"
+	: "{" "}"
 	| "{" TypeConstList "}"
 	| "<" "{" "}" ">"
 	| "<" "{" TypeConstList "}" ">"
 ;
 
-ArrayConst := "[" TypeConstList? "]"
+ArrayConst : "[" TypeConstList? "]"
 ;
 
-CharArrayConst := "c" StrLit
+CharArrayConst : "c" StrLit
 ;
 
-ZeroInitializerConst := "zeroinitializer"
+ZeroInitializerConst : "zeroinitializer"
 ;
 
-UndefConst := "undef"
+UndefConst : "undef"
 ;
 
-BlockAddressConst := "blockaddress" "(" GlobalName "," LocalName ")"
+BlockAddressConst : "blockaddress" "(" GlobalName "," LocalName ")"
 ;
 
-ConstantOperand2  := '(' TypeConstant ',' Type Constant ')'
+ConstantOperand2  : '(' TypeConstant ',' Type Constant ')'
 ;
 
-ConstantExpr      := BinOp BinOpQualifier ConstantOperand2
+ConstantExpr      : BinOp BinOpQualifier ConstantOperand2
 ;
 
 
-    BinOpQualifier := OverflowFlags | "exact"
+    BinOpQualifier : OverflowFlags | "exact"
     ;
 
-    OverflowFlags := (OverflowFlags)? ("nsw" | "nuw")
+    OverflowFlags : (OverflowFlags)? ("nsw" | "nuw")
     ;
 
-    BinOp := "add" | "fadd" | "sub"  | "fsub" | "mul"  | "fmul"
+    BinOp : "add" | "fadd" | "sub"  | "fsub" | "mul"  | "fmul"
           | "udiv"| "sdiv" | "urem" | "srem" | "frem" | "shl"
           | "lshr"| "ashr" | "and"  | "or"   | "xor"
     ;
 
 
-ConstantExpr := ExtValExpr
+ConstantExpr : ExtValExpr
              | InsValExpr
              | GEPExpr
              | BitCastExpr
@@ -235,99 +235,99 @@ ConstantExpr := ExtValExpr
 
 
 IndexList
-	:= IntLit
+	: IntLit
 	| IndexList "," IntLit
 ;
 
-ExtValExpr := "extractvalue" '(' TypeConstant (',' IndexList)? ')'
+ExtValExpr : "extractvalue" '(' TypeConstant (',' IndexList)? ')'
 ;
 
-InsValExpr := "insertvalue" '(' TypeConstant ',' TypeConstant  (',' IndexList)? ')'
+InsValExpr : "insertvalue" '(' TypeConstant ',' TypeConstant  (',' IndexList)? ')'
 ;
 
 
-GEPExpr := "getelementptr" "inbounds"?  '(' Type ',' TypeConstant (',' GEPConstIndexList)? ')'
+GEPExpr : "getelementptr" "inbounds"?  '(' Type ',' TypeConstant (',' GEPConstIndexList)? ')'
 ;
 
     GEPConstIndexList
-        := GEPConstIndex
+        : GEPConstIndex
         | GEPConstIndexList "," GEPConstIndex
     ;
 
     GEPConstIndex
-        := ("inrange")? IntType IntLit
+        : ("inrange")? IntType IntLit
     ;
 
-BitCastExpr := 'bitcast' "(" TypeConstant "to" Type ")"
+BitCastExpr : 'bitcast' "(" TypeConstant "to" Type ")"
 ;
 
 TypeConstList
-	:= TypeConstant
+	: TypeConstant
 	| TypeConstList "," TypeConstant
 ;
 
 TypeConstant
-	:= Type Constant
+	: Type Constant
 ;
 
 
-FunctionDecl := 'declare' (ExternLinkage)? FunctionHeader
+FunctionDecl : 'declare' (ExternLinkage)? FunctionHeader
 ;
 
-FunctionHeader := Type GlobalName '(' Params ')' (UnnamedAddr)?
+FunctionHeader : Type GlobalName '(' Params ')' (UnnamedAddr)?
 ;
 
-FunctionDef := 'define' FunctionHeader FunctionBody
+FunctionDef : 'define' FunctionHeader FunctionBody
 ;
 
-FunctionBody := '{' (BasicBlockList)? '}'
+FunctionBody : '{' (BasicBlockList)? '}'
 ;
 
-BasicBlockList := (BasicBlockList)? BasicBlock
+BasicBlockList : (BasicBlockList)? BasicBlock
 ;
 
-BasicBlock := (name)? (InstructionList)? Terminator
+BasicBlock : (name)? (InstructionList)? Terminator
 ;
 
-InstructionList := (InstructionList)? Instruction
+InstructionList : (InstructionList)? Instruction
 ;
 
-Instruction := StoreInst
+Instruction : StoreInst
              | (LocalName "=")? ValueInstruction
 ;
 
-StoreInst := 'store' ('volatile')? Type Value ',' Type Value (',' Alignment)?
+StoreInst : 'store' ('volatile')? Type Value ',' Type Value (',' Alignment)?
 ;
 
 
-Terminator :=  RetTerm | BrTerm | SwitchTerm
+Terminator :  RetTerm | BrTerm | SwitchTerm
 ;
 
 
 # don't know why there is reduce-reduce conflict
-RetTerm   := 'ret' Type (Value)?
+RetTerm   : 'ret' Type (Value)?
 ;
 
-BrTerm  := "br" TypeValue LocalName
-; BrTerm  := "br" TypeValue ',' LabelType LocalName ',' LabelType LocalName
+BrTerm  : "br" TypeValue LocalName
+; BrTerm  : "br" TypeValue ',' LabelType LocalName ',' LabelType LocalName
 ;
 
-SwitchTerm := "switch" TypeValue "," LabelType LocalName "[" Cases? "]"
+SwitchTerm : "switch" TypeValue "," LabelType LocalName "[" Cases? "]"
 ;
 
-Cases := CaseList
+Cases : CaseList
 ;
 
-CaseList := (CaseList)? Case
+CaseList : (CaseList)? Case
 ;
 
-Case := IntType IntConst ',' LabelType LocalName
+Case : IntType IntConst ',' LabelType LocalName
 ;
 
-Value := Constant | LocalName
+Value : Constant | LocalName
 ;
 
-ValueInstruction := BinInst
+ValueInstruction : BinInst
                  | ExtValInst
                  | InsValInst
                  | GEPInst
@@ -339,60 +339,60 @@ ValueInstruction := BinInst
                  | SelectInst
 ;
 
-BinInst := BinOp BinOpQualifier TypeValue ',' Value
+BinInst : BinOp BinOpQualifier TypeValue ',' Value
 ;
 
-ExtValInst := "extractvalue" TypeValue ',' IndexList
+ExtValInst : "extractvalue" TypeValue ',' IndexList
 ;
 
-InsValInst := "insertvalue" TypeValue ',' TypeValue ',' IndexList
+InsValInst : "insertvalue" TypeValue ',' TypeValue ',' IndexList
 ;
 
-GEPInst := "getelementptr" ("inbounds")? Type ',' TypeValue (',' SepTypeValueList )?
+GEPInst : "getelementptr" ("inbounds")? Type ',' TypeValue (',' SepTypeValueList )?
 ;
 
-SepTypeValueList := (SepTypeValueList ',')? TypeValue
+SepTypeValueList : (SepTypeValueList ',')? TypeValue
 ;
 
-TypeValue     := Type Value
+TypeValue     : Type Value
 ;
 
-AllocaInst := 'alloca' Type (',' TypeValue)? (',' Alignment)?
+AllocaInst : 'alloca' Type (',' TypeValue)? (',' Alignment)?
 ;
 
-LoadInst := 'load' ('volatile')? Type ',' TypeValue (',' Alignment)?
+LoadInst : 'load' ('volatile')? Type ',' TypeValue (',' Alignment)?
 ;
 
-BitcastInst := 'bitcast' TypeValue 'to' Type
+BitcastInst : 'bitcast' TypeValue 'to' Type
 ;
 
-CmpInst := ('icmp' IPred | 'fcmp' FPred) Type Value ',' Value
+CmpInst : ('icmp' IPred | 'fcmp' FPred) Type Value ',' Value
 ;
 
-PhiInst := 'phi' Type IncList
+PhiInst : 'phi' Type IncList
 ;
 
-IncList := (IncList ',')? Inc
+IncList : (IncList ',')? Inc
 ;
 
-Inc := '[' Value ',' LocalName ']'
+Inc : '[' Value ',' LocalName ']'
 ;
 
-SelectInst := 'select' TypeValue ',' TypeValue ',' TypeValue
+SelectInst : 'select' TypeValue ',' TypeValue ',' TypeValue
 ;
 
-CallInst := ('tail' | 'notail' | 'musttail')? 'call' Type Value '(' (ArgList)? ')'
+CallInst : ('tail' | 'notail' | 'musttail')? 'call' Type Value '(' (ArgList)? ')'
 ;
 
 
-ArgList := (ArgList ',')? Arg
+ArgList : (ArgList ',')? Arg
 ;
 
-Arg := FirstClassType Value
+Arg : FirstClassType Value
 ;
 
 IPred
-	:= "eq"
+	: "eq"
 	| "ne"
 	| "sge"
 	| "sgt"
@@ -405,7 +405,7 @@ IPred
 ;
 
 FPred
-	:= "false"
+	: "false"
 	| "oeq"
 	| "oge"
 	| "ogt"
@@ -427,7 +427,7 @@ FPred
 # we wouldn't use ...
 
 Linkage
-	:= "appending"
+	: "appending"
 	| "available_externally"
 	| "common"
 	| "internal"
@@ -438,53 +438,53 @@ Linkage
 	| "weak_odr"
 ;
 
-ExternLinkage := "extern_weak"
+ExternLinkage : "extern_weak"
 	            | "external"
 ;
 
-PreemptionSpecifier := "dso_local" | "dso_preemptable"
+PreemptionSpecifier : "dso_local" | "dso_preemptable"
 ;
 
-Visibility := "default" | "hidden" | "protected"
+Visibility : "default" | "hidden" | "protected"
 ;
 
-UnnamedAddr := "local_unnamed_addr" | "unnamed_addr"
+UnnamedAddr : "local_unnamed_addr" | "unnamed_addr"
 ;
 
-ExternallyInitialized := "externally_initialized"
+ExternallyInitialized : "externally_initialized"
 ;
 
-Immutable := "constant" | "global"
+Immutable : "constant" | "global"
 ;
 
 
 AllocSize
-	:= "allocsize" "(" IntLit ")"
+	: "allocsize" "(" IntLit ")"
 	| "allocsize" "(" IntLit "," IntLit ")"
 ;
 
 StackAlignment
-	:= "alignstack" "(" IntLit ")"
+	: "alignstack" "(" IntLit ")"
 ;
 
-AttrGroupID := <attr_group_id>
+AttrGroupID : <attr_group_id>
 ;
 
 Comdat
-	:= "comdat"
+	: "comdat"
 	| "comdat" "(" '$' name ")"
 ;
 
 Section
-	:= "section" StrLit
+	: "section" StrLit
 ;
 
 
-ParamAttrs := ParamAttrList
+ParamAttrs : ParamAttrList
 ;
-    ParamAttrList := (ParamAttrList)? ParamAttr
+    ParamAttrList : (ParamAttrList)? ParamAttr
     ;
-        ParamAttr  :=
+        ParamAttr  :
               Alignment
             | Dereferenceable
             | StrLit
@@ -506,15 +506,15 @@ ParamAttrs := ParamAttrList
             | "zeroext"
         ;
 
-FuncAttrs := FuncAttrList
+FuncAttrs : FuncAttrList
 ;
 
     FuncAttrList
-        := FuncAttr
+        : FuncAttr
         | FuncAttrList FuncAttr
     ;
         FuncAttr
-            := AttrGroupID
+            : AttrGroupID
             | "align" "=" IntLit
             | "alignstack" "=" IntLit
             | Alignment
@@ -561,16 +561,16 @@ FuncAttrs := FuncAttrList
             | "writeonly"
         ;
 
-GlobalAttrs := "," GlobalAttrList
+GlobalAttrs : "," GlobalAttrList
 ;
 
-    GlobalAttrList := GlobalAttr | GlobalAttrList "," GlobalAttr
+    GlobalAttrList : GlobalAttr | GlobalAttrList "," GlobalAttr
     ;
 
         GlobalAttr
-            := Section
+            : Section
             | Comdat
             | Alignment
         ;
 
-__ := <whitespace>;
+__ : <whitespace>;

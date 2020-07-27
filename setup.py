@@ -25,7 +25,7 @@ setup(
         "fffmain",
 
     ],
-    install_requires=['ast-compat', 'wisepy2', 'rbnf-rts'],
+    install_requires=['ast-compat', 'wisepy2', 'rbnf-rts', "attrs"],
     entry_points = {
          "console_scripts": [
              "ffflex=ffflex:entry",

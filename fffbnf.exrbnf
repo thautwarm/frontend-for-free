@@ -26,12 +26,11 @@ rewrite : seq               { Rewrite(seq($0), None) }
 
 alts : separated_list('|', rewrite) { $0 };
 
-
 IdentList : separated_list(',', Ident) { $0 };
 
-prod : Ident ':=' alts ';'                       { Def($0, Define, $2) }
-     | Ident '[' IdentList ']' ':=' alts ';'     { MacroDef($0, $2, Define, $5)}
-     | Ident '[' ']' ':=' alts ';'               { MacroDef($0, [], Define, $4)}
+prod : Ident ':' alts ';'                       { Def($0, Define, $2) }
+     | Ident '[' IdentList ']' ':' alts ';'     { MacroDef($0, $2, Define, $5)}
+     | Ident '[' ']' ':' alts ';'               { MacroDef($0, [], Define, $4)}
      
      | Ident '<=>' expr ';'                       { Def($0, Alias, $2) }
      | Ident '[' IdentList ']' '<=>' expr ';'     { MacroDef($0, $2, Alias, $5)}

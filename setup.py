@@ -1,11 +1,12 @@
 from setuptools import setup
+from version import version
 
 with open('./README.md', encoding='utf-8') as f:
     readme = f.read()
 
 setup(
     name='frontend-for-free',
-    version="0.4",
+    version=version,
     keywords='parser, lexer, context-free',
     description="Statically generating standablone regex-based lexers and highly optimized LL(k) parsers",
     long_description=readme,

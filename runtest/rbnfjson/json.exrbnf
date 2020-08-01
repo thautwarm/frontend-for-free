@@ -15,7 +15,7 @@ def append(x, a, f=list.append):
     return x
 %%
 
-START : <BOF> value <EOF> { $2 };
+START : value { $1 };
 
 separated_list[comma, p] :
       p { [$1] }
@@ -39,3 +39,4 @@ value: <ESCAPED_STRING> { unesc(S($1)) }
 
 pair : <ESCAPED_STRING> ":" value { (unesc(S($1)), $3) };
 
+__unused: <BOF> <EOF>;

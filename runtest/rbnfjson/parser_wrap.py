@@ -7,7 +7,7 @@ _parse = mk_parser()
 
 
 def parse(text: str, filename: str = "unknown"):
-    tokens = lexer(filename, text)
+    tokens = lexer(filename, text, use_bof=False, use_eof=False)
     res = _parse(None, Tokens(tokens))
     if res[0]:
         return res[1]

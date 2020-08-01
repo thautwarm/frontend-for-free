@@ -1,0 +1,43 @@
+%include "ffflex_include.py"
+
+%%inline
+from json.decoder import py_scanstring
+def unesc(s, py_scanstring=py_scanstring):
+  if s[0] == '"':
+    return py_scanstring(s, 1)[0]
+  return eval(s)
+%%
+
+separated_list[comma, p] :
+      p { [$1] }
+    | separated_list[comma, p] comma p
+      { $1.append($3); $1 }
+    ;
+
+START : <BOF> stmt <EOF> { $2 };
+
+ignorable : <QuotedStr> { literal($1.value) }
+          | <Ident>     { $1.value }
+          ;
+
+ignore : '%ignore' separated_list[',', ignorable] { ($1.value, $2) };
+
+reserve : '%reserve' <Ident> <Ident> { ($1.value, ($2.value, $3.value)) };
+
+require_able : <Ident> { $1.value }
+             ;
+
+filename : <QuotedStr> { unesc($1.value) }
+         ;
+
+include :
+       "%include" <Ident> separated_list[',', filename] { ($1.value, ($2, $3)) }
+     | "%include" separated_list[',', filename]         { ($1.value, (None, $2)) }
+     ;
+
+stmt : ignore  { $1 }
+     | include { $1 }
+     | reserve { $1 }
+     ;
+
+unused : <WS> ;

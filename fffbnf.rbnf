@@ -1,0 +1,100 @@
+%include "fffbnf_include.py"
+
+
+separated_list[comma, p] :
+      p { [$1] }
+    | separated_list[comma, p] comma p
+      { $1.append($3); $1 }
+    ;
+
+list[p] :
+      p { [$1] }
+    | list[p] p
+      { $1.append($2); $1 }
+    ;
+
+%%inline
+from json.decoder import py_scanstring
+def unesc(s, py_scanstring=py_scanstring):
+  if s[0] == '"':
+    return py_scanstring(s, 1)[0]
+  return eval(s)
+%%
+
+
+expr_lst : separated_list[',', expr] { $1 };
+
+Ident : <Ident> { $1.value };
+
+
+atom : <QuotedStr>          { Terminal(LITERAL, unesc($1.value)) }
+     | '<' Ident '>'        { Terminal(SYMBOL, $2) }
+     | Ident                { NonTerminal($1) }
+     | '(' expr ')'            { $2 }
+     | Ident '[' expr_lst ']'  { MacroUse($1, $3) }
+     | Ident '=' atomExpr      { Bind($1, $3) }
+     ;
+
+
+atomExpr : atom               { $1 }
+         | atom '?'           { Optional($1) }
+         ;
+seq : list[atomExpr] { $1 };
+cseq : seq { seq($1) };
+expr : separated_list['|', cseq] { alt($1) };
+
+
+rewrite : seq               { Rewrite(seq($1), None) }
+        | seq '{' lang_stmts '}'  { Rewrite(seq($1), $3) }
+        ;
+
+alts : separated_list['|', rewrite] { $1 };
+
+IdentList : separated_list[',', Ident] { $1 };
+
+def :   ':'   alts { $2 }
+      | ':='  alts { $2 }
+      | '::=' alts { $2 }
+      | '<=>' expr { $2 }
+      ;
+      
+prod : Ident def ';'                       { Def($1, $2) }
+     | Ident '[' IdentList ']' def ';'     { MacroDef($1, $3, $5)}
+     | Ident '[' ']' def ';'               { MacroDef($1, [], $4)}
+     ;
+
+lang_stmts : separated_list[';', lang] { maybeStmts($1) };
+
+lang_lst : separated_list[',', lang] { $1 };
+
+lang : lang_atom                     { $1 }
+     | lang '(' lang_lst ')'         { Call($1, $3) }
+     | lang '(' ')'                  { Call($1, []) }
+     ;
+
+lang_atom :
+       Ident                 { Var($1) }
+     | <Int>                 { Int(int($1.value)) }
+     | '(' ')'               { Tuple([]) }
+     | '[' ']'               { List([]) }
+     | '(' lang_lst ')'      { maybeTuple($2) }
+     | '(' lang_lst ',' ')'  { Tuple($2) }
+     | '[' lang_lst ']'      { List($2) }
+     | '$' <Int>             { Slot(int($2.value)) }
+     | lang_atom '.' Ident   { Attr($1, $3) }
+     ;
+
+filename : <QuotedStr> { unesc($1.value) }
+         ;
+
+pragma : '%include' Ident separated_list[",", filename] { Include($2, $3) }
+       | '%include' separated_list[",", filename] { Include(None, $2) }
+       | '%parametric' separated_list[',', Ident] { Params($2) }
+       | <Code> { Include(None, [($1.value, None)]) }
+       | <Ident> <Code> { Include($1.value, [($2.value, None)]) }
+       ;
+
+START : <BOF> list[prod|pragma] <EOF> { $2 }
+      ;
+
+unused : <WS> <comment>;

@@ -171,14 +171,17 @@ def mk_parser():
                 rbnf_tmp_1 = lcl_3
                 lcl_3 = rbnf_named_parse_atom(builtin_state, builtin_tokens)
                 rbnf_named__check_2 = lcl_3
-                lcl_3 = (rbnf_named__check_2 is None)
+                lcl_3 = rbnf_named__check_2[0]
+                lcl_3 = (lcl_3 == False)
                 if lcl_3:
-                    lcl_3 = None
+                    lcl_3 = rbnf_named__check_2
                 else:
-                    rbnf_tmp_2 = rbnf_named__check_2
+                    lcl_4 = rbnf_named__check_2[1]
+                    rbnf_tmp_2 = lcl_4
                     lcl_4 = arith(rbnf_tmp_1, rbnf_tmp_0, rbnf_tmp_2)
                     rbnf_tmp_1_ = lcl_4
-                    lcl_3 = rbnf_tmp_1_
+                    lcl_4 = (True, rbnf_tmp_1_)
+                    lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif (lcl_2 == 5):
                 _rbnf_old_offset = builtin_tokens.offset
@@ -188,20 +191,29 @@ def mk_parser():
                 rbnf_tmp_1 = lcl_3
                 lcl_3 = rbnf_named_parse_atom(builtin_state, builtin_tokens)
                 rbnf_named__check_2 = lcl_3
-                lcl_3 = (rbnf_named__check_2 is None)
+                lcl_3 = rbnf_named__check_2[0]
+                lcl_3 = (lcl_3 == False)
                 if lcl_3:
-                    lcl_3 = None
+                    lcl_3 = rbnf_named__check_2
                 else:
-                    rbnf_tmp_2 = rbnf_named__check_2
+                    lcl_4 = rbnf_named__check_2[1]
+                    rbnf_tmp_2 = lcl_4
                     lcl_4 = arith(rbnf_tmp_1, rbnf_tmp_0, rbnf_tmp_2)
                     rbnf_tmp_1_ = lcl_4
-                    lcl_3 = rbnf_tmp_1_
+                    lcl_4 = (True, rbnf_tmp_1_)
+                    lcl_3 = lcl_4
                 lcl_1 = lcl_3
             else:
-                lcl_1 = None
+                lcl_3 = (rbnf_named__off_0, 'rbnfmacro_0 lookahead failed')
+                lcl_3 = builtin_cons(lcl_3, builtin_nil)
+                lcl_3 = (False, lcl_3)
+                lcl_1 = lcl_3
             lcl_0 = lcl_1
         else:
-            lcl_0 = None
+            lcl_1 = (rbnf_named__off_0, 'rbnfmacro_0 got EOF')
+            lcl_1 = builtin_cons(lcl_1, builtin_nil)
+            lcl_1 = (False, lcl_1)
+            lcl_0 = lcl_1
         return lcl_0
 
     def rbnf_named_lr_loop_rbnfmacro_0(rbnf_tmp_0, builtin_state, builtin_tokens):
@@ -210,19 +222,23 @@ def mk_parser():
         rbnf_named__off_0 = lcl_0
         lcl_0 = rbnf_named_lr_step_rbnfmacro_0(rbnf_named_lr_rbnfmacro_0_reduce, builtin_state, builtin_tokens)
         rbnf_named_lr_rbnfmacro_0_try = lcl_0
-        lcl_0 = (rbnf_named_lr_rbnfmacro_0_try is not None)
+        lcl_0 = rbnf_named_lr_rbnfmacro_0_try[0]
+        lcl_0 = (lcl_0 is not False)
         while lcl_0:
             lcl_1 = builtin_tokens.offset
             rbnf_named__off_0 = lcl_1
-            rbnf_named_lr_rbnfmacro_0_reduce = rbnf_named_lr_rbnfmacro_0_try
+            lcl_1 = rbnf_named_lr_rbnfmacro_0_try[1]
+            rbnf_named_lr_rbnfmacro_0_reduce = lcl_1
             lcl_1 = rbnf_named_lr_step_rbnfmacro_0(rbnf_named_lr_rbnfmacro_0_reduce, builtin_state, builtin_tokens)
             rbnf_named_lr_rbnfmacro_0_try = lcl_1
-            lcl_1 = (rbnf_named_lr_rbnfmacro_0_try is not None)
+            lcl_1 = rbnf_named_lr_rbnfmacro_0_try[0]
+            lcl_1 = (lcl_1 is not False)
             lcl_0 = lcl_1
         lcl_0 = builtin_tokens.offset
         lcl_0 = (lcl_0 == rbnf_named__off_0)
         if lcl_0:
-            lcl_0 = rbnf_named_lr_rbnfmacro_0_reduce
+            lcl_1 = (True, rbnf_named_lr_rbnfmacro_0_reduce)
+            lcl_0 = lcl_1
         else:
             lcl_0 = rbnf_named_lr_rbnfmacro_0_try
         return lcl_0
@@ -247,14 +263,17 @@ def mk_parser():
                 rbnf_tmp_1 = lcl_3
                 lcl_3 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
                 rbnf_named__check_2 = lcl_3
-                lcl_3 = (rbnf_named__check_2 is None)
+                lcl_3 = rbnf_named__check_2[0]
+                lcl_3 = (lcl_3 == False)
                 if lcl_3:
-                    lcl_3 = None
+                    lcl_3 = rbnf_named__check_2
                 else:
-                    rbnf_tmp_2 = rbnf_named__check_2
+                    lcl_4 = rbnf_named__check_2[1]
+                    rbnf_tmp_2 = lcl_4
                     lcl_4 = arith(rbnf_tmp_1, rbnf_tmp_0, rbnf_tmp_2)
                     rbnf_tmp_1_ = lcl_4
-                    lcl_3 = rbnf_tmp_1_
+                    lcl_4 = (True, rbnf_tmp_1_)
+                    lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif (lcl_2 == 7):
                 _rbnf_old_offset = builtin_tokens.offset
@@ -264,20 +283,29 @@ def mk_parser():
                 rbnf_tmp_1 = lcl_3
                 lcl_3 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
                 rbnf_named__check_2 = lcl_3
-                lcl_3 = (rbnf_named__check_2 is None)
+                lcl_3 = rbnf_named__check_2[0]
+                lcl_3 = (lcl_3 == False)
                 if lcl_3:
-                    lcl_3 = None
+                    lcl_3 = rbnf_named__check_2
                 else:
-                    rbnf_tmp_2 = rbnf_named__check_2
+                    lcl_4 = rbnf_named__check_2[1]
+                    rbnf_tmp_2 = lcl_4
                     lcl_4 = arith(rbnf_tmp_1, rbnf_tmp_0, rbnf_tmp_2)
                     rbnf_tmp_1_ = lcl_4
-                    lcl_3 = rbnf_tmp_1_
+                    lcl_4 = (True, rbnf_tmp_1_)
+                    lcl_3 = lcl_4
                 lcl_1 = lcl_3
             else:
-                lcl_1 = None
+                lcl_3 = (rbnf_named__off_0, 'rbnfmacro_1 lookahead failed')
+                lcl_3 = builtin_cons(lcl_3, builtin_nil)
+                lcl_3 = (False, lcl_3)
+                lcl_1 = lcl_3
             lcl_0 = lcl_1
         else:
-            lcl_0 = None
+            lcl_1 = (rbnf_named__off_0, 'rbnfmacro_1 got EOF')
+            lcl_1 = builtin_cons(lcl_1, builtin_nil)
+            lcl_1 = (False, lcl_1)
+            lcl_0 = lcl_1
         return lcl_0
 
     def rbnf_named_lr_loop_rbnfmacro_1(rbnf_tmp_0, builtin_state, builtin_tokens):
@@ -286,19 +314,23 @@ def mk_parser():
         rbnf_named__off_0 = lcl_0
         lcl_0 = rbnf_named_lr_step_rbnfmacro_1(rbnf_named_lr_rbnfmacro_1_reduce, builtin_state, builtin_tokens)
         rbnf_named_lr_rbnfmacro_1_try = lcl_0
-        lcl_0 = (rbnf_named_lr_rbnfmacro_1_try is not None)
+        lcl_0 = rbnf_named_lr_rbnfmacro_1_try[0]
+        lcl_0 = (lcl_0 is not False)
         while lcl_0:
             lcl_1 = builtin_tokens.offset
             rbnf_named__off_0 = lcl_1
-            rbnf_named_lr_rbnfmacro_1_reduce = rbnf_named_lr_rbnfmacro_1_try
+            lcl_1 = rbnf_named_lr_rbnfmacro_1_try[1]
+            rbnf_named_lr_rbnfmacro_1_reduce = lcl_1
             lcl_1 = rbnf_named_lr_step_rbnfmacro_1(rbnf_named_lr_rbnfmacro_1_reduce, builtin_state, builtin_tokens)
             rbnf_named_lr_rbnfmacro_1_try = lcl_1
-            lcl_1 = (rbnf_named_lr_rbnfmacro_1_try is not None)
+            lcl_1 = rbnf_named_lr_rbnfmacro_1_try[0]
+            lcl_1 = (lcl_1 is not False)
             lcl_0 = lcl_1
         lcl_0 = builtin_tokens.offset
         lcl_0 = (lcl_0 == rbnf_named__off_0)
         if lcl_0:
-            lcl_0 = rbnf_named_lr_rbnfmacro_1_reduce
+            lcl_1 = (True, rbnf_named_lr_rbnfmacro_1_reduce)
+            lcl_0 = lcl_1
         else:
             lcl_0 = rbnf_named_lr_rbnfmacro_1_try
         return lcl_0
@@ -316,15 +348,21 @@ def mk_parser():
         rbnf_tmp_0 = lcl_0
         lcl_0 = (rbnf_tmp_0 is None)
         if lcl_0:
-            lcl_0 = None
+            lcl_1 = builtin_tokens.offset
+            lcl_1 = (lcl_1, 'BOF not match')
+            lcl_1 = builtin_cons(lcl_1, builtin_nil)
+            lcl_1 = (False, lcl_1)
+            lcl_0 = lcl_1
         else:
             lcl_1 = rbnf_named_parse_arith(builtin_state, builtin_tokens)
             rbnf_named__check_1 = lcl_1
-            lcl_1 = (rbnf_named__check_1 is None)
+            lcl_1 = rbnf_named__check_1[0]
+            lcl_1 = (lcl_1 == False)
             if lcl_1:
-                lcl_1 = None
+                lcl_1 = rbnf_named__check_1
             else:
-                rbnf_tmp_1 = rbnf_named__check_1
+                lcl_2 = rbnf_named__check_1[1]
+                rbnf_tmp_1 = lcl_2
                 try:
                     _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
                     if (_rbnf_cur_token.idint is 1):
@@ -337,10 +375,15 @@ def mk_parser():
                 rbnf_tmp_2 = lcl_2
                 lcl_2 = (rbnf_tmp_2 is None)
                 if lcl_2:
-                    lcl_2 = None
+                    lcl_3 = builtin_tokens.offset
+                    lcl_3 = (lcl_3, 'EOF not match')
+                    lcl_3 = builtin_cons(lcl_3, builtin_nil)
+                    lcl_3 = (False, lcl_3)
+                    lcl_2 = lcl_3
                 else:
                     rbnf_tmp_1_ = rbnf_tmp_1
-                    lcl_2 = rbnf_tmp_1_
+                    lcl_3 = (True, rbnf_tmp_1_)
+                    lcl_2 = lcl_3
                 lcl_1 = lcl_2
             lcl_0 = lcl_1
         return lcl_0
@@ -348,13 +391,16 @@ def mk_parser():
     def rbnf_named_parse_arith(builtin_state, builtin_tokens):
         lcl_0 = rbnf_named_parse_rbnfmacro_1(builtin_state, builtin_tokens)
         rbnf_named__check_0 = lcl_0
-        lcl_0 = (rbnf_named__check_0 is None)
+        lcl_0 = rbnf_named__check_0[0]
+        lcl_0 = (lcl_0 == False)
         if lcl_0:
-            lcl_0 = None
+            lcl_0 = rbnf_named__check_0
         else:
-            rbnf_tmp_0 = rbnf_named__check_0
+            lcl_1 = rbnf_named__check_0[1]
+            rbnf_tmp_0 = lcl_1
             rbnf_tmp_1_ = rbnf_tmp_0
-            lcl_0 = rbnf_tmp_1_
+            lcl_1 = (True, rbnf_tmp_1_)
+            lcl_0 = lcl_1
         return lcl_0
 
     def rbnf_named_parse_atom(builtin_state, builtin_tokens):
@@ -377,11 +423,13 @@ def mk_parser():
                 rbnf_tmp_0 = lcl_3
                 lcl_3 = rbnf_named_parse_arith(builtin_state, builtin_tokens)
                 rbnf_named__check_1 = lcl_3
-                lcl_3 = (rbnf_named__check_1 is None)
+                lcl_3 = rbnf_named__check_1[0]
+                lcl_3 = (lcl_3 == False)
                 if lcl_3:
-                    lcl_3 = None
+                    lcl_3 = rbnf_named__check_1
                 else:
-                    rbnf_tmp_1 = rbnf_named__check_1
+                    lcl_4 = rbnf_named__check_1[1]
+                    rbnf_tmp_1 = lcl_4
                     try:
                         _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
                         if (_rbnf_cur_token.idint is 4):
@@ -394,10 +442,15 @@ def mk_parser():
                     rbnf_tmp_2 = lcl_4
                     lcl_4 = (rbnf_tmp_2 is None)
                     if lcl_4:
-                        lcl_4 = None
+                        lcl_5 = builtin_tokens.offset
+                        lcl_5 = (lcl_5, 'quote ) not match')
+                        lcl_5 = builtin_cons(lcl_5, builtin_nil)
+                        lcl_5 = (False, lcl_5)
+                        lcl_4 = lcl_5
                     else:
                         rbnf_tmp_1_ = rbnf_tmp_1
-                        lcl_4 = rbnf_tmp_1_
+                        lcl_5 = (True, rbnf_tmp_1_)
+                        lcl_4 = lcl_5
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif (lcl_2 == 2):
@@ -408,22 +461,31 @@ def mk_parser():
                 rbnf_tmp_0 = lcl_3
                 lcl_3 = unwrap(rbnf_tmp_0)
                 rbnf_tmp_1_ = lcl_3
-                lcl_1 = rbnf_tmp_1_
+                lcl_3 = (True, rbnf_tmp_1_)
+                lcl_1 = lcl_3
             else:
-                lcl_1 = None
+                lcl_3 = (rbnf_named__off_0, 'atom lookahead failed')
+                lcl_3 = builtin_cons(lcl_3, builtin_nil)
+                lcl_3 = (False, lcl_3)
+                lcl_1 = lcl_3
             lcl_0 = lcl_1
         else:
-            lcl_0 = None
+            lcl_1 = (rbnf_named__off_0, 'atom got EOF')
+            lcl_1 = builtin_cons(lcl_1, builtin_nil)
+            lcl_1 = (False, lcl_1)
+            lcl_0 = lcl_1
         return lcl_0
 
     def rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens):
         lcl_0 = rbnf_named_parse_atom(builtin_state, builtin_tokens)
         rbnf_named__check_0 = lcl_0
-        lcl_0 = (rbnf_named__check_0 is None)
+        lcl_0 = rbnf_named__check_0[0]
+        lcl_0 = (lcl_0 == False)
         if lcl_0:
-            lcl_0 = None
+            lcl_0 = rbnf_named__check_0
         else:
-            rbnf_tmp_0 = rbnf_named__check_0
+            lcl_1 = rbnf_named__check_0[1]
+            rbnf_tmp_0 = lcl_1
             rbnf_tmp_1_ = rbnf_tmp_0
             lcl_1 = rbnf_named_lr_loop_rbnfmacro_0(rbnf_tmp_1_, builtin_state, builtin_tokens)
             lcl_0 = lcl_1
@@ -432,11 +494,13 @@ def mk_parser():
     def rbnf_named_parse_rbnfmacro_1(builtin_state, builtin_tokens):
         lcl_0 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
         rbnf_named__check_0 = lcl_0
-        lcl_0 = (rbnf_named__check_0 is None)
+        lcl_0 = rbnf_named__check_0[0]
+        lcl_0 = (lcl_0 == False)
         if lcl_0:
-            lcl_0 = None
+            lcl_0 = rbnf_named__check_0
         else:
-            rbnf_tmp_0 = rbnf_named__check_0
+            lcl_1 = rbnf_named__check_0[1]
+            rbnf_tmp_0 = lcl_1
             rbnf_tmp_1_ = rbnf_tmp_0
             lcl_1 = rbnf_named_lr_loop_rbnfmacro_1(rbnf_tmp_1_, builtin_state, builtin_tokens)
             lcl_0 = lcl_1

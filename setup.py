@@ -17,16 +17,21 @@ setup(
     author_email='twshere@outlook.com',
     py_modules=[
         "fffparser_template",
-        "ffflex_template",
         "ffflex_parser",
+        "ffflex_lex",
+        "ffflex_include",
         "ffflex",
+        
+        "ffflex_template",
         "fffbnf_parser",
+        "fffbnf_lex",
+        "fffbnf_include",
         "fffbnf",
+        
         "fffpylinker",
         "fffmain",
-
     ],
-    install_requires=['ast-compat', 'wisepy2', 'rbnf-rts', "attrs"],
+    install_requires=['ast-compat', 'wisepy2', "attrs"],
     entry_points = {
          "console_scripts": [
              "ffflex=ffflex:entry",

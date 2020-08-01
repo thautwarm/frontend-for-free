@@ -1,7 +1,5 @@
 WS \s+
-QuotedStr "([^\\"]+|\\.)*?"|'([^\\']+|\\.)*?'
-Ident [a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*
+QuotedStr "([^\\\"]+|\\.)*?"|'([^\\\']+|\\.)*?'
+Ident [a-zA-Z_][a-zA-Z0-9_]*
 
 %ignore WS
-%require literal
-%require unesc

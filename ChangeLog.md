@@ -1,5 +1,14 @@
 # Changelog for RBNF
 
+## v0.4.2
+
+1. Allow various kinds of definition marks:
+    - `:=`
+    - `::=`: classic BNF style
+    - `:`: ANTRL style
+
+2. Bootstrap via the package itself and remove dep `rbnf-rts`.
+
 ## v0.4
 
 1. Definition mark changed from `:=` to `:`.

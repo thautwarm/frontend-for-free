@@ -1,2 +1,1 @@
-fff arith.rbnf
-python test.py
+fff arith.rbnf --trace && python test.py

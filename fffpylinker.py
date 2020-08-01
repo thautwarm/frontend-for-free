@@ -1,8 +1,9 @@
 from typing import TypeVar, Dict, Optional, Iterable
-import ast_compat as astc
 import pathlib
 import copy
-import ast
+import types
+ast = types.ModuleType("ast")
+ast.__dict__.update({**__import__("ast").__dict__, **__import__("ast_compat").__dict__})
 
 LICENSE = '''
 """
@@ -274,7 +275,7 @@ def main(require_file, filename, out, *, params:str=''):
     with open(out, 'w') as f, open(require_file) as r:
         f.write(LICENSE)
         f.write(r.read())
-        f.write(astc.unparse(link(genast, params)))
+        f.write(ast.unparse(link(genast, params)))
 
 def entry():
     from wisepy2 import wise

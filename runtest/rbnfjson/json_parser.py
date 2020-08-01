@@ -152,7 +152,7 @@ def mk_parser():
     def rbnf_named_lr_step_rbnfmacro_0(rbnf_tmp_0, builtin_state, builtin_tokens):
         try:
             _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-            if (_rbnf_cur_token.idint is 10):
+            if (_rbnf_cur_token.idint is 8):
                 builtin_tokens.offset += 1
             else:
                 _rbnf_cur_token = None
@@ -215,7 +215,7 @@ def mk_parser():
     def rbnf_named_lr_step_rbnfmacro_1(rbnf_tmp_0, builtin_state, builtin_tokens):
         try:
             _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-            if (_rbnf_cur_token.idint is 10):
+            if (_rbnf_cur_token.idint is 8):
                 builtin_tokens.offset += 1
             else:
                 _rbnf_cur_token = None
@@ -276,62 +276,24 @@ def mk_parser():
         return lcl_0
 
     def rbnf_named_parse_START(builtin_state, builtin_tokens):
-        try:
-            _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-            if (_rbnf_cur_token.idint is 0):
-                builtin_tokens.offset += 1
-            else:
-                _rbnf_cur_token = None
-        except IndexError:
-            _rbnf_cur_token = None
-        lcl_0 = _rbnf_cur_token
-        rbnf_tmp_0 = lcl_0
-        lcl_0 = (rbnf_tmp_0 is None)
+        lcl_0 = rbnf_named_parse_value(builtin_state, builtin_tokens)
+        rbnf_named__check_0 = lcl_0
+        lcl_0 = rbnf_named__check_0[0]
+        lcl_0 = (lcl_0 == False)
         if lcl_0:
-            lcl_1 = builtin_tokens.offset
-            lcl_1 = (lcl_1, 'BOF not match')
-            lcl_1 = builtin_cons(lcl_1, builtin_nil)
-            lcl_1 = (False, lcl_1)
-            lcl_0 = lcl_1
+            lcl_0 = rbnf_named__check_0
         else:
-            lcl_1 = rbnf_named_parse_value(builtin_state, builtin_tokens)
-            rbnf_named__check_1 = lcl_1
-            lcl_1 = rbnf_named__check_1[0]
-            lcl_1 = (lcl_1 == False)
-            if lcl_1:
-                lcl_1 = rbnf_named__check_1
-            else:
-                lcl_2 = rbnf_named__check_1[1]
-                rbnf_tmp_1 = lcl_2
-                try:
-                    _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                    if (_rbnf_cur_token.idint is 1):
-                        builtin_tokens.offset += 1
-                    else:
-                        _rbnf_cur_token = None
-                except IndexError:
-                    _rbnf_cur_token = None
-                lcl_2 = _rbnf_cur_token
-                rbnf_tmp_2 = lcl_2
-                lcl_2 = (rbnf_tmp_2 is None)
-                if lcl_2:
-                    lcl_3 = builtin_tokens.offset
-                    lcl_3 = (lcl_3, 'EOF not match')
-                    lcl_3 = builtin_cons(lcl_3, builtin_nil)
-                    lcl_3 = (False, lcl_3)
-                    lcl_2 = lcl_3
-                else:
-                    rbnf_tmp_1_ = rbnf_tmp_1
-                    lcl_3 = (True, rbnf_tmp_1_)
-                    lcl_2 = lcl_3
-                lcl_1 = lcl_2
+            lcl_1 = rbnf_named__check_0[1]
+            rbnf_tmp_0 = lcl_1
+            rbnf_tmp_1_ = rbnf_tmp_0
+            lcl_1 = (True, rbnf_tmp_1_)
             lcl_0 = lcl_1
         return lcl_0
 
     def rbnf_named_parse_pair(builtin_state, builtin_tokens):
         try:
             _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-            if (_rbnf_cur_token.idint is 2):
+            if (_rbnf_cur_token.idint is 0):
                 builtin_tokens.offset += 1
             else:
                 _rbnf_cur_token = None
@@ -349,7 +311,7 @@ def mk_parser():
         else:
             try:
                 _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                if (_rbnf_cur_token.idint is 13):
+                if (_rbnf_cur_token.idint is 11):
                     builtin_tokens.offset += 1
                 else:
                     _rbnf_cur_token = None
@@ -434,7 +396,7 @@ def mk_parser():
         if lcl_0:
             lcl_2 = builtin_tokens.array[(builtin_tokens.offset + 0)]
             lcl_2 = lcl_2.idint
-            if (lcl_2 == 11):
+            if (lcl_2 == 9):
                 _rbnf_old_offset = builtin_tokens.offset
                 _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                 builtin_tokens.offset = (_rbnf_old_offset + 1)
@@ -451,7 +413,7 @@ def mk_parser():
                 if lcl_3:
                     lcl_5 = builtin_tokens.array[(builtin_tokens.offset + 0)]
                     lcl_5 = lcl_5.idint
-                    if (lcl_5 == 12):
+                    if (lcl_5 == 10):
                         _rbnf_old_offset = builtin_tokens.offset
                         _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                         builtin_tokens.offset = (_rbnf_old_offset + 1)
@@ -461,7 +423,7 @@ def mk_parser():
                         rbnf_tmp_1_ = lcl_6
                         lcl_6 = (True, rbnf_tmp_1_)
                         lcl_4 = lcl_6
-                    elif (lcl_5 == 2):
+                    elif (lcl_5 == 0):
                         lcl_6 = rbnf_named_parse_rbnfmacro_1(builtin_state, builtin_tokens)
                         rbnf_named__check_1 = lcl_6
                         lcl_6 = rbnf_named__check_1[0]
@@ -473,7 +435,7 @@ def mk_parser():
                             rbnf_tmp_1 = lcl_7
                             try:
                                 _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 12):
+                                if (_rbnf_cur_token.idint is 10):
                                     builtin_tokens.offset += 1
                                 else:
                                     _rbnf_cur_token = None
@@ -507,7 +469,7 @@ def mk_parser():
                     lcl_4 = (False, lcl_4)
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 5):
+            elif (lcl_2 == 3):
                 _rbnf_old_offset = builtin_tokens.offset
                 _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                 builtin_tokens.offset = (_rbnf_old_offset + 1)
@@ -516,7 +478,7 @@ def mk_parser():
                 rbnf_tmp_1_ = True
                 lcl_3 = (True, rbnf_tmp_1_)
                 lcl_1 = lcl_3
-            elif (lcl_2 == 6):
+            elif (lcl_2 == 4):
                 _rbnf_old_offset = builtin_tokens.offset
                 _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                 builtin_tokens.offset = (_rbnf_old_offset + 1)
@@ -525,7 +487,7 @@ def mk_parser():
                 rbnf_tmp_1_ = None
                 lcl_3 = (True, rbnf_tmp_1_)
                 lcl_1 = lcl_3
-            elif (lcl_2 == 7):
+            elif (lcl_2 == 5):
                 _rbnf_old_offset = builtin_tokens.offset
                 _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                 builtin_tokens.offset = (_rbnf_old_offset + 1)
@@ -534,7 +496,7 @@ def mk_parser():
                 rbnf_tmp_1_ = False
                 lcl_3 = (True, rbnf_tmp_1_)
                 lcl_1 = lcl_3
-            elif (lcl_2 == 8):
+            elif (lcl_2 == 6):
                 _rbnf_old_offset = builtin_tokens.offset
                 _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                 builtin_tokens.offset = (_rbnf_old_offset + 1)
@@ -551,7 +513,7 @@ def mk_parser():
                 if lcl_3:
                     lcl_5 = builtin_tokens.array[(builtin_tokens.offset + 0)]
                     lcl_5 = lcl_5.idint
-                    if (lcl_5 == 11):
+                    if (lcl_5 == 9):
                         lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
                         rbnf_named__check_1 = lcl_6
                         lcl_6 = rbnf_named__check_1[0]
@@ -563,149 +525,7 @@ def mk_parser():
                             rbnf_tmp_1 = lcl_7
                             try:
                                 _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 9):
-                                    builtin_tokens.offset += 1
-                                else:
-                                    _rbnf_cur_token = None
-                            except IndexError:
-                                _rbnf_cur_token = None
-                            lcl_7 = _rbnf_cur_token
-                            rbnf_tmp_2 = lcl_7
-                            lcl_7 = (rbnf_tmp_2 is None)
-                            if lcl_7:
-                                lcl_8 = builtin_tokens.offset
-                                lcl_8 = (lcl_8, 'quote ] not match')
-                                lcl_8 = builtin_cons(lcl_8, builtin_nil)
-                                lcl_8 = (False, lcl_8)
-                                lcl_7 = lcl_8
-                            else:
-                                rbnf_tmp_1_ = rbnf_tmp_1
-                                lcl_8 = (True, rbnf_tmp_1_)
-                                lcl_7 = lcl_8
-                            lcl_6 = lcl_7
-                        lcl_4 = lcl_6
-                    elif (lcl_5 == 5):
-                        lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
-                        rbnf_named__check_1 = lcl_6
-                        lcl_6 = rbnf_named__check_1[0]
-                        lcl_6 = (lcl_6 == False)
-                        if lcl_6:
-                            lcl_6 = rbnf_named__check_1
-                        else:
-                            lcl_7 = rbnf_named__check_1[1]
-                            rbnf_tmp_1 = lcl_7
-                            try:
-                                _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 9):
-                                    builtin_tokens.offset += 1
-                                else:
-                                    _rbnf_cur_token = None
-                            except IndexError:
-                                _rbnf_cur_token = None
-                            lcl_7 = _rbnf_cur_token
-                            rbnf_tmp_2 = lcl_7
-                            lcl_7 = (rbnf_tmp_2 is None)
-                            if lcl_7:
-                                lcl_8 = builtin_tokens.offset
-                                lcl_8 = (lcl_8, 'quote ] not match')
-                                lcl_8 = builtin_cons(lcl_8, builtin_nil)
-                                lcl_8 = (False, lcl_8)
-                                lcl_7 = lcl_8
-                            else:
-                                rbnf_tmp_1_ = rbnf_tmp_1
-                                lcl_8 = (True, rbnf_tmp_1_)
-                                lcl_7 = lcl_8
-                            lcl_6 = lcl_7
-                        lcl_4 = lcl_6
-                    elif (lcl_5 == 6):
-                        lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
-                        rbnf_named__check_1 = lcl_6
-                        lcl_6 = rbnf_named__check_1[0]
-                        lcl_6 = (lcl_6 == False)
-                        if lcl_6:
-                            lcl_6 = rbnf_named__check_1
-                        else:
-                            lcl_7 = rbnf_named__check_1[1]
-                            rbnf_tmp_1 = lcl_7
-                            try:
-                                _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 9):
-                                    builtin_tokens.offset += 1
-                                else:
-                                    _rbnf_cur_token = None
-                            except IndexError:
-                                _rbnf_cur_token = None
-                            lcl_7 = _rbnf_cur_token
-                            rbnf_tmp_2 = lcl_7
-                            lcl_7 = (rbnf_tmp_2 is None)
-                            if lcl_7:
-                                lcl_8 = builtin_tokens.offset
-                                lcl_8 = (lcl_8, 'quote ] not match')
-                                lcl_8 = builtin_cons(lcl_8, builtin_nil)
-                                lcl_8 = (False, lcl_8)
-                                lcl_7 = lcl_8
-                            else:
-                                rbnf_tmp_1_ = rbnf_tmp_1
-                                lcl_8 = (True, rbnf_tmp_1_)
-                                lcl_7 = lcl_8
-                            lcl_6 = lcl_7
-                        lcl_4 = lcl_6
-                    elif (lcl_5 == 7):
-                        lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
-                        rbnf_named__check_1 = lcl_6
-                        lcl_6 = rbnf_named__check_1[0]
-                        lcl_6 = (lcl_6 == False)
-                        if lcl_6:
-                            lcl_6 = rbnf_named__check_1
-                        else:
-                            lcl_7 = rbnf_named__check_1[1]
-                            rbnf_tmp_1 = lcl_7
-                            try:
-                                _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 9):
-                                    builtin_tokens.offset += 1
-                                else:
-                                    _rbnf_cur_token = None
-                            except IndexError:
-                                _rbnf_cur_token = None
-                            lcl_7 = _rbnf_cur_token
-                            rbnf_tmp_2 = lcl_7
-                            lcl_7 = (rbnf_tmp_2 is None)
-                            if lcl_7:
-                                lcl_8 = builtin_tokens.offset
-                                lcl_8 = (lcl_8, 'quote ] not match')
-                                lcl_8 = builtin_cons(lcl_8, builtin_nil)
-                                lcl_8 = (False, lcl_8)
-                                lcl_7 = lcl_8
-                            else:
-                                rbnf_tmp_1_ = rbnf_tmp_1
-                                lcl_8 = (True, rbnf_tmp_1_)
-                                lcl_7 = lcl_8
-                            lcl_6 = lcl_7
-                        lcl_4 = lcl_6
-                    elif (lcl_5 == 9):
-                        _rbnf_old_offset = builtin_tokens.offset
-                        _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
-                        builtin_tokens.offset = (_rbnf_old_offset + 1)
-                        lcl_6 = _rbnf_cur_token
-                        rbnf_tmp_1 = lcl_6
-                        lcl_6 = []
-                        rbnf_tmp_1_ = lcl_6
-                        lcl_6 = (True, rbnf_tmp_1_)
-                        lcl_4 = lcl_6
-                    elif (lcl_5 == 8):
-                        lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
-                        rbnf_named__check_1 = lcl_6
-                        lcl_6 = rbnf_named__check_1[0]
-                        lcl_6 = (lcl_6 == False)
-                        if lcl_6:
-                            lcl_6 = rbnf_named__check_1
-                        else:
-                            lcl_7 = rbnf_named__check_1[1]
-                            rbnf_tmp_1 = lcl_7
-                            try:
-                                _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 9):
+                                if (_rbnf_cur_token.idint is 7):
                                     builtin_tokens.offset += 1
                                 else:
                                     _rbnf_cur_token = None
@@ -738,7 +558,7 @@ def mk_parser():
                             rbnf_tmp_1 = lcl_7
                             try:
                                 _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 9):
+                                if (_rbnf_cur_token.idint is 7):
                                     builtin_tokens.offset += 1
                                 else:
                                     _rbnf_cur_token = None
@@ -771,7 +591,116 @@ def mk_parser():
                             rbnf_tmp_1 = lcl_7
                             try:
                                 _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 9):
+                                if (_rbnf_cur_token.idint is 7):
+                                    builtin_tokens.offset += 1
+                                else:
+                                    _rbnf_cur_token = None
+                            except IndexError:
+                                _rbnf_cur_token = None
+                            lcl_7 = _rbnf_cur_token
+                            rbnf_tmp_2 = lcl_7
+                            lcl_7 = (rbnf_tmp_2 is None)
+                            if lcl_7:
+                                lcl_8 = builtin_tokens.offset
+                                lcl_8 = (lcl_8, 'quote ] not match')
+                                lcl_8 = builtin_cons(lcl_8, builtin_nil)
+                                lcl_8 = (False, lcl_8)
+                                lcl_7 = lcl_8
+                            else:
+                                rbnf_tmp_1_ = rbnf_tmp_1
+                                lcl_8 = (True, rbnf_tmp_1_)
+                                lcl_7 = lcl_8
+                            lcl_6 = lcl_7
+                        lcl_4 = lcl_6
+                    elif (lcl_5 == 5):
+                        lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
+                        rbnf_named__check_1 = lcl_6
+                        lcl_6 = rbnf_named__check_1[0]
+                        lcl_6 = (lcl_6 == False)
+                        if lcl_6:
+                            lcl_6 = rbnf_named__check_1
+                        else:
+                            lcl_7 = rbnf_named__check_1[1]
+                            rbnf_tmp_1 = lcl_7
+                            try:
+                                _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
+                                if (_rbnf_cur_token.idint is 7):
+                                    builtin_tokens.offset += 1
+                                else:
+                                    _rbnf_cur_token = None
+                            except IndexError:
+                                _rbnf_cur_token = None
+                            lcl_7 = _rbnf_cur_token
+                            rbnf_tmp_2 = lcl_7
+                            lcl_7 = (rbnf_tmp_2 is None)
+                            if lcl_7:
+                                lcl_8 = builtin_tokens.offset
+                                lcl_8 = (lcl_8, 'quote ] not match')
+                                lcl_8 = builtin_cons(lcl_8, builtin_nil)
+                                lcl_8 = (False, lcl_8)
+                                lcl_7 = lcl_8
+                            else:
+                                rbnf_tmp_1_ = rbnf_tmp_1
+                                lcl_8 = (True, rbnf_tmp_1_)
+                                lcl_7 = lcl_8
+                            lcl_6 = lcl_7
+                        lcl_4 = lcl_6
+                    elif (lcl_5 == 7):
+                        _rbnf_old_offset = builtin_tokens.offset
+                        _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
+                        builtin_tokens.offset = (_rbnf_old_offset + 1)
+                        lcl_6 = _rbnf_cur_token
+                        rbnf_tmp_1 = lcl_6
+                        lcl_6 = []
+                        rbnf_tmp_1_ = lcl_6
+                        lcl_6 = (True, rbnf_tmp_1_)
+                        lcl_4 = lcl_6
+                    elif (lcl_5 == 6):
+                        lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
+                        rbnf_named__check_1 = lcl_6
+                        lcl_6 = rbnf_named__check_1[0]
+                        lcl_6 = (lcl_6 == False)
+                        if lcl_6:
+                            lcl_6 = rbnf_named__check_1
+                        else:
+                            lcl_7 = rbnf_named__check_1[1]
+                            rbnf_tmp_1 = lcl_7
+                            try:
+                                _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
+                                if (_rbnf_cur_token.idint is 7):
+                                    builtin_tokens.offset += 1
+                                else:
+                                    _rbnf_cur_token = None
+                            except IndexError:
+                                _rbnf_cur_token = None
+                            lcl_7 = _rbnf_cur_token
+                            rbnf_tmp_2 = lcl_7
+                            lcl_7 = (rbnf_tmp_2 is None)
+                            if lcl_7:
+                                lcl_8 = builtin_tokens.offset
+                                lcl_8 = (lcl_8, 'quote ] not match')
+                                lcl_8 = builtin_cons(lcl_8, builtin_nil)
+                                lcl_8 = (False, lcl_8)
+                                lcl_7 = lcl_8
+                            else:
+                                rbnf_tmp_1_ = rbnf_tmp_1
+                                lcl_8 = (True, rbnf_tmp_1_)
+                                lcl_7 = lcl_8
+                            lcl_6 = lcl_7
+                        lcl_4 = lcl_6
+                    elif (lcl_5 == 1):
+                        lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
+                        rbnf_named__check_1 = lcl_6
+                        lcl_6 = rbnf_named__check_1[0]
+                        lcl_6 = (lcl_6 == False)
+                        if lcl_6:
+                            lcl_6 = rbnf_named__check_1
+                        else:
+                            lcl_7 = rbnf_named__check_1[1]
+                            rbnf_tmp_1 = lcl_7
+                            try:
+                                _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
+                                if (_rbnf_cur_token.idint is 7):
                                     builtin_tokens.offset += 1
                                 else:
                                     _rbnf_cur_token = None
@@ -804,7 +733,40 @@ def mk_parser():
                             rbnf_tmp_1 = lcl_7
                             try:
                                 _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
-                                if (_rbnf_cur_token.idint is 9):
+                                if (_rbnf_cur_token.idint is 7):
+                                    builtin_tokens.offset += 1
+                                else:
+                                    _rbnf_cur_token = None
+                            except IndexError:
+                                _rbnf_cur_token = None
+                            lcl_7 = _rbnf_cur_token
+                            rbnf_tmp_2 = lcl_7
+                            lcl_7 = (rbnf_tmp_2 is None)
+                            if lcl_7:
+                                lcl_8 = builtin_tokens.offset
+                                lcl_8 = (lcl_8, 'quote ] not match')
+                                lcl_8 = builtin_cons(lcl_8, builtin_nil)
+                                lcl_8 = (False, lcl_8)
+                                lcl_7 = lcl_8
+                            else:
+                                rbnf_tmp_1_ = rbnf_tmp_1
+                                lcl_8 = (True, rbnf_tmp_1_)
+                                lcl_7 = lcl_8
+                            lcl_6 = lcl_7
+                        lcl_4 = lcl_6
+                    elif (lcl_5 == 0):
+                        lcl_6 = rbnf_named_parse_rbnfmacro_0(builtin_state, builtin_tokens)
+                        rbnf_named__check_1 = lcl_6
+                        lcl_6 = rbnf_named__check_1[0]
+                        lcl_6 = (lcl_6 == False)
+                        if lcl_6:
+                            lcl_6 = rbnf_named__check_1
+                        else:
+                            lcl_7 = rbnf_named__check_1[1]
+                            rbnf_tmp_1 = lcl_7
+                            try:
+                                _rbnf_cur_token = builtin_tokens.array[builtin_tokens.offset]
+                                if (_rbnf_cur_token.idint is 7):
                                     builtin_tokens.offset += 1
                                 else:
                                     _rbnf_cur_token = None
@@ -837,7 +799,7 @@ def mk_parser():
                     lcl_4 = (False, lcl_4)
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
-            elif (lcl_2 == 3):
+            elif (lcl_2 == 1):
                 _rbnf_old_offset = builtin_tokens.offset
                 _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                 builtin_tokens.offset = (_rbnf_old_offset + 1)
@@ -848,7 +810,7 @@ def mk_parser():
                 rbnf_tmp_1_ = lcl_3
                 lcl_3 = (True, rbnf_tmp_1_)
                 lcl_1 = lcl_3
-            elif (lcl_2 == 4):
+            elif (lcl_2 == 2):
                 _rbnf_old_offset = builtin_tokens.offset
                 _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                 builtin_tokens.offset = (_rbnf_old_offset + 1)
@@ -859,7 +821,7 @@ def mk_parser():
                 rbnf_tmp_1_ = lcl_3
                 lcl_3 = (True, rbnf_tmp_1_)
                 lcl_1 = lcl_3
-            elif (lcl_2 == 2):
+            elif (lcl_2 == 0):
                 _rbnf_old_offset = builtin_tokens.offset
                 _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
                 builtin_tokens.offset = (_rbnf_old_offset + 1)

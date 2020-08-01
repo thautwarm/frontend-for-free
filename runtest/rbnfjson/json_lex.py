@@ -50,7 +50,7 @@ class Token:
             )
         )
 
-def lexer(filename, text: str, pos=0):
+def lexer(filename, text: str, *, pos=0, use_bof=True, use_eof=True):
     text_length = len(text)
     colno = 0
     lineno = 0
@@ -59,8 +59,10 @@ def lexer(filename, text: str, pos=0):
     ignores = IGNORES
     unionall_info = UNIONALL_INFO
     _Token = Token
-    tokens = [_Token(0, 0, 0, filename, BOF, "")]
+    tokens = []
     append = tokens.append
+    if use_bof:
+        append(_Token(0, 0, 0, filename, BOF, ""))
     while True:
         if text_length <= pos:
             break
@@ -103,10 +105,11 @@ def lexer(filename, text: str, pos=0):
             colno += n
         pos += n
 
-    append(Token(pos, lineno, colno, filename, EOF, ""))
+    if use_eof:
+        append(Token(pos, lineno, colno, filename, EOF, ""))
     return tokens
 
-def lexer_lazy_bytes(filename, text: bytes, pos=0):
+def lexer_lazy_bytes(filename, text: bytes, *, pos=0, use_bof=True, use_eof=True):
     text_length = len(text)
     colno = 0
     lineno = 0
@@ -114,7 +117,8 @@ def lexer_lazy_bytes(filename, text: bytes, pos=0):
     ignores = IGNORES
     unionall_info = UNIONALL_INFO_BYTES
     _Token = Token
-    yield _Token(0, 0, 0, filename, BOF, b"")
+    if use_bof:
+        yield _Token(0, 0, 0, filename, BOF, b"")
     
     while True:
         if text_length <= pos:
@@ -158,13 +162,15 @@ def lexer_lazy_bytes(filename, text: bytes, pos=0):
             colno += n
         pos += n
 
-    yield _Token(pos, lineno, colno, filename, EOF, "")
-EOF = 1
-BOF = 0
+    if use_eof:
+        yield _Token(pos, lineno, colno, filename, EOF, "")
+
+EOF = 13
+BOF = 12
 REGEX = '(\\s+)|("([^\\\\"]+|\\\\.)*?")|([-+]?[0-9]+\\.\\d+([eE][-+]?\\d+)?|[-+]?[0-9]+[eE][-+]?\\d+)|([-+]?[0-9]+)|(\\})|(\\{)|(true)|(null)|(false)|(\\])|(\\[)|(:)|(,)'
 REGEX_STR = __import__('re').compile(REGEX)
 REGEX_BYTES = __import__('re').compile(REGEX.encode())
 IGNORES = (14,)
-UNIONALL_INFO = ((None, None), (14, None), (2, None), (None, None), (4, None), (None, None), (3, None), (12, None), (11, None), (5, None), (6, None), (7, None), (9, None), (8, None), (13, None), (10, None))
-UNIONALL_INFO_BYTES = ((None, None), (14, None), (2, None), (None, None), (4, None), (None, None), (3, None), (12, None), (11, None), (5, None), (6, None), (7, None), (9, None), (8, None), (13, None), (10, None))
-numbering = {'BOF': 0, 'EOF': 1, 'ESCAPED_STRING': 2, 'SIGNED_INT': 3, 'SIGNED_FLOAT': 4, 'quote true': 5, 'quote null': 6, 'quote false': 7, 'quote [': 8, 'quote ]': 9, 'quote ,': 10, 'quote {': 11, 'quote }': 12, 'quote :': 13, 'WS': 14}
+UNIONALL_INFO = ((None, None), (14, None), (0, None), (None, None), (2, None), (None, None), (1, None), (10, None), (9, None), (3, None), (4, None), (5, None), (7, None), (6, None), (11, None), (8, None))
+UNIONALL_INFO_BYTES = ((None, None), (14, None), (0, None), (None, None), (2, None), (None, None), (1, None), (10, None), (9, None), (3, None), (4, None), (5, None), (7, None), (6, None), (11, None), (8, None))
+numbering = {'ESCAPED_STRING': 0, 'SIGNED_INT': 1, 'SIGNED_FLOAT': 2, 'quote true': 3, 'quote null': 4, 'quote false': 5, 'quote [': 6, 'quote ]': 7, 'quote ,': 8, 'quote {': 9, 'quote }': 10, 'quote :': 11, 'BOF': 12, 'EOF': 13, 'WS': 14}

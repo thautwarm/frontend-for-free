@@ -56,6 +56,3 @@ A framework for generating context-free parsers with following properties:
 Currently, 
 - the parser generator support for a programming language is hard coded in `src/RBNF/BackEnds/<LanguageName>.hs`.
 - the lexer generator support for a programming language is hard coded in `ffflex.py`.
-
-   
-       

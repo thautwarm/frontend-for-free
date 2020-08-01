@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5e5ae3678f9e9012d9baca2350cb73441af7ac1ab000c50569005a44b0fecaa2
+-- hash: d2168876000e9a87a8a124843e87bd602754c358a738d87be02eaa34a59bbe6a
 
 name:           RBNF
 version:        0.1.0.0
@@ -69,9 +69,8 @@ library
     ghc-options: -Wall -O2
     ld-options: -pthread -Wall
   else
-    ghc-options: -Wall -O2 -static
-    cc-options: -static
-    ld-options: -static -pthread -Wall
+    ghc-options: -Wall -O2
+    ld-options: -pthread -Wall
   default-language: Haskell2010
 
 executable fff-lex
@@ -99,9 +98,8 @@ executable fff-lex
     ghc-options: -Wall -O2
     ld-options: -pthread -Wall
   else
-    ghc-options: -Wall -O2 -static
-    cc-options: -static
-    ld-options: -static -pthread -Wall
+    ghc-options: -Wall -O2
+    ld-options: -pthread -Wall
   default-language: Haskell2010
 
 executable fff-pgen
@@ -129,38 +127,6 @@ executable fff-pgen
     ghc-options: -Wall -O2
     ld-options: -pthread -Wall
   else
-    ghc-options: -Wall -O2 -static
-    cc-options: -static
-    ld-options: -static -pthread -Wall
-  default-language: Haskell2010
-
-test-suite RBNF-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_RBNF
-  hs-source-dirs:
-      test
-  default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
-  ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      RBNF
-    , aeson
-    , base >=4.7 && <5
-    , containers
-    , lens
-    , mtl
-    , parsec
-    , prettyprinter
-    , text
-    , transformers
-    , utf8-string
-    , vector
-  if os(darwin)
     ghc-options: -Wall -O2
     ld-options: -pthread -Wall
-  else
-    ghc-options: -Wall -O2 -static
-    cc-options: -static
-    ld-options: -static -pthread -Wall
   default-language: Haskell2010

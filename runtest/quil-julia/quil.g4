@@ -258,7 +258,6 @@ UNDERSCORE          : '_' ;
 
 # Whitespace
 
-TAB                 : <TAB> ;
 NEWLINE             : <NEWLINE> ;
 
 # Skips

@@ -68,7 +68,6 @@ quote %
 quote @
 quote "
 quote _
-TAB
 NEWLINE
 COMMENT
 SPACE

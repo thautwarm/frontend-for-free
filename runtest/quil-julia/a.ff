@@ -184,7 +184,6 @@
 , ("AT", (CTerm "quote @"), Nothing)
 , ("QUOTE", (CTerm "quote \""), Nothing)
 , ("UNDERSCORE", (CTerm "quote _"), Nothing)
-, ("TAB", (CTerm "TAB"), Nothing)
 , ("NEWLINE", (CTerm "NEWLINE"), Nothing)
 , ("COMMENT", (CTerm "COMMENT"), Nothing)
 , ("SPACE", (CTerm "SPACE"), Nothing)

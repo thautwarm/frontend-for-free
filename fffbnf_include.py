@@ -374,30 +374,31 @@ def parse(text: str, filename: str = "unknown"):
     raise e
 
 
-def build(filename: str, out_req: str, out_ff: str, *, lang: str):
+def build(filename: str, out_req: str, out_ff: str, lang: str = "python", parseronly: bool=False):
     with open(filename) as f:
         text = f.read()
     readable, includes, params = Interpreter.build(parse(text, filename=filename))
-    parent_dir = pathlib.Path(filename).parent
-    with open(out_req, "w") as f:
-        for required_lang, files in includes:
-            if required_lang is None or required_lang == lang:
-                pass
-            else:
-                continue
-            for include in files:
-                if isinstance(include, tuple):
-                    [include, _] = include
-                    f.write(include[len("%%inline"):-len("%%")])
+    if not parseronly:
+        parent_dir = pathlib.Path(filename).parent
+        with open(out_req, "w") as f:
+            for required_lang, files in includes:
+                if required_lang is None or required_lang == lang:
+                    pass
+                else:
                     continue
+                for include in files:
+                    if isinstance(include, tuple):
+                        [include, _] = include
+                        f.write(include[len("%%inline"):-len("%%")])
+                        continue
 
-                include = parent_dir / include
-                try:
-                    with include.open() as r:
-                        f.write(r.read())
-                        f.write("\n")
-                except FileNotFoundError:
-                    warnings.warn(f"{include} not found")
+                    include = parent_dir / include
+                    try:
+                        with include.open() as r:
+                            f.write(r.read())
+                            f.write("\n")
+                    except FileNotFoundError:
+                        warnings.warn(f"{include} not found")
 
     with open(out_ff, "w") as f:
         f.write(readable)

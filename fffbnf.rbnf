@@ -19,6 +19,8 @@ def unesc(s, py_scanstring=py_scanstring):
   if s[0] == '"':
     return py_scanstring(s, 1)[0]
   return eval(s)
+def ListUse(t):
+  return MacroUse("list", [t])
 %%
 
 
@@ -38,6 +40,8 @@ atom : <QuotedStr>          { Terminal(LITERAL, unesc($1.value)) }
 
 atomExpr : atom               { $1 }
          | atom '?'           { Optional($1) }
+         | atom '*'           { Optional(ListUse($1)) }
+         | atom '+'           { ListUse($1) }
          ;
 seq : list[atomExpr] { $1 };
 cseq : seq { seq($1) };

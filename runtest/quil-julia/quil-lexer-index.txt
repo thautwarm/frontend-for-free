@@ -1,0 +1,74 @@
+quote (
+quote )
+quote +
+quote -
+quote AS
+quote DEFGATE
+quote DEFCIRCUIT
+quote MEASURE
+quote LABEL
+quote HALT
+quote JUMP
+quote JUMP-WHEN
+quote JUMP-UNLESS
+quote RESET
+quote WAIT
+quote NOP
+quote INCLUDE
+quote PRAGMA
+quote DECLARE
+quote SHARING
+quote OFFSET
+quote NEG
+quote NOT
+quote TRUE
+quote FALSE
+quote AND
+quote IOR
+quote XOR
+quote OR
+quote ADD
+quote SUB
+quote MUL
+quote DIV
+quote MOVE
+quote EXCHANGE
+quote CONVERT
+quote EQ
+quote GT
+quote GE
+quote LT
+quote LE
+quote LOAD
+quote STORE
+quote pi
+quote i
+quote SIN
+quote COS
+quote SQRT
+quote EXP
+quote CIS
+quote MATRIX
+quote PERMUTATION
+quote *
+quote /
+quote ^
+quote CONTROLLED
+quote DAGGER
+IDENTIFIER
+INT
+FLOAT
+STRING
+quote .
+quote ,
+quote [
+quote ]
+quote :
+quote %
+quote @
+quote "
+quote _
+TAB
+NEWLINE
+COMMENT
+SPACE

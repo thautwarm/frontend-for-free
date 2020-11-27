@@ -123,3 +123,38 @@ Further, **OLD VER 2** can be easily up-to-date by manually performing the follo
              p             { [$1] }
           |  list[p] sep p { $1.append($3); $1 }
     ```
+    
+## End-To-End: A Common Pattern for Using the Generated Parser
+
+For most cases, you don't need to understand any parsing components like lexers, token tables, states, etc.
+
+In fact, **you can easily access your generated parser simply via the following function `parse(source_code, filename="<unknown>")`**:
+
+```python
+from <the generated parser module> import *
+from <the generated lexer module> import lexer
+
+__all__ = ["parse"]
+_parse = mk_parser()
+
+
+def parse(text: str, filename: str = "<unknown>"):
+    tokens = lexer(filename, text, use_bof=True, use_eof=True)
+    res = _parse(None, Tokens(tokens))
+
+    if res[0]:
+        return res[1]
+
+    msgs = []
+
+    for each in res[1]:
+        i, msg = each
+        token = tokens[i]
+        lineno = token.lineno + 1
+        colno = token.colno
+        msgs.append(f"Line {lineno}, column {colno}, {msg}")
+
+    raise SyntaxError(f"Filename {filename}:\n" + "\n".join(msgs))
+```
+
+Calling `parse` will get you the expected result, or a considerably readable error message.

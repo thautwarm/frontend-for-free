@@ -1,6 +1,6 @@
 [ -d hsbin-dist ] || mkdir hsbin-dist
 
-if [ -f python ]
+if command -v python
 then
     PY=python
 else

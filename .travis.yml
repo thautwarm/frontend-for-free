@@ -8,19 +8,23 @@ cache:
   - "$HOME/.ghc"
 
 python: 3.7
-env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
-
+env: BUILD=stack ARGS="--resolver lts-13.15"
 jobs:
   include:
   - os: linux
+    compiler: ": #stack 8.6.4"
+
   - os: osx
     osx_image: xcode12
+    compiler: ": #stack 8.6.4 osx"
  
   - os: osx
     osx_image: xcode11
+    compiler: ": #stack 8.6.4 osx"
    
   - os: osx
     osx_image: xcode10
+    compiler: ": #stack 8.6.4 osx"
 
 
 before_install:
@@ -61,7 +65,7 @@ before_deploy:
 
 deploy:
   provider: releases
-  api_key: $GITHUB_TOKEN
+  api_key: $GH_TK
   file: $ZIP_FILE
   skip_cleanup: true
   draft: true

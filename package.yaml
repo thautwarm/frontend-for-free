@@ -61,11 +61,11 @@ dependencies:
 - containers
 - lens
 - vector
-- aeson
 - transformers
 - prettyprinter
-- utf8-string
-- parsec
+# - utf8-string
+# - parsec
+# - aeson
 library:
   source-dirs:
   - src

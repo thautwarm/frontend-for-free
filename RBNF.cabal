@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8ad26b096f0368f3ec44163735c43b0a0cc96dc62f05faa301e0ecfcf3df81d1
+-- hash: fe22c05694f04752a14d7673c350444557be150f2da96f35a49ee2aae035e08a
 
 name:           RBNF
 version:        0.1.0.0
@@ -53,16 +53,13 @@ library
   default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
   ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing
   build-depends:
-      aeson
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , containers
     , lens
     , mtl
-    , parsec
     , prettyprinter
     , text
     , transformers
-    , utf8-string
     , vector
   if os(darwin)
     ghc-options: -Wall -O2
@@ -83,16 +80,13 @@ executable fff-lex
   ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
-    , aeson
     , base >=4.7 && <5
     , containers
     , lens
     , mtl
-    , parsec
     , prettyprinter
     , text
     , transformers
-    , utf8-string
     , vector
   if os(darwin)
     ghc-options: -Wall -O2
@@ -113,16 +107,13 @@ executable fff-pgen
   ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
-    , aeson
     , base >=4.7 && <5
     , containers
     , lens
     , mtl
-    , parsec
     , prettyprinter
     , text
     , transformers
-    , utf8-string
     , vector
   if os(darwin)
     ghc-options: -Wall -O2

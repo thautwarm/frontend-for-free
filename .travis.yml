@@ -9,23 +9,23 @@ cache:
   - "$HOME/.ghc"
 
 python: 3.7
-env: BUILD=stack ARGS="--resolver lts-13.15"
+env: BUILD=stack ARGS="--resolver lts-14.20"
 jobs:
   include:
   - os: linux
-    compiler: ": #stack 8.6.4"
+    compiler: ": #stack 8.6.5"
 
   - os: osx
     osx_image: xcode12
-    compiler: ": #stack 8.6.4 osx"
+    compiler: ": #stack 8.6.5 osx"
  
   - os: osx
     osx_image: xcode11
-    compiler: ": #stack 8.6.4 osx"
+    compiler: ": #stack 8.6.5 osx"
    
   - os: osx
     osx_image: xcode10
-    compiler: ": #stack 8.6.4 osx"
+    compiler: ": #stack 8.6.5 osx"
 
 
 before_install:
@@ -68,7 +68,7 @@ deploy:
   provider: releases
   api_key: $GH_TK
   file: $ZIP_FILE
-  draft: true
+  skip_cleanup: true
   on:
     branch: cfg
 

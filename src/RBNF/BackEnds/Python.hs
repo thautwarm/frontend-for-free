@@ -10,7 +10,7 @@ import           RBNF.IRs.MarisaLibrary
 import           RBNF.Name
 import           RBNF.Utils
 import           Control.Monad.State
-import           Codec.Binary.UTF8.String      as UTF8
+-- import           Codec.Binary.UTF8.String      as UTF8
 
 import qualified Data.Text                     as T
 import qualified Data.Set                      as S

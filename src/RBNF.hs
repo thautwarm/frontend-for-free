@@ -12,8 +12,8 @@ import RBNF.Graph
 import RBNF.CodeGen
 import RBNF.IRs.Marisa
 
-import RBNF.Serialization
-import Data.Aeson.Text (encodeToLazyText)
+-- import RBNF.Serialization
+-- import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Text.Lazy.IO as T
 -- (writeFile)
 
@@ -56,5 +56,5 @@ parsingGraph doInline =
     markedLeftRecur "START".
     unCombinatorial
 
-graphToJSON :: String -> Graph -> IO ()
-graphToJSON path ms = T.writeFile path (encodeToLazyText ms)
+-- graphToJSON :: String -> Graph -> IO ()
+-- graphToJSON path ms = T.writeFile path (encodeToLazyText ms)

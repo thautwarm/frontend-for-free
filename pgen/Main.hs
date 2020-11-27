@@ -1,9 +1,13 @@
 {-# LANGUAGE LambdaCase #-}
 module Main where
 
-import           RBNF                           ( parserGen, graphToJSON, parsingGraph)
+import           RBNF                           ( parserGen
+                                                -- , graphToJSON
+                                                , parsingGraph
+                                                )
+
 import           RBNF.Graph                     ( Graph )
-import           RBNF.Serialization
+-- import           RBNF.Serialization
 import           RBNF.IRs.Marisa
 import           RBNF.BackEnds.TargetGen
 import           RBNF.Constructs               (CProd)
@@ -90,7 +94,8 @@ wain xs = case parseOptsKey M.empty xs of
 
         many_dump_json :: Graph -> IO ()
         many_dump_json ms = case M.lookup "jsongraph" m of
-            Just fname -> graphToJSON fname ms >> exitSuccess
+            Just fname -> error "jsongraph option unavailable now"
+                          -- graphToJSON fname ms >> exitSuccess
             Nothing    -> pure ()
 
         inStr :: IO String

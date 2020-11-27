@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d2168876000e9a87a8a124843e87bd602754c358a738d87be02eaa34a59bbe6a
+-- hash: 8ad26b096f0368f3ec44163735c43b0a0cc96dc62f05faa301e0ecfcf3df81d1
 
 name:           RBNF
 version:        0.1.0.0
@@ -45,7 +45,6 @@ library
       RBNF.LookAHead
       RBNF.Name
       RBNF.Semantics
-      RBNF.Serialization
       RBNF.Utils
   other-modules:
       Paths_RBNF
@@ -69,8 +68,9 @@ library
     ghc-options: -Wall -O2
     ld-options: -pthread -Wall
   else
-    ghc-options: -Wall -O2
-    ld-options: -pthread -Wall
+    ghc-options: -Wall -O2 -static
+    cc-options: -static
+    ld-options: -static -pthread -Wall
   default-language: Haskell2010
 
 executable fff-lex
@@ -98,8 +98,9 @@ executable fff-lex
     ghc-options: -Wall -O2
     ld-options: -pthread -Wall
   else
-    ghc-options: -Wall -O2
-    ld-options: -pthread -Wall
+    ghc-options: -Wall -O2 -static
+    cc-options: -static
+    ld-options: -static -pthread -Wall
   default-language: Haskell2010
 
 executable fff-pgen
@@ -127,6 +128,7 @@ executable fff-pgen
     ghc-options: -Wall -O2
     ld-options: -pthread -Wall
   else
-    ghc-options: -Wall -O2
-    ld-options: -pthread -Wall
+    ghc-options: -Wall -O2 -static
+    cc-options: -static
+    ld-options: -static -pthread -Wall
   default-language: Haskell2010

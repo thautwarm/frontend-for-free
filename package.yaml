@@ -42,17 +42,17 @@ when:
       - -pthread
       - -Wall
     else:
-      ghc-options: -Wall -O2
-      ld-options:
-      - -pthread
-      - -Wall
-      # FIXME: some linux distros cannot statically link libgmp
-      # ghc-options: -Wall -O2 -static
-      # cc-options: -static
+      # ghc-options: -Wall -O2
       # ld-options:
-      # - -static
       # - -pthread
       # - -Wall
+      # FIXME: some linux distros cannot statically link libgmp
+      ghc-options: -Wall -O2 -static
+      cc-options: -static
+      ld-options:
+      - -static
+      - -pthread
+      - -Wall
 
 dependencies:
 - base >= 4.7 && < 5

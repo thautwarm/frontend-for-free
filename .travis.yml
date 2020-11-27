@@ -1,0 +1,59 @@
+sudo: true
+language: haskell
+
+git:
+  depth: 5
+
+cabal: "2.4"
+
+cache:
+  directories:
+  - "$HOME/.cabal/store"
+  - "$HOME/.stack"
+  - "$HOME/.ghc"
+  - "$TRAVIS_BUILD_DIR/.stack-work"
+
+python: 3.7
+ghc: 8.6.5
+env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
+
+matrix:
+  include:
+  - os: linux
+  - os: osx
+    osx_image: xcode12
+ 
+  - os: osx
+    osx_image: xcode11
+   
+  - os: osx
+    osx_image: xcode10
+
+install:
+  - |
+    # install stack
+    curl -sSL https://get.haskellstack.org/ | sh
+
+    # build project with stack
+    stack --version
+    stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+
+script:
+  - |
+    echo "no test"
+
+notifications:
+  email: false
+
+before_deploy:
+  - source build-release.sh
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file: $ZIP_FILE
+  skip_cleanup: true
+  draft: true
+
+after_deploy:
+  - ./pspy-blueprint || echo "Release Deployed"

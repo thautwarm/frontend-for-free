@@ -12,8 +12,6 @@ cache:
   - "$TRAVIS_BUILD_DIR/.stack-work"
 
 python: 3.7
-cabal: "2.4"
-ghc: 8.6.4
 env: STACK_YAML="$TRAVIS_BUILD_DIR/stack.yaml"
 
 matrix:
@@ -35,7 +33,7 @@ install:
 
     # build project with stack
     stack --version
-    stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+    stack build --test --bench --no-run-tests --no-run-benchmarks
 
 script:
   - |

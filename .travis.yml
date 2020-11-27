@@ -63,6 +63,7 @@ notifications:
 
 before_deploy:
   - source build-release.sh
+  - git tag $RELEASE_TAG
 
 deploy:
   provider: releases

@@ -1,3 +1,4 @@
+language: generic
 git:
   depth: 5
 
@@ -67,8 +68,9 @@ deploy:
   provider: releases
   api_key: $GH_TK
   file: $ZIP_FILE
-  skip_cleanup: true
   draft: true
+  on:
+    branch: cfg
 
 after_deploy:
   - echo "Release Deployed"

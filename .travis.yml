@@ -56,4 +56,4 @@ deploy:
   draft: true
 
 after_deploy:
-  - ./pspy-blueprint || echo "Release Deployed"
+  - echo "Release Deployed"

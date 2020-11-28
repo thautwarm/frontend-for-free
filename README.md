@@ -20,9 +20,9 @@ Otherwise, binary files for various platforms(Win64, Generic Linux, MAC OSX 10.1
 
 Download it from [Releases](https://github.com/thautwarm/frontend-for-free/releases), add `fff-lex` and `fff-pgen` to your PATH.
 
-### Python Wrapper
+### Besides, You Need a Python Wrapper
 
-`frontend-for-free` now supports Python only:
+`frontend-for-free` now provides a wrapper for Python only:
 
 `pip install frontend-for-free` or install it from GitHub.
 

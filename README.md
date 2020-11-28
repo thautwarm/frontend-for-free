@@ -16,7 +16,7 @@ sh> stack install .
 
 ### Install from Binaries
 
-Otherwise, so far Windows binary files are released on GitHub.
+Otherwise, binary files for various platforms(Win64, Generic Linux, MAC OSX 10.13-10.15) are released on GitHub.
 
 Download it from [Releases](https://github.com/thautwarm/frontend-for-free/releases), add `fff-lex` and `fff-pgen` to your PATH.
 

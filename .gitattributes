@@ -1,1 +1,3 @@
 *_parser.py -linguist-detectable
+*_lexa.py -linguist-detectable
+*.jl -linguist-detectable

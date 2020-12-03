@@ -138,23 +138,33 @@ __all__ = ["parse"]
 _parse = mk_parser()
 
 
-def parse(text: str, filename: str = "<unknown>"):
-    tokens = lexer(filename, text, use_bof=True, use_eof=True)
-    res = _parse(None, Tokens(tokens))
-
-    if res[0]:
-        return res[1]
+def parse(text: str, filename: str = "unknown"):
+    tokens = lexer(filename, text)
+    status, res_or_err = _parse(None, Tokens(tokens))
+    if status:
+        return res_or_err
 
     msgs = []
-
-    for each in res[1]:
+    lineno = None
+    colno = None
+    filename = None
+    offset = 0
+    msg = ""
+    for each in res_or_err:
         i, msg = each
         token = tokens[i]
         lineno = token.lineno + 1
         colno = token.colno
-        msgs.append(f"Line {lineno}, column {colno}, {msg}")
-
-    raise SyntaxError(f"Filename {filename}:\n" + "\n".join(msgs))
+        offset = token.offset
+        filename = token.filename
+        break
+    e = SyntaxError(msg)
+    e.lineno = lineno
+    e.colno = colno
+    e.filename = filename
+    e.text = text[offset - colno:text.find('\n', offset)]
+    e.offset = colno
+    raise e
 ```
 
 Calling `parse` will get you the expected result, or a considerably readable error message.

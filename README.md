@@ -67,7 +67,9 @@ Currently,
 - Parsing JSON
   - lexer: [json.rlex](https://github.com/thautwarm/frontend-for-free/blob/cfg/runtest/rbnfjson/json.rlex)
   - parser: [json.rbnf](https://github.com/thautwarm/frontend-for-free/blob/cfg/runtest/rbnfjson/json.exrbnf)
-
+- Parser as Interpreter: Implementing a Programming Language within 20 Minutes
+  - parser/interpreter: https://github.com/thautwarm/simple-pl/blob/master/easylang.gg
+  - lexer: https://github.com/thautwarm/simple-pl/blob/master/easylang.rlex
 - Parsing LaTeX
   - lexer: [gkdtex.rlex](https://github.com/thautwarm/gkdtex/blob/master/gkdtex.rlex)
   - parser: [gkdtex.gg](https://github.com/thautwarm/gkdtex/blob/master/gkdtex.gg)

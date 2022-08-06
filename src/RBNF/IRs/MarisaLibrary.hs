@@ -4,10 +4,22 @@ import           RBNF.Name
 
 tokenId = "idint"
 tokenOff = "offset"
-tokenCol = "colomn"
-tokenLine = "lineno"
-tokenVal = "val"
-tokenName = "name" -- identical to Id
+-- tokenCol = "colomn"
+-- tokenLine = "lineno"
+-- tokenVal = "val"
+-- tokenName = "name" -- identical to Id
+
+dsl_mk_right_n = Builtin "mk_either_right"
+dsl_mk_right = MKVar dsl_mk_right_n
+
+dsl_mk_left_n = Builtin "mk_either_left"
+dsl_mk_left = MKVar dsl_mk_left_n
+
+dsl_chk_is_err_n = Builtin "chk_is_err"
+dsl_chk_is_err = MKVar dsl_chk_is_err_n
+
+dsl_chk_is_val_n = Builtin "chk_is_val"
+dsl_chk_is_val = MKVar dsl_chk_is_val_n
 
 dsl_eq_n = Builtin "eq"
 dsl_eq = MKVar dsl_eq_n

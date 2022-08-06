@@ -128,7 +128,7 @@ runToCode :: CFG -> StateT [Marisa] (State CFG) () -> Marisa
 runToCode cfg = block . runToCodeSuite cfg
 
 mkSuccess :: Bool -> Marisa -> Marisa
-mkSuccess withTrace ir | withTrace = MKTuple [MKBool True, ir]
+mkSuccess withTrace ir | withTrace = MKCall dsl_mk_left [ir]
                        | otherwise = ir
 
 -- `mkError` and `mkErrors` work only when `withTrace = True`
@@ -175,16 +175,14 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace, terminalIds } = \case
       eof_msg       = cur_scope ++ " got EOF"
 
       eof_err       = if withTrace
-        then MKTuple
-          [dsl_false, mkErrors [mkError (MKVar dsl_off_n) (MKStr eof_msg)]]
+        then MKCall dsl_mk_right
+          [ mkErrors [mkError (MKVar dsl_off_n) (MKStr eof_msg)]]
         else dsl_null
       la_failed = case optional of
         Nothing -> if withTrace
           then
-            MKTuple
-              [ dsl_false
-              , mkErrors [mkError (MKVar dsl_off_n) (MKStr la_failed_msg)]
-              ]
+            MKCall dsl_mk_right
+              [ mkErrors [mkError (MKVar dsl_off_n) (MKStr la_failed_msg)] ]
           else dsl_null
         Just a -> runToCode cfg $ codeGen c a
 
@@ -253,7 +251,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds 
                 err_hd = MKTuple
                   [MKAttr dsl_tokens tokenOff, MKStr $ t ++ " not match"]
                 errs = mkErrors [err_hd]
-                ifErr | withTrace = MKTuple [dsl_false, errs]
+                ifErr | withTrace = MKCall dsl_mk_right [errs]
                       | otherwise = dsl_null
               build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_n]) ifErr cont
 
@@ -270,7 +268,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds 
                            (MKCall theParser [MKVar dsl_globST_n, dsl_tokens])
           let cont = getCont i cfg
               result
-                | withTrace = MKCall dsl_to_res [MKPrj (MKVar dsl_sloti_chk) 1]
+                | withTrace = MKCall dsl_to_res [MKVar dsl_sloti_chk]
                 | otherwise = MKVar dsl_sloti_chk
               assSlot  = MKAssign dsl_sloti_n result
               ifNotErr = consBlock assSlot cont
@@ -278,7 +276,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds 
             then do
               let ifErr = MKVar dsl_sloti_chk
               build $ MKIf
-                (MKCall dsl_eq [MKPrj (MKVar dsl_sloti_chk) 0, dsl_false])
+                (MKCall dsl_chk_is_err [MKVar dsl_sloti_chk])
                 ifErr
                 ifNotErr
             else build $ MKIf (MKCall dsl_is_null [MKVar dsl_sloti_chk])
@@ -290,7 +288,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds 
           cfg <- lift get
           let cont = getCont i cfg
           build $ MKIf expr cont $ if withTrace
-            then MKTuple [dsl_false, MKCall dsl_to_any [dsl_nil]]
+            then MKCall dsl_mk_right [MKCall dsl_to_any [dsl_nil]]
             else dsl_null
 
         NEntity (EProc irs) -> do
@@ -347,12 +345,12 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds 
                 try     = NamedTmp $ "lr." ++ name ++ ".try"
                 reduced = NamedTmp $ "lr." ++ name ++ ".reduce"
                 cond    = if withTrace
-                  then MKCall dsl_neq [MKPrj (MKVar try) 0, dsl_false]
+                  then MKCall dsl_chk_is_val [MKVar try]
                   else MKCall dsl_is_not_null [MKVar try]
                 -- fold left recursion:
                 -- arg0 <- arg0 a b c ...
                 fold = if withTrace
-                  then MKCall dsl_to_res [MKPrj (MKVar try) 1]
+                  then MKCall dsl_to_res [MKVar try]
                   else MKVar try
                 args3   = [arg0, dsl_globST_n, dsl_tokens_n]
                 params3 = map MKVar [reduced, dsl_globST_n, dsl_tokens_n]
@@ -369,7 +367,7 @@ codeGen c@CompilationInfo { decisions, graph, withTrace, isLeftRec, terminalIds 
                   -- following commented expr seems redundant
                   -- , MKCall dsl_reset [MKVar dsl_tokens_n, MKVar dsl_off_n]
                   ,   let cur_off = MKAttr (MKVar dsl_tokens_n) tokenOff in
-                      let exitRight | withTrace = MKTuple [MKBool True, MKVar reduced]
+                      let exitRight | withTrace = MKCall dsl_mk_left [MKVar reduced]
                                     | otherwise = MKVar reduced
                       in
                         MKIf (MKCall dsl_eq [cur_off, MKVar dsl_off_n])

@@ -107,6 +107,10 @@ isCPySInt = \case
 cgPy :: Marisa -> State CFG Text
 cgPy = \case
     -- dsl_eq_n
+    MKCall (MKVar (Builtin "mk_either_left")) [x] -> cgPy (MKTuple [MKBool True, x])
+    MKCall (MKVar (Builtin "mk_either_right")) [x] -> cgPy (MKTuple [MKBool False, x])
+    MKCall (MKVar (Builtin "chk_is_err")) [x] -> cgPy $ MKCall dsl_eq [MKPrj x 0, MKBool False]
+    MKCall (MKVar (Builtin "chk_is_val")) [x] -> cgPy $ MKCall dsl_neq [MKPrj x 0, MKBool False]
     MKCall (MKVar intrinsic) [a, b]
         | intrinsic == dsl_eq_n -> do
             let op | isCPySInt a || isCPySInt b = "is"
@@ -148,7 +152,6 @@ cgPy = \case
         py_release rhs
         py_build $ T.concat [lhs, " = ", rhs]
         return lhs
-        
     MKCall f args -> do
         f <- cgPy f
         args <- mapM cgPy args

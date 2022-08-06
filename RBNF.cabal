@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fe22c05694f04752a14d7673c350444557be150f2da96f35a49ee2aae035e08a
+-- hash: 65490b9d7a283ba742b06ddc0cec073cc37773a8be086e83fec989fe6382ef56
 
 name:           RBNF
 version:        0.1.0.0
@@ -50,7 +50,20 @@ library
       Paths_RBNF
   hs-source-dirs:
       src
-  default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
+  default-extensions:
+      ViewPatterns
+      DeriveGeneric
+      DeriveFunctor
+      DeriveTraversable
+      LambdaCase
+      TemplateHaskell
+      DuplicateRecordFields
+      StandaloneDeriving
+      ExistentialQuantification
+      MultiParamTypeClasses
+      NamedFieldPuns
+      PartialTypeSignatures
+      FlexibleInstances
   ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing
   build-depends:
       base >=4.7 && <5
@@ -76,7 +89,20 @@ executable fff-lex
       Paths_RBNF
   hs-source-dirs:
       lex
-  default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
+  default-extensions:
+      ViewPatterns
+      DeriveGeneric
+      DeriveFunctor
+      DeriveTraversable
+      LambdaCase
+      TemplateHaskell
+      DuplicateRecordFields
+      StandaloneDeriving
+      ExistentialQuantification
+      MultiParamTypeClasses
+      NamedFieldPuns
+      PartialTypeSignatures
+      FlexibleInstances
   ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF
@@ -103,7 +129,20 @@ executable fff-pgen
       Paths_RBNF
   hs-source-dirs:
       pgen
-  default-extensions: ViewPatterns DeriveGeneric DeriveFunctor DeriveTraversable LambdaCase TemplateHaskell DuplicateRecordFields StandaloneDeriving ExistentialQuantification MultiParamTypeClasses NamedFieldPuns PartialTypeSignatures FlexibleInstances
+  default-extensions:
+      ViewPatterns
+      DeriveGeneric
+      DeriveFunctor
+      DeriveTraversable
+      LambdaCase
+      TemplateHaskell
+      DuplicateRecordFields
+      StandaloneDeriving
+      ExistentialQuantification
+      MultiParamTypeClasses
+      NamedFieldPuns
+      PartialTypeSignatures
+      FlexibleInstances
   ghc-options: -fno-warn-partial-type-signatures -Wall -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       RBNF

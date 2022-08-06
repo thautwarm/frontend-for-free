@@ -10,14 +10,20 @@ showMN = show
 
 genJl quoted = align . \case
     MKAssign n (MKBlock codes) -> vsep
-        [ nest 4 $ sep $ pretty (showMN n ++ " = begin") : map (genJl True) codes
+        [ nest 4 $ vsep $ pretty (showMN n ++ " = begin") : map (genJl True) codes
         , pretty "end"
         ]
     MKAssign n code@(isSimpleMarisa -> False) ->
         nest 4 $ vsep [pretty (showMN n ++ " = "), genJl False code]
-    MKAssign n code -> pretty (showMN n ++ " = ") <+> genJl False code
+    MKAssign n code -> pretty (showMN n ++ " = ") <> genJl False code
     MKCall f args ->
-        genJl False f <> (parens . sep . punctuate comma $ map (genJl False) args)
+        group $ vsep
+        [  nest 4 $ vsep
+           [ genJl False f <> pretty "("
+           , vsep (punctuate comma $ map (genJl False) args)
+           ]
+        , pretty ")"
+        ]
     MKAttr val attr   -> genJl False val <> pretty ("." ++ attr)
     MKPrj  val dim    -> genJl False val <> brackets (viaShow dim)
     MKIf cond br1 br2 -> vsep
@@ -68,7 +74,9 @@ genJl quoted = align . \case
     MKInt   i      -> viaShow i
     MKStr   s      -> viaShow s
     MKBool  b      -> viaShow b
-    MKTuple elts   -> pretty "(" <> tupled (map (genJl False) elts) <> pretty ",)"
+    MKTuple []     -> pretty "()"
+    MKTuple [elt]  -> pretty "Core.tuple(" <> genJl False elt <> pretty ")"
+    MKTuple elts   -> tupled (map (genJl False) elts)
     MKAnd a b      -> genJl False a <+> pretty "&&" <+> genJl False b
     MKOr  a b      -> genJl False a <+> pretty "||" <+> genJl False b
 

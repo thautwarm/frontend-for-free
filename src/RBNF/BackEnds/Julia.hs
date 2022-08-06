@@ -25,7 +25,7 @@ genJl quoted = align . \case
         , pretty ")"
         ]
     MKAttr val attr   -> genJl False val <> pretty ("." ++ attr)
-    MKPrj  val dim    -> genJl False val <> brackets (viaShow dim)
+    MKPrj  val dim    -> genJl False val <> brackets (viaShow (1 + dim))
     MKIf cond br1 br2 -> vsep
         [ pretty "if" <+> nest 4 (genJl False cond)
         , indent 4 $ genJl True br1
@@ -73,7 +73,8 @@ genJl quoted = align . \case
     MKVar   n      -> pretty $ showMN n
     MKInt   i      -> viaShow i
     MKStr   s      -> viaShow s
-    MKBool  b      -> viaShow b
+    MKBool  True   -> pretty "true"
+    MKBool  False  -> pretty "false"
     MKTuple []     -> pretty "()"
     MKTuple [elt]  -> pretty "Core.tuple(" <> genJl False elt <> pretty ")"
     MKTuple elts   -> tupled (map (genJl False) elts)

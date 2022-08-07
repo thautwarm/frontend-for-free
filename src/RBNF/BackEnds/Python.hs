@@ -132,7 +132,7 @@ cgPy = \case
             return lhs
     MKCall (MKVar intrinsic) [a]
         | intrinsic == dsl_to_any_n -> cgPy a
-        | intrinsic == dsl_to_res_n -> cgPy a
+        | intrinsic == dsl_to_res_n -> cgPy $ MKPrj a 1
         | intrinsic == dsl_is_not_null_n -> do
           a <- cgPy a
           py_release a

@@ -181,7 +181,7 @@ tokens.offset = _rbnf_old_offset + 1
         return subst(tokens=tokens, i=i)
 
     @opt.register
-    @macro_exp("x")
+    @macro_exp("x[1]")
     def builtin_to_result(x):
         return subst(x=x)
 

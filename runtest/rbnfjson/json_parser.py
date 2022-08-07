@@ -464,7 +464,7 @@ def mk_parser():
                         lcl_4 = lcl_6
                     lcl_3 = lcl_4
                 else:
-                    lcl_4 = (rbnf_named__off_1, 'value got EOF')
+                    lcl_4 = (rbnf_named__off_1, 'value lookahead failed')
                     lcl_4 = builtin_cons(lcl_4, builtin_nil)
                     lcl_4 = (False, lcl_4)
                     lcl_3 = lcl_4
@@ -794,7 +794,7 @@ def mk_parser():
                         lcl_4 = lcl_6
                     lcl_3 = lcl_4
                 else:
-                    lcl_4 = (rbnf_named__off_1, 'value got EOF')
+                    lcl_4 = (rbnf_named__off_1, 'value lookahead failed')
                     lcl_4 = builtin_cons(lcl_4, builtin_nil)
                     lcl_4 = (False, lcl_4)
                     lcl_3 = lcl_4
@@ -839,7 +839,7 @@ def mk_parser():
                 lcl_1 = lcl_3
             lcl_0 = lcl_1
         else:
-            lcl_1 = (rbnf_named__off_0, 'value got EOF')
+            lcl_1 = (rbnf_named__off_0, 'value lookahead failed')
             lcl_1 = builtin_cons(lcl_1, builtin_nil)
             lcl_1 = (False, lcl_1)
             lcl_0 = lcl_1

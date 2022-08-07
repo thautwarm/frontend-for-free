@@ -1454,7 +1454,12 @@ def mk_parser():
                                         lcl_8 = rbnf_tmp_3_
                                     lcl_7 = lcl_8
                                 else:
-                                    lcl_7 = None
+                                    lcl_10 = ()
+                                    rbnf_tmp_2_ = lcl_10
+                                    lcl_10 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_10 = builtin_mk_ast('AllocaInst', lcl_10)
+                                    rbnf_tmp_3_ = lcl_10
+                                    lcl_7 = rbnf_tmp_3_
                                 lcl_6 = lcl_7
                             lcl_5 = lcl_6
                         lcl_3 = lcl_5
@@ -1522,7 +1527,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -1590,7 +1600,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -1658,7 +1673,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -1726,7 +1746,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -1794,7 +1819,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -1862,7 +1892,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -1930,7 +1965,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -1998,7 +2038,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -2066,7 +2111,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -2113,7 +2163,12 @@ def mk_parser():
                                 lcl_11 = rbnf_tmp_3_
                             lcl_10 = lcl_11
                         else:
-                            lcl_10 = None
+                            lcl_11 = ()
+                            rbnf_tmp_2_ = lcl_11
+                            lcl_11 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                            lcl_11 = builtin_mk_ast('AllocaInst', lcl_11)
+                            rbnf_tmp_3_ = lcl_11
+                            lcl_10 = rbnf_tmp_3_
                         lcl_3 = lcl_10
                     elif lcl_4 == 33:
                         try:
@@ -2179,7 +2234,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -2247,7 +2307,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('AllocaInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_11 = lcl_5
                             lcl_10 = lcl_11
                         lcl_3 = lcl_10
@@ -2294,11 +2359,64 @@ def mk_parser():
                                 lcl_11 = rbnf_tmp_3_
                             lcl_10 = lcl_11
                         else:
-                            lcl_10 = None
+                            lcl_11 = ()
+                            rbnf_tmp_2_ = lcl_11
+                            lcl_11 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                            lcl_11 = builtin_mk_ast('AllocaInst', lcl_11)
+                            rbnf_tmp_3_ = lcl_11
+                            lcl_10 = rbnf_tmp_3_
                         lcl_3 = lcl_10
                     lcl_2 = lcl_3
                 else:
-                    lcl_2 = None
+                    lcl_10 = ()
+                    rbnf_tmp_1_ = lcl_10
+                    lcl_10 = builtin_tokens.offset
+                    rbnf_named__off_2 = lcl_10
+                    try:
+                        builtin_tokens.array[builtin_tokens.offset + 0]
+                        _rbnf_peek_tmp = True
+                    except IndexError:
+                        _rbnf_peek_tmp = False
+                    lcl_10 = _rbnf_peek_tmp
+                    if lcl_10:
+                        lcl_3 = builtin_tokens.array[builtin_tokens.offset + 0]
+                        lcl_3 = lcl_3.idint
+                        if lcl_3 == 19:
+                            _rbnf_old_offset = builtin_tokens.offset
+                            _rbnf_cur_token = builtin_tokens.array[_rbnf_old_offset]
+                            builtin_tokens.offset = _rbnf_old_offset + 1
+                            lcl_4 = _rbnf_cur_token
+                            rbnf_tmp_2 = lcl_4
+                            lcl_4 = rbnf_named_parse_Alignment(builtin_state, builtin_tokens)
+                            rbnf_named__check_3 = lcl_4
+                            lcl_4 = rbnf_named__check_3 is None
+                            if lcl_4:
+                                lcl_4 = None
+                            else:
+                                rbnf_tmp_3 = rbnf_named__check_3
+                                lcl_5 = (rbnf_tmp_2, rbnf_tmp_3)
+                                rbnf_tmp_2_ = lcl_5
+                                lcl_5 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                                lcl_5 = builtin_mk_ast('AllocaInst', lcl_5)
+                                rbnf_tmp_3_ = lcl_5
+                                lcl_4 = rbnf_tmp_3_
+                            lcl_11 = lcl_4
+                        else:
+                            lcl_4 = ()
+                            rbnf_tmp_2_ = lcl_4
+                            lcl_4 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                            lcl_4 = builtin_mk_ast('AllocaInst', lcl_4)
+                            rbnf_tmp_3_ = lcl_4
+                            lcl_11 = rbnf_tmp_3_
+                        lcl_10 = lcl_11
+                    else:
+                        lcl_11 = ()
+                        rbnf_tmp_2_ = lcl_11
+                        lcl_11 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_, rbnf_tmp_2_)
+                        lcl_11 = builtin_mk_ast('AllocaInst', lcl_11)
+                        rbnf_tmp_3_ = lcl_11
+                        lcl_10 = rbnf_tmp_3_
+                    lcl_2 = lcl_10
                 lcl_1 = lcl_2
             lcl_0 = lcl_1
         return lcl_0
@@ -8209,7 +8327,12 @@ def mk_parser():
                                     lcl_6 = rbnf_tmp_2_
                                 lcl_5 = lcl_6
                             else:
-                                lcl_5 = None
+                                lcl_6 = ()
+                                rbnf_tmp_1_ = lcl_6
+                                lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_1_)
+                                lcl_6 = builtin_mk_ast('FunctionHeader', lcl_6)
+                                rbnf_tmp_2_ = lcl_6
+                                lcl_5 = rbnf_tmp_2_
                             lcl_4 = lcl_5
                         lcl_3 = lcl_4
                     lcl_2 = lcl_3
@@ -8742,7 +8865,12 @@ def mk_parser():
                                         lcl_8 = rbnf_tmp_3_
                                     lcl_7 = lcl_8
                                 else:
-                                    lcl_7 = None
+                                    lcl_10 = ()
+                                    rbnf_tmp_2_ = lcl_10
+                                    lcl_10 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_10 = builtin_mk_ast('GEPInst', lcl_10)
+                                    rbnf_tmp_3_ = lcl_10
+                                    lcl_7 = rbnf_tmp_3_
                                 lcl_6 = lcl_7
                             lcl_5 = lcl_6
                         lcl_4 = lcl_5
@@ -8818,7 +8946,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -8894,7 +9027,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -8973,7 +9111,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_2_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_1_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_1_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_5 = rbnf_tmp_2_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9049,7 +9192,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9125,7 +9273,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9201,7 +9354,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9277,7 +9435,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9353,7 +9516,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9429,7 +9597,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9505,7 +9678,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9581,7 +9759,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -9657,7 +9840,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('GEPInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -11912,7 +12100,12 @@ def mk_parser():
                                         lcl_8 = rbnf_tmp_3_
                                     lcl_7 = lcl_8
                                 else:
-                                    lcl_7 = None
+                                    lcl_10 = ()
+                                    rbnf_tmp_2_ = lcl_10
+                                    lcl_10 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_10 = builtin_mk_ast('LoadInst', lcl_10)
+                                    rbnf_tmp_3_ = lcl_10
+                                    lcl_7 = rbnf_tmp_3_
                                 lcl_6 = lcl_7
                             lcl_5 = lcl_6
                         lcl_4 = lcl_5
@@ -11991,7 +12184,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_2_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_1_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_1_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_5 = rbnf_tmp_2_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12067,7 +12265,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12143,7 +12346,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12219,7 +12427,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12295,7 +12508,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12371,7 +12589,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12447,7 +12670,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12523,7 +12751,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12599,7 +12832,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12675,7 +12913,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12751,7 +12994,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -12827,7 +13075,12 @@ def mk_parser():
                                         lcl_6 = rbnf_tmp_3_
                                     lcl_5 = lcl_6
                                 else:
-                                    lcl_5 = None
+                                    lcl_6 = ()
+                                    rbnf_tmp_2_ = lcl_6
+                                    lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_2_)
+                                    lcl_6 = builtin_mk_ast('LoadInst', lcl_6)
+                                    rbnf_tmp_3_ = lcl_6
+                                    lcl_5 = rbnf_tmp_3_
                                 lcl_4 = lcl_5
                             lcl_11 = lcl_4
                         lcl_10 = lcl_11
@@ -13041,7 +13294,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 154:
@@ -13085,7 +13343,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 153:
@@ -13129,7 +13392,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 152:
@@ -13173,7 +13441,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 151:
@@ -13217,7 +13490,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 150:
@@ -13261,7 +13539,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 149:
@@ -13305,7 +13588,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 148:
@@ -13349,7 +13637,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 147:
@@ -13393,7 +13686,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 146:
@@ -13437,7 +13735,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 145:
@@ -13481,7 +13784,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 144:
@@ -13525,7 +13833,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 143:
@@ -13569,7 +13882,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 142:
@@ -13613,7 +13931,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 141:
@@ -13657,7 +13980,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 140:
@@ -13701,7 +14029,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 22:
@@ -13745,7 +14078,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 21:
@@ -13789,7 +14127,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 139:
@@ -13833,7 +14176,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 20:
@@ -13877,7 +14225,12 @@ def mk_parser():
                                 lcl_6 = rbnf_tmp_2_
                             lcl_5 = lcl_6
                         else:
-                            lcl_5 = None
+                            lcl_6 = ()
+                            rbnf_tmp_1_ = lcl_6
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     lcl_2 = lcl_4
                 elif lcl_3 == 4:
@@ -13933,11 +14286,57 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_3_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_2_)
+                        lcl_5 = builtin_mk_ast('Param', lcl_5)
+                        rbnf_tmp_3_ = lcl_5
+                        lcl_4 = rbnf_tmp_3_
                     lcl_2 = lcl_4
                 lcl_1 = lcl_2
             else:
-                lcl_1 = None
+                lcl_2 = ()
+                rbnf_tmp_1_ = lcl_2
+                lcl_2 = builtin_tokens.offset
+                rbnf_named__off_1 = lcl_2
+                try:
+                    builtin_tokens.array[builtin_tokens.offset + 0]
+                    _rbnf_peek_tmp = True
+                except IndexError:
+                    _rbnf_peek_tmp = False
+                lcl_2 = _rbnf_peek_tmp
+                if lcl_2:
+                    lcl_4 = builtin_tokens.array[builtin_tokens.offset + 0]
+                    lcl_4 = lcl_4.idint
+                    if lcl_4 == 4:
+                        lcl_5 = rbnf_named_parse_LocalName(builtin_state, builtin_tokens)
+                        rbnf_named__check_1 = lcl_5
+                        lcl_5 = rbnf_named__check_1 is None
+                        if lcl_5:
+                            lcl_5 = None
+                        else:
+                            rbnf_tmp_1 = rbnf_named__check_1
+                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1)
+                            lcl_6 = builtin_mk_ast('Param', lcl_6)
+                            rbnf_tmp_2_ = lcl_6
+                            lcl_5 = rbnf_tmp_2_
+                        lcl_3 = lcl_5
+                    else:
+                        lcl_5 = ()
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_2_)
+                        lcl_5 = builtin_mk_ast('Param', lcl_5)
+                        rbnf_tmp_3_ = lcl_5
+                        lcl_3 = rbnf_tmp_3_
+                    lcl_2 = lcl_3
+                else:
+                    lcl_3 = ()
+                    rbnf_tmp_2_ = lcl_3
+                    lcl_3 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_2_)
+                    lcl_3 = builtin_mk_ast('Param', lcl_3)
+                    rbnf_tmp_3_ = lcl_3
+                    lcl_2 = rbnf_tmp_3_
+                lcl_1 = lcl_2
             lcl_0 = lcl_1
         return lcl_0
 
@@ -14287,7 +14686,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 15:
@@ -14345,7 +14749,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 32:
@@ -14403,7 +14812,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 24:
@@ -14461,7 +14875,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 27:
@@ -14519,7 +14938,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 26:
@@ -14577,7 +15001,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 25:
@@ -14635,7 +15064,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 23:
@@ -14693,7 +15127,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 29:
@@ -14751,7 +15190,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 28:
@@ -14809,7 +15253,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 33:
@@ -14867,7 +15316,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             elif lcl_2 == 18:
@@ -14935,7 +15389,12 @@ def mk_parser():
                             lcl_5 = rbnf_tmp_2_
                         lcl_4 = lcl_5
                     else:
-                        lcl_4 = None
+                        lcl_5 = ()
+                        rbnf_tmp_1_ = lcl_5
+                        lcl_5 = (rbnf_tmp_0, rbnf_tmp_1_)
+                        lcl_5 = builtin_mk_ast('Params', lcl_5)
+                        rbnf_tmp_2_ = lcl_5
+                        lcl_4 = rbnf_tmp_2_
                     lcl_3 = lcl_4
                 lcl_1 = lcl_3
             else:
@@ -15531,7 +15990,12 @@ def mk_parser():
                         lcl_3 = rbnf_tmp_2_
                     lcl_2 = lcl_3
                 else:
-                    lcl_2 = None
+                    lcl_3 = ()
+                    rbnf_tmp_1_ = lcl_3
+                    lcl_3 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_1_)
+                    lcl_3 = builtin_mk_ast('RetTerm', lcl_3)
+                    rbnf_tmp_2_ = lcl_3
+                    lcl_2 = rbnf_tmp_2_
                 lcl_1 = lcl_2
             lcl_0 = lcl_1
         return lcl_0
@@ -15827,7 +16291,12 @@ def mk_parser():
                                                 lcl_10 = rbnf_tmp_3_
                                             lcl_9 = lcl_10
                                         else:
-                                            lcl_9 = None
+                                            lcl_10 = ()
+                                            rbnf_tmp_2_ = lcl_10
+                                            lcl_10 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_10 = builtin_mk_ast('StoreInst', lcl_10)
+                                            rbnf_tmp_3_ = lcl_10
+                                            lcl_9 = rbnf_tmp_3_
                                         lcl_8 = lcl_9
                                     lcl_7 = lcl_8
                                 lcl_6 = lcl_7
@@ -15922,7 +16391,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_2_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_1_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_6, rbnf_tmp_1_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_5 = rbnf_tmp_2_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16014,7 +16488,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16106,7 +16585,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16198,7 +16682,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16290,7 +16779,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16382,7 +16876,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16474,7 +16973,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16566,7 +17070,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16658,7 +17167,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16750,7 +17264,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16842,7 +17361,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13
@@ -16934,7 +17458,12 @@ def mk_parser():
                                                 lcl_6 = rbnf_tmp_3_
                                             lcl_5 = lcl_6
                                         else:
-                                            lcl_5 = None
+                                            lcl_6 = ()
+                                            rbnf_tmp_2_ = lcl_6
+                                            lcl_6 = (rbnf_tmp_0, rbnf_tmp_1_, rbnf_tmp_1, rbnf_tmp_2, rbnf_tmp_3, rbnf_tmp_4, rbnf_tmp_5, rbnf_tmp_2_)
+                                            lcl_6 = builtin_mk_ast('StoreInst', lcl_6)
+                                            rbnf_tmp_3_ = lcl_6
+                                            lcl_5 = rbnf_tmp_3_
                                         lcl_4 = lcl_5
                                     lcl_13 = lcl_4
                                 lcl_12 = lcl_13

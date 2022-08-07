@@ -210,7 +210,7 @@ def mk_parser():
                 lcl_1 = lcl_3
             lcl_0 = lcl_1
         else:
-            lcl_1 = (rbnf_named__off_0, 'rbnfmacro_0 got EOF')
+            lcl_1 = (rbnf_named__off_0, 'rbnfmacro_0 lookahead failed')
             lcl_1 = builtin_cons(lcl_1, builtin_nil)
             lcl_1 = (False, lcl_1)
             lcl_0 = lcl_1
@@ -302,7 +302,7 @@ def mk_parser():
                 lcl_1 = lcl_3
             lcl_0 = lcl_1
         else:
-            lcl_1 = (rbnf_named__off_0, 'rbnfmacro_1 got EOF')
+            lcl_1 = (rbnf_named__off_0, 'rbnfmacro_1 lookahead failed')
             lcl_1 = builtin_cons(lcl_1, builtin_nil)
             lcl_1 = (False, lcl_1)
             lcl_0 = lcl_1
@@ -470,7 +470,7 @@ def mk_parser():
                 lcl_1 = lcl_3
             lcl_0 = lcl_1
         else:
-            lcl_1 = (rbnf_named__off_0, 'atom got EOF')
+            lcl_1 = (rbnf_named__off_0, 'atom lookahead failed')
             lcl_1 = builtin_cons(lcl_1, builtin_nil)
             lcl_1 = (False, lcl_1)
             lcl_0 = lcl_1

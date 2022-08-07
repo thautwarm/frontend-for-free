@@ -3,10 +3,13 @@ import           Data.Text.Prettyprint.Doc
 import           RBNF.IRs.Marisa
 import           RBNF.Name
 import           Control.Monad.State
-
+import qualified Data.List                     as L
 
 showMN :: Name -> String
 showMN = show
+
+enumerate :: [a] -> [(Int, a)]
+enumerate x = zip [0..] x
 
 genJl quoted = align . \case
     MKAssign n (MKBlock codes) -> vsep
@@ -44,14 +47,14 @@ genJl quoted = align . \case
           [ nest 2 $ align $ vsep
             [ nest 2
                   $ vsep
-                        [ (if i == 0 then pretty "if" else pretty "elseif") <+> pretty "__switch_target__" <+> pretty "==" <+> pretty i
+                        [ (if ind == 0 then pretty "if" else pretty "elseif") <+> pretty "__switch_target__" <+> pretty "==" <+> pretty i
                         , nest 2 $ align $ vsep
                             [ pretty "let"
                             , genJl True case'
                             ]
                         , pretty "end" -- let end
                         ]
-              | (i, case') <- cases ]
+              | (ind, (i, case')) <- enumerate cases ]
             , align $ nest 2 $ vsep
                 [ pretty "else"
                 , align $ nest 2 $ vsep

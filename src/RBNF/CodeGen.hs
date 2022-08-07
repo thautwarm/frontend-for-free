@@ -211,7 +211,7 @@ mkSwitch c@CompilationInfo { decisions, graph, withTrace, terminalIds } = \case
       default'      = snd switch'
       switch_expr   = case preDecided branches of
         Nothing ->
-          MKIf dsl_la_cond (MKSwitch dsl_cur_int cases default') eof_err
+          MKIf dsl_la_cond (MKSwitch dsl_cur_int cases default') la_failed
         Just a -> a
 
     build $ MKAssign dsl_off_n (MKAttr (MKVar dsl_tokens_n) tokenOff)

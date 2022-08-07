@@ -39,27 +39,37 @@ genJl quoted = align . \case
         , pretty "end"
         ]
     MKSwitch expr cases default' -> vsep
-        [ pretty "@switch " <+> genJl False expr <+> pretty "begin"
+        [ pretty "let __switch_target__ =" <+> genJl False expr
         , nest 2 $ align $ vsep
+          [ nest 2 $ align $ vsep
             [ nest 2
                   $ vsep
-                        [ pretty "@case" <+> pretty i
-                        , genJl True case'
+                        [ (if i == 0 then pretty "if" else pretty "elseif") <+> pretty "__switch_target__" <+> pretty "==" <+> pretty i
+                        , nest 2 $ align $ vsep
+                            [ pretty "let"
+                            , genJl True case'
+                            ]
+                        , pretty "end" -- let end
                         ]
-            | (i, case') <- cases
-            ]
-        , align $  nest 2 $ vsep
-                [ pretty "@default"
-                , nest 4 (genJl True default')
+              | (i, case') <- cases ]
+            , align $ nest 2 $ vsep
+                [ pretty "else"
+                , align $ nest 2 $ vsep
+                    [ pretty "let"
+                    , nest 4 (genJl True default')
+                    ]
+                , pretty "end" -- let end
                 ]
-        , pretty "end"
+            , pretty "end" -- switch end
+          ]
+          , pretty "end" -- target let end
         ]
     MKDef fname args body ->
         let
             fnName = pretty $ showMN fname
             argDef = align . sep $ punctuate comma $ map (pretty . showMN) args
         in vsep
-            [ pretty "function" <+> fnName <> parens argDef
+            [ pretty "@noinline function" <+> fnName <> parens argDef
             , indent 2 . align $ genJl True body
             , pretty "end"
             ]
